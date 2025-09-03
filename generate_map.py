@@ -17,7 +17,7 @@ def create_interactive_map(svg_content, constituency_data):
     for key, value in constituency_data.items():
         constituencies[value['no']] = value
     
-    # Create the HTML template
+    # Create the HTML template with placeholders
     html_template = '''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -152,7 +152,7 @@ def create_interactive_map(svg_content, constituency_data):
             <div id="tooltip"></div>
             <!-- Bihar Map -->
             <div id="bihar-map-container">
-                {svg_content}
+                <!-- SVG_CONTENT_PLACEHOLDER -->
             </div>
         </div>
         
@@ -181,7 +181,7 @@ def create_interactive_map(svg_content, constituency_data):
 
     <script>
         // Constituency data embedded in the HTML
-        const constituencyData = {constituency_json};
+        const constituencyData = <!-- CONSTITUENCY_JSON_PLACEHOLDER -->;
         
         // Create a mapping from constituency number to data
         const constituencyMap = {};
@@ -363,10 +363,14 @@ def create_interactive_map(svg_content, constituency_data):
     
     # Embed the SVG content and JSON data in the template
     # Escape the SVG content for use in HTML
-    svg_escaped = svg_content.replace('`', '\\`').replace('${', '\\${')
+    svg_escaped = svg_content.replace('</script>', '<\\/script>')
     constituency_json = json.dumps(constituencies)
     
-    return html_template.format(svg_content=svg_content, constituency_json=constituency_json)
+    # Replace placeholders with actual content
+    html_content = html_template.replace('<!-- SVG_CONTENT_PLACEHOLDER -->', svg_content)
+    html_content = html_content.replace('<!-- CONSTITUENCY_JSON_PLACEHOLDER -->', constituency_json)
+    
+    return html_content
 
 def main():
     # File paths
