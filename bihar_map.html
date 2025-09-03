@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bihar Assembly Constituencies - Interactive Map</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        
+        .map-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        #bihar-map {
+            width: 100%;
+            height: auto;
+        }
+        
+        #bihar-map path {
+            fill: #e0e0e0;
+            stroke: #ffffff;
+            stroke-width: 1;
+            cursor: pointer;
+            transition: fill 0.3s ease;
+        }
+        
+        #bihar-map path:hover {
+            fill: #bbdefb;
+            stroke: #1976d2;
+            stroke-width: 2;
+        }
+        
+        #tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+            max-width: 300px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        #search-box {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 300px;
+            font-size: 16px;
+        }
+        
+        #selected-info {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        #selected-info h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .constituency-list {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .constituency-list table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .constituency-list th,
+        .constituency-list td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .constituency-list th {
+            background-color: #f2f2f2;
+        }
+        
+        .constituency-list tr:hover {
+            background-color: #f5f5f5;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bihar Assembly Constituencies</h1>
+        
+        <div class="controls">
+            <input type="text" id="search-box" placeholder="Search constituencies...">
+        </div>
+        
+        <div class="map-container">
+            <div id="tooltip"></div>
+            <!-- The SVG will be loaded here -->
+            <div id="bihar-map-container"></div>
+        </div>
+        
+        <div id="selected-info">
+            <h2>Constituency Information</h2>
+            <p>Select a constituency from the map or list to view details.</p>
+            <div id="constituency-details"></div>
+        </div>
+        
+        <div class="constituency-list">
+            <h2>All Constituencies</h2>
+            <table id="constituency-table">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Name</th>
+                        <th>District</th>
+                        <th>Reserved</th>
+                    </tr>
+                </thead>
+                <tbody id="constituency-table-body">
+                    <!-- Table rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Load constituency data
+        async function loadConstituencyData() {
+            try {
+                const response = await fetch('bihar_constituencies.json');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error loading constituency data:', error);
+                return null;
+            }
+        }
+        
+        // Load SVG map
+        async function loadSVGMap() {
+            try {
+                const response = await fetch('Bihar_const.svg');
+                const svgText = await response.text();
+                return svgText;
+            } catch (error) {
+                console.error('Error loading SVG map:', error);
+                return null;
+            }
+        }
+        
+        // Initialize the map
+        async function initMap() {
+            // Load data
+            const constituencyData = await loadConstituencyData();
+            const svgText = await loadSVGMap();
+            
+            if (!constituencyData || !svgText) {
+                console.error('Failed to load required data');
+                return;
+            }
+            
+            // Parse and insert SVG
+            const parser = new DOMParser();
+            const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+            const svgElement = svgDoc.documentElement;
+            
+            // Set an ID for the SVG element
+            svgElement.id = 'bihar-map';
+            
+            // Insert SVG into the container
+            document.getElementById('bihar-map-container').appendChild(svgElement);
+            
+            // Get all path elements (skip first path which is likely the background)
+            const paths = svgElement.querySelectorAll('path');
+            console.log(`Found ${paths.length} path elements`);
+            
+            // Create a mapping from constituency number to data
+            const constituencyMap = {};
+            for (const key in constituencyData) {
+                const constituency = constituencyData[key];
+                constituencyMap[constituency.no] = constituency;
+            }
+            
+            // Attach data to paths and add event listeners
+            let pathIndex = 1; // Start from 1 as per the plan
+            for (const path of paths) {
+                // Skip the first path if it's a background (index 0)
+                if (pathIndex === 1 && path.getAttribute('d').length > 1000) {
+                    // This is likely the background, skip it
+                    console.log('Skipping background path');
+                    continue;
+                }
+                
+                const constituency = constituencyMap[pathIndex];
+                if (constituency) {
+                    // Set data attributes
+                    path.dataset.no = constituency.no;
+                    path.dataset.name = constituency.name;
+                    path.dataset.district = constituency.district;
+                    path.dataset.reserved = constituency.reserved || 'General';
+                    
+                    // Add title for accessibility
+                    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                    title.textContent = `${constituency.no}. ${constituency.name}`;
+                    path.appendChild(title);
+                    
+                    // Add event listeners
+                    path.addEventListener('mouseover', function(e) {
+                        showTooltip(e, constituency);
+                    });
+                    
+                    path.addEventListener('mousemove', function(e) {
+                        moveTooltip(e);
+                    });
+                    
+                    path.addEventListener('mouseout', function() {
+                        hideTooltip();
+                    });
+                    
+                    path.addEventListener('click', function() {
+                        showConstituencyDetails(constituency);
+                    });
+                    
+                    path.style.cursor = 'pointer';
+                } else {
+                    console.warn(`No data found for constituency number ${pathIndex}`);
+                }
+                
+                pathIndex++;
+                
+                // Stop if we've processed all 243 constituencies
+                if (pathIndex > 243) break;
+            }
+            
+            // Populate the constituency table
+            populateConstituencyTable(constituencyData);
+            
+            // Add search functionality
+            document.getElementById('search-box').addEventListener('input', function(e) {
+                filterConstituencies(e.target.value, constituencyData);
+            });
+        }
+        
+        // Tooltip functions
+        function showTooltip(e, constituency) {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.innerHTML = `
+                <strong>${constituency.no}. ${constituency.name}</strong><br>
+                District: ${constituency.district}<br>
+                Type: ${constituency.reserved || 'General'}
+            `;
+            tooltip.style.display = 'block';
+            moveTooltip(e);
+        }
+        
+        function moveTooltip(e) {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.style.left = (e.pageX + 10) + 'px';
+            tooltip.style.top = (e.pageY - 10) + 'px';
+        }
+        
+        function hideTooltip() {
+            document.getElementById('tooltip').style.display = 'none';
+        }
+        
+        // Show constituency details
+        function showConstituencyDetails(constituency) {
+            const detailsContainer = document.getElementById('constituency-details');
+            detailsContainer.innerHTML = `
+                <h3>${constituency.no}. ${constituency.name}</h3>
+                <p><strong>District:</strong> ${constituency.district}</p>
+                <p><strong>Constituency Type:</strong> ${constituency.reserved || 'General'}</p>
+                <p><strong>Lok Sabha Constituency:</strong> ${constituency.lok_sabha}</p>
+                <p><strong>Slug:</strong> ${constituency.slug}</p>
+            `;
+        }
+        
+        // Populate constituency table
+        function populateConstituencyTable(constituencyData) {
+            const tableBody = document.getElementById('constituency-table-body');
+            tableBody.innerHTML = '';
+            
+            // Convert object to array and sort by constituency number
+            const constituencies = Object.values(constituencyData).sort((a, b) => a.no - b.no);
+            
+            constituencies.forEach(constituency => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${constituency.no}</td>
+                    <td>${constituency.name}</td>
+                    <td>${constituency.district}</td>
+                    <td>${constituency.reserved || 'General'}</td>
+                `;
+                
+                row.addEventListener('click', function() {
+                    showConstituencyDetails(constituency);
+                    
+                    // Scroll to details
+                    document.getElementById('selected-info').scrollIntoView({ behavior: 'smooth' });
+                });
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Filter constituencies based on search term
+        function filterConstituencies(searchTerm, constituencyData) {
+            const tableBody = document.getElementById('constituency-table-body');
+            tableBody.innerHTML = '';
+            
+            // Convert object to array and sort by constituency number
+            const constituencies = Object.values(constituencyData)
+                .sort((a, b) => a.no - b.no)
+                .filter(constituency => 
+                    constituency.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    constituency.district.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            
+            constituencies.forEach(constituency => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${constituency.no}</td>
+                    <td>${constituency.name}</td>
+                    <td>${constituency.district}</td>
+                    <td>${constituency.reserved || 'General'}</td>
+                `;
+                
+                row.addEventListener('click', function() {
+                    showConstituencyDetails(constituency);
+                    
+                    // Scroll to details
+                    document.getElementById('selected-info').scrollIntoView({ behavior: 'smooth' });
+                });
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Initialize the map when the page loads
+        document.addEventListener('DOMContentLoaded', initMap);
+    </script>
+</body>
+</html>
