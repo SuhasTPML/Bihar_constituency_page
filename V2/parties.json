@@ -1,0 +1,74 @@
+[
+  {
+    "code": "BJP",
+    "name": "Bharatiya Janata Party",
+    "alliance": "NDA",
+    "color": "#ff9933"
+  },
+  {
+    "code": "JD(U)",
+    "name": "Janata Dal (United)",
+    "alliance": "NDA",
+    "color": "#006600"
+  },
+  {
+    "code": "RJD",
+    "name": "Rashtriya Janata Dal",
+    "alliance": "MGB",
+    "color": "#990000"
+  },
+  {
+    "code": "INC",
+    "name": "Indian National Congress",
+    "alliance": "MGB",
+    "color": "#3399ff"
+  },
+  {
+    "code": "CPI(ML)L",
+    "name": "Communist Party of India (Marxist\u2013Leninist) Liberation",
+    "alliance": "MGB",
+    "color": "#cc0000"
+  },
+  {
+    "code": "CPI",
+    "name": "Communist Party of India",
+    "alliance": "MGB",
+    "color": "#ff3333"
+  },
+  {
+    "code": "CPI(M)",
+    "name": "Communist Party of India (Marxist)",
+    "alliance": "MGB",
+    "color": "#cc3333"
+  },
+  {
+    "code": "HAM(S)",
+    "name": "Hindustani Awam Morcha (Secular)",
+    "alliance": "NDA",
+    "color": "#003366"
+  },
+  {
+    "code": "AIMIM",
+    "name": "All India Majlis-e-Ittehadul Muslimeen",
+    "alliance": "OTH",
+    "color": "#009933"
+  },
+  {
+    "code": "VIP",
+    "name": "Vikassheel Insaan Party",
+    "alliance": "NDA",
+    "color": "#9966cc"
+  },
+  {
+    "code": "LJP",
+    "name": "Lok Janshakti Party",
+    "alliance": "OTH",
+    "color": "#ff6699"
+  },
+  {
+    "code": "IND",
+    "name": "Independent",
+    "alliance": "NA",
+    "color": "#999999"
+  }
+]
