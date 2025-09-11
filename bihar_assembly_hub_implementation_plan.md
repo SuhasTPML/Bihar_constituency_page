@@ -4,6 +4,20 @@
 
 ---
 
+## Status Update (Current)
+
+- Constituency viewer (`constituency_viewer.html`) implemented with input box to load any seat (1–243).
+- Integrated historical results: `2010_results.json`, `2015_results.json`, `2020_results.json` (district-keyed JSONs).
+- Added CLI (`scripts/constituency_info.py`) to emit merged JSON per seat (base, current MLA, 2010/2015/2020 results). Output excludes Lok Sabha, electors, and percentages.
+- Party code normalization in tooling (e.g., JDU→JD(U), CPM→CPI(M), HAM→HAM(S), Ind→IND) using `parties.json` metadata.
+- Electors/shifted and turnout/percentages are not displayed at this time (data incomplete/out of scope).
+
+## Plan Adjustments
+
+- Constituency pages will show 2010/2015/2020 results (winner, runner‑up, votes, margin) and a trend text (2010→2015, 2015→2020 Hold/Gain). Vote percentages, turnout, and electors are deferred.
+- Data sources revised to prefer JSON inputs for results (2010/2015/2020). CSV for electors removed from current scope.
+- Optional future: generate a single `constituencies_full.json`; for now, the CLI and the viewer perform on‑demand/client‑side merges.
+
 ## 1) Product Modules & Pages
 
 ### 1.1 Hub (Landing)
@@ -273,6 +287,15 @@ for (const p of paths) {
 - Defer trend charts; show text KPIs only.
 - Defer MLA directory, keep only MLA on seat pages + hub composition.
 - Use static tables before wiring the map; add interactivity later.
+
+---
+
+## 14) Artifacts Added (This Iteration)
+
+- `constituency_viewer.html` — Browser viewer to explore any seat by number with 2010/2015/2020 results, current MLA, and trend (2010→2015, 2015→2020).
+- `scripts/constituency_info.py` — CLI to emit merged JSON per seat with party code normalization via `parties.json`.
+- Results inputs: `2010_results.json`, `2015_results.json`, `2020_results.json` (district‑keyed JSONs).
+- Party metadata: `parties.json` (names, alliance, colors; used for labeling and bars).
 
 ---
 
