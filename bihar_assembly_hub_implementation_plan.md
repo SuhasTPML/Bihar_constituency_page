@@ -26,9 +26,9 @@
 - **Data shown:**
   - Total seats: 243
   - Reserved seats: 38 SC, 2 ST
-  - Electors (roll 2024): statewide total
+  - (Deferred) Electors/turnout until data is available
   - Composition (NDA/MGB/Others + party splits)
-  - Map + tooltips: `{no, name, reserved, MLA (2020 winner), margin, electors}`
+  - Map + tooltips: `{no, name, reserved, MLA/current/winner, margin}`
 
 ### 1.2 Constituency Page (243)
 - **Header:** {No}. {Name} [{SC/ST badge if any}]
@@ -59,6 +59,13 @@
 ## 2) Data Ingestion & Model
 
 ### 2.1 Sources (assumed available)
+
+Updated (available now):
+- Constituencies base: `bihar_constituencies.json` — `{no, name, slug, district, reserved, lok_sabha_no, lok_sabha}`
+- Constituency SVG: `Bihar_const.svg` — 243 `<path>` elements
+- Results per seat (JSON): `2010_results.json`, `2015_results.json`, `2020_results.json` — district‑keyed arrays `{ "#", Name, Winner {Candidate, Party, Votes}, Runner up {Candidate, Party, Votes}, Margin }`
+- MLAs current (Wikipedia): `mla_current.csv` — `{no, mla, party, alliance}` (sparse for some seats)
+- Party metadata: `parties.json` — `{code, name, alliance, color}`
 - **Constituencies base:** `bihar_constituencies.json` (243 rows) → `{no, name, slug, reserved}`
 - **Constituency SVG:** `Bihar_const.svg` → 243 `<path>` elements
 - **Voter roll (ECI PDF):** `electors_2024.csv` (derived) → `{no, electors, shifted}`
@@ -96,6 +103,22 @@
 }
 ```
 
+Minimal schema (current scope, no electors/percentages):
+```json
+{
+  "no": 178,
+  "name": "Mokama",
+  "slug": "mokama",
+  "reserved": null,
+  "mla": "Rajiv Lochan Narayan Singh",
+  "mla_party": "JD(U)",
+  "mla_alliance": "NDA",
+  "results_2010": { "winner": "…", "winner_party": "…", "runner_up": "…", "runner_up_party": "…", "votes_winner": 0, "votes_runner_up": 0, "margin": 0 },
+  "results_2015": { "winner": "…", "winner_party": "…", "runner_up": "…", "runner_up_party": "…", "votes_winner": 0, "votes_runner_up": 0, "margin": 0 },
+  "results_2020": { "winner": "…", "winner_party": "…", "runner_up": "…", "runner_up_party": "…", "votes_winner": 0, "votes_runner_up": 0, "margin": 0 }
+}
+```
+
 **Table: `party_seats_2020` (optional precomp)**  
 `{ party: "BJP", seats: 74 }` etc.
 
@@ -111,6 +134,16 @@
 4. Join `mla_current.csv` on `no`.
 5. Output:
    - `constituencies_full.json` (243 objects)
+   - `party_current.json` (party → seats, alliance)
+   - `party_constituencies.json` (party → [nos])
+   - `reserved_index.json` (SC/ST lists)
+
+### 2.3 Build Pipeline (revised)
+1. Parse/validate `bihar_constituencies.json` (243 unique nos/slugs).
+2. Join results from JSON (2010/2015/2020) by seat number `#`.
+3. Join `mla_current.csv` on `no` (apply party code normalization with `parties.json`).
+4. Output:
+   - `constituencies_full.json` (243 objects; identity + MLA + results for 2010/2015/2020)
    - `party_current.json` (party → seats, alliance)
    - `party_constituencies.json` (party → [nos])
    - `reserved_index.json` (SC/ST lists)
