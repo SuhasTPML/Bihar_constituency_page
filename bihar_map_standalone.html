@@ -2568,7 +2568,18 @@ path[id^="polygon"] {
     svg.insertBefore(gWrapper, overlay? overlay.nextSibling : svg.firstChild);
   }
 
-  gWrapper.style.transition = "transform 0.6s ease";
+  // Clear any previous transform; we'll animate the SVG attribute instead of CSS.
+  gWrapper.removeAttribute("transform");
+
+  // Use viewBox dimensions (user units) for stable zoom math.
+  function getSvgDims(){
+    const vb = svg.viewBox && svg.viewBox.baseVal;
+    if (vb && vb.width > 0 && vb.height > 0) {
+      return { width: vb.width, height: vb.height };
+    }
+    const r = svg.getBoundingClientRect();
+    return { width: r.width, height: r.height };
+  }
 
   const paths=[...gWrapper.querySelectorAll('path[id^="polygon"]')];
   const textLabels=[...gWrapper.querySelectorAll("text")];
@@ -2578,6 +2589,39 @@ path[id^="polygon"] {
 
   const pt=svg.createSVGPoint();
   const mapping=new Map();
+  let lastScale=1;
+  let animReq=null;
+
+  function parseCurrentTransform(){
+    const t = gWrapper.getAttribute("transform") || "";
+    const m = t.match(/translate\(([-\d.eE]+)[ ,]([-\d.eE]+)\)\s*scale\(([-\d.eE]+)\)/);
+    if(m){
+      return { tx: parseFloat(m[1])||0, ty: parseFloat(m[2])||0, s: parseFloat(m[3])||1 };
+    }
+    return { tx:0, ty:0, s:lastScale||1 };
+  }
+  function setTransform(tx, ty, s){
+    gWrapper.setAttribute("transform", `translate(${tx},${ty}) scale(${s})`);
+    lastScale = s;
+    paths.forEach(path => path.style.strokeWidth = (1/lastScale*1.5)+"px");
+  }
+  function easeInOutCubic(t){
+    return t<0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+  }
+  function animateTo(tx, ty, s, duration=450){
+    if(animReq) cancelAnimationFrame(animReq);
+    const start = performance.now();
+    const cur = parseCurrentTransform();
+    const dx = tx - cur.tx, dy = ty - cur.ty, ds = s - cur.s;
+    function frame(now){
+      const t = Math.min(1, (now-start)/duration);
+      const e = easeInOutCubic(t);
+      setTransform(cur.tx + dx*e, cur.ty + dy*e, cur.s + ds*e);
+      if(t<1){ animReq = requestAnimationFrame(frame); }
+      else { animReq = null; }
+    }
+    animReq = requestAnimationFrame(frame);
+  }
 
   paths.forEach(p=>{
     let chosen=null;
@@ -2695,16 +2739,16 @@ path[id^="polygon"] {
   }
 
   function zoomToPath(p){
-    const bbox=p.getBBox();
-    const svgRect=svg.getBoundingClientRect();
-    const scale=Math.min(svgRect.width/bbox.width, svgRect.height/bbox.height)*ZOOM_MARGIN_FACTOR;
-    const tx=-(bbox.x+bbox.width/2)*scale+svgRect.width/2;
-    const ty=-(bbox.y+bbox.height/2)*scale+svgRect.height/2;
-    gWrapper.setAttribute("transform",`translate(${tx},${ty}) scale(${scale})`);
-    paths.forEach(path => path.style.strokeWidth=(1/scale*1.5)+"px");
+    const bbox = p.getBBox();
+    const dims = getSvgDims();
+    const scale = Math.min(dims.width / bbox.width, dims.height / bbox.height) * ZOOM_MARGIN_FACTOR;
+    const tx = -(bbox.x + bbox.width/2) * scale + dims.width/2;
+    const ty = -(bbox.y + bbox.height/2) * scale + dims.height/2;
+    animateTo(tx, ty, scale, 450);
   }
   function resetZoom(){
-    gWrapper.setAttribute("transform","");
+    // Animate back to identity
+    animateTo(0, 0, 1, 450);
     zoomed=false;
     currentPath=null;
     hideReset();
@@ -2728,6 +2772,8 @@ path[id^="polygon"] {
       if(overlay) overlay.style.display="block";
     });
   });
+
+  // Animation handled via requestAnimationFrame; no CSS transition listener needed.
 
   resetBtn.addEventListener("click",(e)=>{ e.stopPropagation(); resetZoom(); });
   svg.addEventListener("click",(e)=>{ if(e.target===svg) resetZoom(); });

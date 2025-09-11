@@ -1,0 +1,450 @@
+    "district": "Jehanabad",
+    "reserved": null,
+    "lok_sabha_no": 36,
+    "lok_sabha": "Jahanabad"
+  },
+  "217": {
+    "no": 217,
+    "name": "Ghosi",
+    "slug": "ghosi",
+    "district": "Jehanabad",
+    "reserved": null,
+    "lok_sabha_no": 36,
+    "lok_sabha": "Jahanabad"
+  },
+  "218": {
+    "no": 218,
+    "name": "Makhdumpur",
+    "slug": "makhdumpur-sc",
+    "district": "Jehanabad",
+    "reserved": "SC",
+    "lok_sabha_no": 36,
+    "lok_sabha": "Jahanabad"
+  },
+  "219": {
+    "no": 219,
+    "name": "Goh",
+    "slug": "goh",
+    "district": "Aurangabad",
+    "reserved": null,
+    "lok_sabha_no": 35,
+    "lok_sabha": "Karakat"
+  },
+  "220": {
+    "no": 220,
+    "name": "Obra",
+    "slug": "obra",
+    "district": "Aurangabad",
+    "reserved": null,
+    "lok_sabha_no": 35,
+    "lok_sabha": "Karakat"
+  },
+  "221": {
+    "no": 221,
+    "name": "Nabinagar",
+    "slug": "nabinagar",
+    "district": "Aurangabad",
+    "reserved": null,
+    "lok_sabha_no": 35,
+    "lok_sabha": "Karakat"
+  },
+  "222": {
+    "no": 222,
+    "name": "Kutumba",
+    "slug": "kutumba-sc",
+    "district": "Aurangabad",
+    "reserved": "SC",
+    "lok_sabha_no": 37,
+    "lok_sabha": "Aurangabad"
+  },
+  "223": {
+    "no": 223,
+    "name": "Aurangabad",
+    "slug": "aurangabad",
+    "district": "Aurangabad",
+    "reserved": null,
+    "lok_sabha_no": 37,
+    "lok_sabha": "Aurangabad"
+  },
+  "224": {
+    "no": 224,
+    "name": "Rafiganj",
+    "slug": "rafiganj",
+    "district": "Aurangabad",
+    "reserved": null,
+    "lok_sabha_no": 37,
+    "lok_sabha": "Aurangabad"
+  },
+  "225": {
+    "no": 225,
+    "name": "Gurua",
+    "slug": "gurua",
+    "district": "Gaya",
+    "reserved": null,
+    "lok_sabha_no": 37,
+    "lok_sabha": "Aurangabad"
+  },
+  "226": {
+    "no": 226,
+    "name": "Sherghati",
+    "slug": "sherghati",
+    "district": "Gaya",
+    "reserved": null,
+    "lok_sabha_no": 38,
+    "lok_sabha": "Gaya"
+  },
+  "227": {
+    "no": 227,
+    "name": "Imamganj",
+    "slug": "imamganj-sc",
+    "district": "Gaya",
+    "reserved": "SC",
+    "lok_sabha_no": 37,
+    "lok_sabha": "Aurangabad"
+  },
+  "228": {
+    "no": 228,
+    "name": "Barachatti",
+    "slug": "barachatti-sc",
+    "district": "Gaya",
+    "reserved": "SC",
+    "lok_sabha_no": 38,
+    "lok_sabha": "Gaya"
+  },
+  "229": {
+    "no": 229,
+    "name": "Bodh Gaya",
+    "slug": "bodh-gaya-sc",
+    "district": "Gaya",
+    "reserved": "SC",
+    "lok_sabha_no": 38,
+    "lok_sabha": "Gaya"
+  },
+  "230": {
+    "no": 230,
+    "name": "Gaya Town",
+    "slug": "gaya-town",
+    "district": "Gaya",
+    "reserved": null,
+    "lok_sabha_no": 38,
+    "lok_sabha": "Gaya"
+  },
+  "231": {
+    "no": 231,
+    "name": "Tikari",
+    "slug": "tikari",
+    "district": "Gaya",
+    "reserved": null,
+    "lok_sabha_no": 37,
+    "lok_sabha": "Aurangabad"
+  },
+  "232": {
+    "no": 232,
+    "name": "Belaganj",
+    "slug": "belaganj",
+    "district": "Gaya",
+    "reserved": null,
+    "lok_sabha_no": 38,
+    "lok_sabha": "Gaya"
+  },
+  "233": {
+    "no": 233,
+    "name": "Atri",
+    "slug": "atri",
+    "district": "Gaya",
+    "reserved": null,
+    "lok_sabha_no": 36,
+    "lok_sabha": "Jahanabad"
+  },
+  "234": {
+    "no": 234,
+    "name": "Wazirganj",
+    "slug": "wazirganj",
+    "district": "Gaya",
+    "reserved": null,
+    "lok_sabha_no": 38,
+    "lok_sabha": "Gaya"
+  },
+  "235": {
+    "no": 235,
+    "name": "Rajauli",
+    "slug": "rajauli-sc",
+    "district": "Nawada",
+    "reserved": "SC",
+    "lok_sabha_no": 39,
+    "lok_sabha": "Nawada"
+  },
+  "236": {
+    "no": 236,
+    "name": "Hisua",
+    "slug": "hisua",
+    "district": "Nawada",
+    "reserved": null,
+    "lok_sabha_no": 39,
+    "lok_sabha": "Nawada"
+  },
+  "237": {
+    "no": 237,
+    "name": "Nawada",
+    "slug": "nawada",
+    "district": "Nawada",
+    "reserved": null,
+    "lok_sabha_no": 39,
+    "lok_sabha": "Nawada"
+  },
+  "238": {
+    "no": 238,
+    "name": "Gobindpur",
+    "slug": "gobindpur",
+    "district": "Nawada",
+    "reserved": null,
+    "lok_sabha_no": 39,
+    "lok_sabha": "Nawada"
+  },
+  "239": {
+    "no": 239,
+    "name": "Warsaliganj",
+    "slug": "warsaliganj",
+    "district": "Nawada",
+    "reserved": null,
+    "lok_sabha_no": 39,
+    "lok_sabha": "Nawada"
+  },
+  "240": {
+    "no": 240,
+    "name": "Sikandra",
+    "slug": "sikandra-sc",
+    "district": "Jamui",
+    "reserved": "SC",
+    "lok_sabha_no": 40,
+    "lok_sabha": "Jamui"
+  },
+  "241": {
+    "no": 241,
+    "name": "Jamui",
+    "slug": "jamui",
+    "district": "Jamui",
+    "reserved": null,
+    "lok_sabha_no": 40,
+    "lok_sabha": "Jamui"
+  },
+  "242": {
+    "no": 242,
+    "name": "Jhajha",
+    "slug": "jhajha",
+    "district": "Jamui",
+    "reserved": null,
+    "lok_sabha_no": 40,
+    "lok_sabha": "Jamui"
+  },
+  "243": {
+    "no": 243,
+    "name": "Chakai",
+    "slug": "chakai",
+    "district": "Jamui",
+    "reserved": null,
+    "lok_sabha_no": 40,
+    "lok_sabha": "Jamui"
+  }
+};</script><div id="resetZoomBtn">×</div><script>
+(function(){
+  const HOVER_COLOR = "#ffcccc";
+  const ZOOM_MARGIN_FACTOR = 0.70;
+
+  function parseTransform(t){
+    if (!t) return {x:0,y:0};
+    const m = t.match(/matrix\([^, ]+\s+[^, ]+\s+[^, ]+\s+[^, ]+\s+([-\d.eE]+)\s+([-\d.eE]+)\)/);
+    return m ? {x:parseFloat(m[1]), y:parseFloat(m[2])}:{x:0,y:0};
+  }
+  function d2(ax,ay,bx,by){ const dx=ax-bx, dy=ay-by; return dx*dx+dy*dy; }
+  function toLocal(path, pt){ const inv=(path.getCTM()||path.ownerSVGElement.createSVGMatrix()).inverse(); return pt.matrixTransform(inv); }
+
+  const svg=document.querySelector("svg"); if(!svg) return;
+  const overlay=document.getElementById("greyOverlay");
+
+  // Wrap graphics
+  let gWrapper = svg.querySelector("#mapRoot");
+  if (!gWrapper) {
+    gWrapper = document.createElementNS("http://www.w3.org/2000/svg","g");
+    gWrapper.setAttribute("id","mapRoot");
+    const toMove = [];
+    svg.childNodes.forEach(n => {
+      if (n.nodeType === 1) {
+        const tag = n.tagName.toLowerCase();
+        if (!["defs","script","style","title","desc","rect"].includes(tag)) {
+          toMove.push(n);
+        }
+      }
+    });
+    toMove.forEach(n => gWrapper.appendChild(n));
+    svg.insertBefore(gWrapper, overlay? overlay.nextSibling : svg.firstChild);
+  }
+
+  gWrapper.style.transition = "transform 0.6s ease";
+
+  const paths=[...gWrapper.querySelectorAll('path[id^="polygon"]')];
+  const textLabels=[...gWrapper.querySelectorAll("text")];
+  const labels=textLabels.map(el=>({txt:(el.textContent||"").trim(), el}))
+      .filter(o=>/^\d{1,3}$/.test(o.txt))
+      .map(o=>{ const pt=parseTransform(o.el.getAttribute("transform")); return {num:parseInt(o.txt,10), x:pt.x,y:pt.y,el:o.el}; });
+
+  const pt=svg.createSVGPoint();
+  const mapping=new Map();
+
+  paths.forEach(p=>{
+    let chosen=null;
+    const inside=[];
+    for(const L of labels){
+      pt.x=L.x; pt.y=L.y;
+      if(typeof p.isPointInFill==="function"){
+        const local=toLocal(p,pt);
+        if(p.isPointInFill(local)) inside.push(L);
+      }
+    }
+    if(inside.length===1){ chosen=inside[0]; }
+    else if(inside.length>1){
+      const b=p.getBBox(), cx=b.x+b.width/2, cy=b.y+b.height/2;
+      let bestD=Infinity;
+      for(const L of inside){ const dd=d2(L.x,L.y,cx,cy); if(dd<bestD){bestD=dd;chosen=L;} }
+    } else {
+      const b=p.getBBox(), cx=b.x+b.width/2, cy=b.y+b.height/2;
+      let best=null,bestD=Infinity;
+      for(const L of labels){ const dd=d2(L.x,L.y,cx,cy); if(dd<bestD){bestD=dd;best=L;} }
+      chosen=best;
+    }
+    if(chosen){ p.setAttribute("data-seat-no",chosen.num); mapping.set(p,chosen.num); }
+  });
+
+  // Tooltip
+  const tip=document.createElement("div");
+  Object.assign(tip.style,{
+    position:"absolute",pointerEvents:"none",background:"#fff",border:"1px solid #ccc",
+    borderRadius:"6px",padding:"6px 8px",font:"12px/1.2 Arial, sans-serif",
+    boxShadow:"0 2px 6px rgba(0,0,0,0.25)",display:"none",zIndex:9999
+  });
+  tip.innerHTML='<div id="t1" style="font-weight:700"></div><div id="t2" style="opacity:0.75"></div>';
+  document.body.appendChild(tip);
+  const t1=tip.querySelector("#t1"), t2=tip.querySelector("#t2");
+
+  function showTip(e,no){
+    const row=(window.__BIHAR_SEATS__||{})[String(no)];
+    if(!row){ t1.textContent="#"+no; t2.textContent=""; }
+    else {
+      t1.textContent=`#${row.no} ${row.name}`;
+      t2.textContent=row.reserved ? row.reserved.toUpperCase()+" seat" : "General seat";
+    }
+    tip.style.left=(e.pageX+12)+"px";
+    tip.style.top=(e.pageY+12)+"px";
+    tip.style.display="block";
+  }
+  function hideTip(){ tip.style.display="none"; }
+
+  let zoomed=false;
+  let currentPath=null;
+
+  paths.forEach(p=>{
+    p.addEventListener("mouseenter",e=>{
+      if(zoomed && p!==currentPath){
+        p.style.opacity="0.8";
+        const no=mapping.get(p); if(no) showTip(e,no);
+      }
+      if(!zoomed){
+        const no=mapping.get(p); if(!no) return;
+        showTip(e,no);
+        const computed=window.getComputedStyle(p).fill;
+        p.setAttribute("data-old-fill",computed);
+        p.style.fill=HOVER_COLOR;
+      }
+    });
+    p.addEventListener("mousemove",e=>{
+      if(!zoomed){
+        const no=mapping.get(p); if(no) showTip(e,no);
+      }
+    });
+    p.addEventListener("mouseleave",()=>{
+      if(zoomed && p!==currentPath){
+        p.style.opacity="0.3";
+        hideTip();
+      }
+      if(!zoomed){
+        hideTip();
+        const old=p.getAttribute("data-old-fill");
+        if(old){ p.style.fill=old; p.removeAttribute("data-old-fill"); }
+      }
+    });
+  });
+
+  const resetBtn=document.getElementById("resetZoomBtn");
+  function showReset(){ resetBtn.style.display="flex"; }
+  function hideReset(){ resetBtn.style.display="none"; }
+
+  function setAllLabelsVisible(vis){
+    textLabels.forEach(t=>{ t.style.display=vis? "" : "none"; });
+  }
+
+  function addInsideLabel(p){
+    removeInsideLabel();
+    const no=mapping.get(p);
+    const row=(window.__BIHAR_SEATS__||{})[String(no)] || {no, name:""};
+    const b=p.getBBox();
+    const label=document.createElementNS("http://www.w3.org/2000/svg","text");
+    label.setAttribute("id","inside-label");
+    label.setAttribute("x", b.x+b.width/2);
+    label.setAttribute("y", b.y+b.height/2);
+    label.setAttribute("text-anchor","middle");
+    label.setAttribute("dominant-baseline","middle");
+    label.setAttribute("font-family","Arial, sans-serif");
+    label.setAttribute("font-weight","700");
+    const fs=Math.max(10, Math.min(24, Math.min(b.width,b.height)*0.15));
+    label.setAttribute("font-size", fs.toFixed(0));
+    label.textContent=`#${row.no} ${row.name||""}`.trim();
+    label.setAttribute("fill","#111");
+    gWrapper.appendChild(label);
+  }
+  function removeInsideLabel(){
+    const t=gWrapper.querySelector("#inside-label");
+    if(t) t.remove();
+  }
+
+  function zoomToPath(p){
+    const bbox=p.getBBox();
+    const svgRect=svg.getBoundingClientRect();
+    const scale=Math.min(svgRect.width/bbox.width, svgRect.height/bbox.height)*ZOOM_MARGIN_FACTOR;
+    const tx=-(bbox.x+bbox.width/2)*scale+svgRect.width/2;
+    const ty=-(bbox.y+bbox.height/2)*scale+svgRect.height/2;
+    gWrapper.setAttribute("transform",`translate(${tx},${ty}) scale(${scale})`);
+    paths.forEach(path => path.style.strokeWidth=(1/scale*1.5)+"px");
+  }
+  function resetZoom(){
+    gWrapper.setAttribute("transform","");
+    zoomed=false;
+    currentPath=null;
+    hideReset();
+    removeInsideLabel();
+    setAllLabelsVisible(true);
+    hideTip();
+    paths.forEach(path=>{ path.style.opacity=""; path.style.strokeWidth=""; });
+    if(overlay) overlay.style.display="none";
+  }
+
+  paths.forEach(p=>{
+    p.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      zoomToPath(p);
+      zoomed=true;
+      currentPath=p;
+      setAllLabelsVisible(false);
+      addInsideLabel(p);
+      showReset();
+      paths.forEach(path=>{ path.style.opacity=(path===p? "1":"0.3"); });
+      if(overlay) overlay.style.display="block";
+    });
+  });
+
+  resetBtn.addEventListener("click",(e)=>{ e.stopPropagation(); resetZoom(); });
+  svg.addEventListener("click",(e)=>{ if(e.target===svg) resetZoom(); });
+
+  console.log("[v7.3] Grey overlay, smooth opacity, hover on faded polygons working.");
+})();
+</script></body>
+</html>
