@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -6,20 +6,42 @@
   <title>Bihar Assembly | Constituency Viewer</title>
   <style>
     :root {
-      --bg: #f7f7f9; --card: #fff; --text: #222; --muted: #666; --border: #e5e7eb; --accent: #0f766e;
+      --bg: #f7f7f9; --card: #fff; --text: #222; --muted: #666; --border: #e5e7eb; --accent: #0091ac;
+      --primary: #0091ac; --primary-dark: #007a93; --header-bg: #0091ac; --header-text: #fff;
     }
     * { box-sizing: border-box; }
     body { margin: 0; font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); }
-    .container { max-width: 980px; margin: 24px auto; padding: 0 16px; }
-    header { margin-bottom: 16px; }
-    h1 { font-size: 20px; margin: 0 0 8px; }
-    .controls { display: flex; gap: 8px; align-items: center; margin: 8px 0 16px; }
-    input[type="number"] { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; width: 160px; }
-    button { padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer; }
-    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06); margin-bottom: 12px; }
-    .row { display: flex; gap: 16px; flex-wrap: wrap; }
-    .col { flex: 1 1 300px; }
+    .container { max-width: 980px; margin: 0 auto; padding: 0 16px; }
+    
+    /* Header Styles */
+    .main-header { background: var(--header-bg); color: var(--header-text); padding: 12px 0; position: sticky; top: 0; z-index: 100; }
+    .header-content { max-width: 980px; margin: 0 auto; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .menu-icon, .search-icon, .account-icon { cursor: pointer; font-size: 18px; }
+    .site-title { font-size: 18px; font-weight: 600; margin: 0; letter-spacing: 0.5px; }
+    
+    /* Search Section */
+    .search-section { padding: 24px 0 16px; }
+    .search-controls { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+    .search-controls label { font-weight: 500; color: var(--text); }
+    input[type="number"] { padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; width: 180px; font-size: 16px; }
+    input[type="number"]:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0, 145, 172, 0.1); }
+    .primary-btn { padding: 12px 20px; border: none; border-radius: 8px; background: var(--primary); color: #fff; cursor: pointer; font-size: 16px; font-weight: 500; }
+    .primary-btn:hover { background: var(--primary-dark); }
+    .status-text { color: var(--muted); font-size: 14px; }
+    /* Mobile-first Card Layout */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); margin-bottom: 16px; }
+    .constituency-header { margin-bottom: 24px; }
+    .constituency-title { font-size: 24px; font-weight: 700; margin: 0 0 8px; color: var(--text); }
+    .constituency-info { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .current-mla-card { margin-bottom: 16px; }
+    .current-mla-title { font-size: 16px; font-weight: 600; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .mla-name { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+    .mla-party { color: var(--muted); font-size: 16px; }
+    
+    /* Mobile-first: Stack everything vertically */
+    .results-container { display: flex; flex-direction: column; gap: 16px; }
     .muted { color: var(--muted); }
     .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #eef2ff; border: 1px solid #e5e7eb; font-size: 12px; }
     .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; color: #fff; font-size: 12px; }
@@ -33,20 +55,224 @@
     .hr { height: 1px; background: var(--border); margin: 12px 0; }
     .note { font-size: 12px; color: var(--muted); }
     .error { color: #b91c1c; }
+    
+    /* Trends Visualization - Enhanced Clarity */
+    .trends-container { margin: 20px 0; }
+    .trend-timeline { margin-bottom: 24px; }
+    .trend-item { 
+      display: flex; 
+      align-items: center; 
+      margin-bottom: 20px; 
+      padding: 20px; 
+      border-radius: 12px; 
+      background: #ffffff;
+      border: 2px solid #f1f5f9;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .trend-period { 
+      font-weight: 700; 
+      font-size: 16px; 
+      min-width: 120px; 
+      color: var(--primary);
+      text-align: center;
+      background: rgba(0, 145, 172, 0.1);
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(0, 145, 172, 0.2);
+    }
+    .trend-transition { 
+      flex: 1; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      gap: 16px; 
+      margin: 0 20px;
+    }
+    .trend-party-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 100px;
+    }
+    .trend-party-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .trend-year {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary);
+      background: rgba(0, 145, 172, 0.1);
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(0, 145, 172, 0.2);
+      min-width: 60px;
+      text-align: center;
+    }
+    .trend-party { 
+      padding: 6px 12px; 
+      border-radius: 6px; 
+      color: white; 
+      font-size: 13px; 
+      font-weight: 600;
+      min-width: 60px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      margin-top: 2px;
+    }
+    .trend-arrow { 
+      font-size: 24px; 
+      color: var(--primary);
+      font-weight: bold;
+    }
+    .trend-result { 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      min-width: 100px;
+    }
+    .trend-type { 
+      font-weight: 700; 
+      font-size: 16px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .trend-hold { 
+      color: white;
+      background: #10b981;
+    }
+    .trend-gain { 
+      color: white;
+      background: #f59e0b;
+    }
+    .trend-description {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      font-weight: 500;
+    }
+    .winners-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 16px; }
+    .winner-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+    .winner-year { font-weight: 600; color: var(--primary); font-size: 14px; }
+    .winner-name { font-weight: 500; margin: 4px 0 2px; }
+    .winner-party { color: var(--muted); font-size: 14px; }
+
+    /* Election Result Cards */
+    .election-result { margin-bottom: 16px; }
+    .election-title { font-size: 16px; font-weight: 600; margin: 0 0 16px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text); }
+    .candidate-row { margin-bottom: 16px; }
+    .candidate-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .candidate-name { font-weight: 600; font-size: 16px; }
+    .candidate-party { color: var(--muted); font-size: 14px; }
+    .vote-count { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 600; }
+    .margin-info { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .margin-text { font-weight: 600; }
+    
+    /* Mobile-First Optimizations */
+    @media (max-width: 767px) {
+      .trend-item { 
+        padding: 12px; 
+        margin-bottom: 16px; 
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+      }
+      .trend-transition { 
+        margin: 0; 
+        gap: 8px; 
+        flex-direction: row;
+        justify-content: space-around;
+      }
+      .trend-party-box { 
+        min-width: 70px; 
+        gap: 4px; 
+        flex: 1;
+      }
+      .trend-year { 
+        font-size: 12px; 
+        padding: 4px 6px; 
+        min-width: auto;
+        white-space: nowrap;
+      }
+      .trend-party { 
+        font-size: 11px; 
+        padding: 4px 6px; 
+        min-width: auto;
+        white-space: nowrap;
+      }
+      .trend-party-label {
+        font-size: 10px;
+      }
+      .trend-arrow { 
+        font-size: 18px; 
+        flex-shrink: 0;
+        margin: 0 4px;
+      }
+      .trend-result { 
+        text-align: center;
+        min-width: auto;
+      }
+      .trend-type { 
+        font-size: 13px; 
+        padding: 6px 10px;
+        display: inline-block;
+      }
+      .trend-description { 
+        font-size: 10px; 
+        margin-top: 4px;
+        line-height: 1.3;
+      }
+      .winners-grid { 
+        grid-template-columns: 1fr; 
+      }
+    }
+
+    /* Responsive Breakpoints */
+    @media (min-width: 768px) {
+      .container { padding: 0 24px; }
+      .search-controls { gap: 16px; }
+      .results-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+      .constituency-title { font-size: 28px; }
+    }
+    
+    @media (min-width: 1024px) {
+      .results-container { grid-template-columns: 1fr 1fr 1fr; }
+      .header-content { padding: 0 24px; }
+      .constituency-title { font-size: 32px; }
+    }
   </style>
 </head>
 <body>
+  <header class="main-header">
+    <div class="header-content">
+      <div class="header-left">
+        <span class="menu-icon">☰</span>
+        <h1 class="site-title">BIHAR ASSEMBLY</h1>
+      </div>
+      <div class="header-right">
+        <span class="search-icon">🔍</span>
+        <span class="account-icon">👤</span>
+      </div>
+    </div>
+  </header>
+  
   <div class="container">
-    <header>
-      <h1>Bihar Assembly — Constituency Viewer</h1>
-      <div class="controls">
+    <div class="search-section">
+      <div class="search-controls">
         <label for="seatNo">Constituency No:</label>
         <input id="seatNo" type="number" min="1" max="243" placeholder="e.g. 21" />
-        <button id="loadBtn" class="primary">Load</button>
-        <span id="status" class="muted"></span>
+        <button id="loadBtn" class="primary-btn">Load</button>
       </div>
+      <span id="status" class="status-text"></span>
       <div class="note">Tip: Serve this file over a local web server to allow fetching local JSON (e.g., <span class="mono">python -m http.server</span> and open http://localhost:8000/constituency_viewer.html).</div>
-    </header>
+    </div>
 
     <div id="output"></div>
   </div>
@@ -55,9 +281,9 @@
     const FILES = {
       constituencies: './bihar_constituencies.json',
       parties: './parties.json',
-      results2010: './2010_results.json',
-      results2015: './2015_results.json',
-      results2020: './2020_results.json',
+      results2010: './2010_results.normalized.json',
+      results2015: './2015_results.normalized.json',
+      results2020: './2020_results.normalized.json',
       mla: './current_mla.json',
     };
 
@@ -65,7 +291,7 @@
       ['JDU','JD(U)'], ['JD(U)','JD(U)'], ['CPM','CPI(M)'], ['HAM','HAM(S)'], ['Ind','IND'], ['IND','IND']
     ]);
 
-    const fmtNumber = (n) => (n==null? '—' : n.toLocaleString('en-IN'));
+    const fmtNumber = (n) => (n==null? 'N/A' : Number(n).toLocaleString('en-IN'));
 
     function normalizeParty(code){ if(!code) return code; const c = code.trim(); return PARTY_NORMALIZE.get(c) || c; }
 
@@ -99,7 +325,7 @@
 
     async function loadAll(){
       const status = document.getElementById('status');
-      status.textContent = 'Loading data…';
+      status.textContent = 'Loading data...';
       const [constRes, partiesRes, r10Res, r15Res, r20Res, mlaRes] = await Promise.all([
         fetch(FILES.constituencies),
         fetch(FILES.parties),
@@ -158,7 +384,7 @@
     }
 
     function renderYearBlock(year, rec, partiesIdx){
-      if (!rec) return `<div class="card"><div class="section-title">${year} Result</div><div class="muted">Not available</div></div>`;
+      if (!rec) return `<div class="card election-result"><h3 class="election-title">${year} Result</h3><div class="muted">Not available</div></div>`;
       const w = rec['Winner'] || {}; const ru = rec['Runner up'] || {};
       const wP = enrichParty(w.Party, partiesIdx); const ruP = enrichParty(ru.Party, partiesIdx);
       const wVotes = parseInt(String(w.Votes||'').replace(/,/g,''),10) || 0;
@@ -167,19 +393,35 @@
       const maxV = Math.max(wVotes, ruVotes, 1);
       const wPct = Math.round((wVotes/maxV)*100);
       const ruPct = Math.round((ruVotes/maxV)*100);
+      
+      const marginType = margin > 20000 ? 'Comfortable' : margin > 5000 ? 'Moderate' : 'Close';
+      
       return `
-        <div class="card">
-          <div class="section-title">${year} Result</div>
-          <div>
-            <div><strong>Winner:</strong> ${w.Candidate || '—'} — ${wP.name || wP.code || '—'} <span class="mono">| Votes: ${fmtNumber(wVotes)}</span></div>
-            <div><strong>Runner-up:</strong> ${ru.Candidate || '—'} — ${ruP.name || ruP.code || '—'} <span class="mono">| Votes: ${fmtNumber(ruVotes)}</span></div>
-            <div><strong>Margin:</strong> <span class="mono">${fmtNumber(margin)}</span> votes</div>
-            <div class="vote-bars">
-              <div class="bar-label"><span>${w.Candidate || '—'}</span><span class="mono">${fmtNumber(wVotes)}</span></div>
-              <div class="bar"><span style="width:${wPct}%; background:${wP.color}"></span></div>
-              <div class="bar-label"><span>${ru.Candidate || '—'}</span><span class="mono">${fmtNumber(ruVotes)}</span></div>
-              <div class="bar"><span style="width:${ruPct}%; background:${ruP.color}"></span></div>
+        <div class="card election-result">
+          <h3 class="election-title">${year} Result</h3>
+          
+          <div class="candidate-row">
+            <div class="candidate-info">
+              <div>
+                <div class="candidate-name">WINNER: ${w.Candidate || '—'}</div>
+                <div class="candidate-party">${wP.name || wP.code || '—'} • <span class="vote-count">${fmtNumber(wVotes)} votes</span></div>
+              </div>
             </div>
+            <div class="bar"><span style="width:${wPct}%; background:${wP.color}"></span></div>
+          </div>
+          
+          <div class="candidate-row">
+            <div class="candidate-info">
+              <div>
+                <div class="candidate-name">Runner-up: ${ru.Candidate || '—'}</div>
+                <div class="candidate-party">${ruP.name || ruP.code || '—'} • <span class="vote-count">${fmtNumber(ruVotes)} votes</span></div>
+              </div>
+            </div>
+            <div class="bar"><span style="width:${ruPct}%; background:${ruP.color}"></span></div>
+          </div>
+          
+          <div class="margin-info">
+            <span class="margin-text">MARGIN: ${fmtNumber(margin)} votes (${marginType})</span>
           </div>
         </div>`;
     }
@@ -196,6 +438,106 @@
       if (r2015) winners.push(`2015: ${nameOf(r2015) || '—'} (${p15 || '—'})`);
       if (r2020) winners.push(`2020: ${nameOf(r2020) || '—'} (${p20 || '—'})`);
       return { lines, winners };
+    }
+
+    function renderEnhancedTrends(r2010, r2015, r2020, partiesIdx) {
+      const partyOf = (rec) => normalizeParty((rec && rec['Winner'] && rec['Winner'].Party) || '');
+      const nameOf = (rec) => (rec && rec['Winner'] && rec['Winner'].Candidate) || null;
+      const p10 = partyOf(r2010), p15 = partyOf(r2015), p20 = partyOf(r2020);
+      
+      const transitions = [];
+      
+      // 2010 → 2015 transition
+      if (p10 && p15) {
+        const isHold = p10 === p15;
+        const fromParty = enrichParty(p10, partiesIdx);
+        const toParty = enrichParty(p15, partiesIdx);
+        transitions.push({
+          period: '2010 → 2015',
+          isHold,
+          fromParty,
+          toParty,
+          type: isHold ? 'Hold' : 'Gain'
+        });
+      }
+      
+      // 2015 → 2020 transition
+      if (p15 && p20) {
+        const isHold = p15 === p20;
+        const fromParty = enrichParty(p15, partiesIdx);
+        const toParty = enrichParty(p20, partiesIdx);
+        transitions.push({
+          period: '2015 → 2020',
+          isHold,
+          fromParty,
+          toParty,
+          type: isHold ? 'Hold' : 'Gain'
+        });
+      }
+      
+      const winners = [
+        { year: '2010', name: nameOf(r2010), party: p10, rec: r2010 },
+        { year: '2015', name: nameOf(r2015), party: p15, rec: r2015 },
+        { year: '2020', name: nameOf(r2020), party: p20, rec: r2020 }
+      ].filter(w => w.rec);
+      
+      let timelineHTML = '';
+      transitions.forEach(t => {
+        const trendClass = t.isHold ? 'trend-hold' : 'trend-gain';
+        const description = t.isHold ? 
+          `${t.fromParty.name || t.fromParty.code} retained the seat` : 
+          `Seat changed from ${t.fromParty.name || t.fromParty.code} to ${t.toParty.name || t.toParty.code}`;
+        
+        // Extract years from period (e.g., "2010 → 2015" -> ["2010", "2015"])
+        const years = t.period.split(' → ');
+        const fromYear = years[0];
+        const toYear = years[1];
+        
+        timelineHTML += `
+          <div class="trend-item">
+            <div class="trend-transition">
+              <div class="trend-party-box">
+                <div class="trend-party-label">FROM</div>
+                <div class="trend-year">${fromYear}</div>
+                <div class="trend-party" style="background: ${t.fromParty.color}">${t.fromParty.code || '—'}</div>
+              </div>
+              <div class="trend-arrow">→</div>
+              <div class="trend-party-box">
+                <div class="trend-party-label">TO</div>
+                <div class="trend-year">${toYear}</div>
+                <div class="trend-party" style="background: ${t.toParty.color}">${t.toParty.code || '—'}</div>
+              </div>
+            </div>
+            <div class="trend-result">
+              <div class="trend-type ${trendClass}">${t.type}</div>
+              <div class="trend-description">${description}</div>
+            </div>
+          </div>`;
+      });
+      
+      let winnersHTML = '';
+      winners.forEach(w => {
+        const party = enrichParty(w.party, partiesIdx);
+        winnersHTML += `
+          <div class="winner-card">
+            <div class="winner-year">${w.year}</div>
+            <div class="winner-name">${w.name || '—'}</div>
+            <div class="winner-party">
+              <span class="trend-party" style="background: ${party.color}; margin-right: 6px;">${party.code || '—'}</span>
+              ${party.name || '—'}
+            </div>
+          </div>`;
+      });
+      
+      return `
+        <div class="trends-container">
+          <div class="trend-timeline">
+            ${timelineHTML}
+          </div>
+          <div class="winners-grid">
+            ${winnersHTML}
+          </div>
+        </div>`;
     }
 
     function renderSeat(seatNo, data){
@@ -216,40 +558,30 @@
       const trend = computeTrend(r2010, r2015, r2020);
 
       const headerHTML = `
+        <div class="card constituency-header">
+          <h2 class="constituency-title">${seatNo}. ${base.name} <span class="badge">${reserved}</span></h2>
+          <div class="constituency-info">
+            <div><strong>District:</strong> ${base.district}</div>
+          </div>
+        </div>
+        
+        <div class="card current-mla-card">
+          <h3 class="current-mla-title">Current MLA</h3>
+          <div class="mla-name">${mla.mla ? mla.mla : '—'}</div>
+          <div class="mla-party">${mlaParty.name || mlaParty.code || '—'} ${mla.alliance? '['+mla.alliance+']':''}
+            ${mlaParty.code? `<span class="pill" style="background:${mlaParty.color}; margin-left:6px;">${mlaParty.code}</span>`:''}
+          </div>
+        </div>
+        
         <div class="card">
-          <div class="row">
-            <div class="col">
-              <div class="section-title" style="font-size:18px;">${seatNo}. ${base.name} <span class="badge">${reserved}</span></div>
-              <div class="kv">
-                <div class="muted">District</div><div>${base.district}</div>
-                <div class="muted">URL Slug</div><div class="mono">/bihar/constituency/${base.slug}</div>
-              </div>
-            </div>
-            <div class="col">
-              <div class="section-title">Current MLA</div>
-              <div>${mla.mla ? mla.mla : '—'} — ${mlaParty.name || mlaParty.code || '—'} ${mla.alliance? '['+mla.alliance+']':''}
-                ${mlaParty.code? `<span class="pill" style="background:${mlaParty.color}; margin-left:6px;">${mlaParty.code}</span>`:''}
-              </div>
-            </div>
-          </div>
-          <div class="hr"></div>
-          <div class="row">
-            <div class="col">${renderYearBlock(2020, r2020, data.partiesIdx)}</div>
-            <div class="col">${renderYearBlock(2015, r2015, data.partiesIdx)}</div>
-          </div>
-          <div class="row">
-            <div class="col">${renderYearBlock(2010, r2010, data.partiesIdx)}</div>
-            <div class="col">
-              <div class="card">
-                <div class="section-title">Trend & Notes</div>
-                <div>
-                  ${trend && trend.lines.length ? trend.lines.map(l => `<div>${l}</div>`).join('') : '—'}
-                </div>
-                <div class="muted" style="margin-top:8px;">${trend && trend.winners.length ? trend.winners.join(' • ') : ''}</div>
-                <div class="note" style="margin-top:8px;">No percentages or electors displayed (not available in current data).</div>
-              </div>
-            </div>
-          </div>
+          <h3 class="current-mla-title">Political Trends</h3>
+          ${renderEnhancedTrends(r2010, r2015, r2020, data.partiesIdx)}
+        </div>
+        
+        <div class="results-container">
+          ${renderYearBlock(2020, r2020, data.partiesIdx)}
+          ${renderYearBlock(2015, r2015, data.partiesIdx)}
+          ${renderYearBlock(2010, r2010, data.partiesIdx)}
         </div>`;
 
       out.innerHTML = headerHTML;
@@ -263,7 +595,7 @@
         const go = ()=>{
           const val = parseInt(input.value,10);
           if (!Number.isFinite(val) || val < 1 || val > 243){
-            document.getElementById('output').innerHTML = '<div class="error">Enter a valid constituency number (1–243)</div>';
+            document.getElementById('output').innerHTML = '<div class="error">Enter a valid constituency number (1â€“243)</div>';
             return;
           }
           renderSeat(val, data);
@@ -279,3 +611,4 @@
   </script>
 </body>
 </html>
+
