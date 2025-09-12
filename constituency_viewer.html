@@ -62,6 +62,20 @@
     .note { font-size: 12px; color: var(--muted); }
     .error { color: #b91c1c; }
     
+    /* Data Source Disclaimer Footer */
+    .disclaimer-footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    .disclaimer-text {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.4;
+      font-weight: 400;
+    }
+    
     /* Horizontal Timeline */
     .trends-container { margin: 20px 0; }
     .timeline-scroll {
@@ -163,6 +177,15 @@
       background: #fef3c7;
       color: #d97706;
     }
+    .timeline-hint {
+      display: none; /* Hidden by default on desktop */
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 8px;
+      margin-bottom: 4px;
+      font-style: italic;
+    }
 
     /* Election Result Cards */
     .election-result { margin-bottom: 16px; }
@@ -210,6 +233,9 @@
       .timeline-change {
         font-size: 10px;
         padding: 3px 6px;
+      }
+      .timeline-hint {
+        display: block; /* Show on mobile */
       }
     }
 
@@ -473,6 +499,7 @@
               ${timelineHTML}
             </div>
           </div>
+          <div class="timeline-hint">← Timeline can be scrolled horizontally →</div>
         </div>`;
     }
 
@@ -529,6 +556,12 @@
           ${renderYearBlock(2020, r2020, data.partiesIdx)}
           ${renderYearBlock(2015, r2015, data.partiesIdx)}
           ${renderYearBlock(2010, r2010, data.partiesIdx)}
+        </div>
+        
+        <div class="disclaimer-footer">
+          <div class="disclaimer-text">
+            This page incorporates information from Wikipedia articles, available under the Creative Commons Attribution-ShareAlike 4.0 License, and data from the Election Commission of India (ECI)
+          </div>
         </div>`;
 
       out.innerHTML = headerHTML;
