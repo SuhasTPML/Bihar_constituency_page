@@ -58,7 +58,7 @@
       results2010: './2010_results.json',
       results2015: './2015_results.json',
       results2020: './2020_results.json',
-      mla: './mla_current.csv',
+      mla: './current_mla.json',
     };
 
     const PARTY_NORMALIZE = new Map([
@@ -108,8 +108,8 @@
         fetch(FILES.results2020),
         fetch(FILES.mla)
       ]);
-      const [constituencies, parties, r2010, r2015, r2020, mlaText] = await Promise.all([
-        constRes.json(), partiesRes.json(), r10Res.json(), r15Res.json(), r20Res.json(), mlaRes.text()
+      const [constituencies, parties, r2010, r2015, r2020, mlaJson] = await Promise.all([
+        constRes.json(), partiesRes.json(), r10Res.json(), r15Res.json(), r20Res.json(), mlaRes.json()
       ]);
       status.textContent = 'Data loaded';
 
@@ -128,11 +128,24 @@
         return null;
       }
 
-      const mlaRows = parseCSV(mlaText);
       const mlaIdx = {};
-      for (const row of mlaRows){
-        const no = parseInt((row.no||'').trim(),10); if (!Number.isFinite(no)) continue;
-        mlaIdx[no] = row;
+      if (mlaJson && typeof mlaJson === 'object'){
+        for (const district of Object.keys(mlaJson)){
+          const rows = mlaJson[district];
+          if (!Array.isArray(rows)) continue;
+          for (const row of rows){
+            const no = parseInt(String((row['No.']||'')).trim(),10);
+            if (!Number.isFinite(no)) continue;
+            mlaIdx[no] = {
+              no,
+              constituency: row['Constituency'],
+              mla: row['Name'],
+              party: row['Party'],
+              alliance: row['Alliance'],
+              note: row['Remarks'] || null,
+            };
+          }
+        }
       }
 
       return { partiesIdx, byNo, r2010, r2015, r2020, mlaIdx };

@@ -9,6 +9,7 @@
 - Constituency viewer (`constituency_viewer.html`) implemented with input box to load any seat (1–243).
 - Integrated historical results: `2010_results.json`, `2015_results.json`, `2020_results.json` (district-keyed JSONs).
 - Added CLI (`scripts/constituency_info.py`) to emit merged JSON per seat (base, current MLA, 2010/2015/2020 results). Output excludes Lok Sabha, electors, and percentages.
+- Switched MLA source to JSON: using `current_mla.json` (district-keyed) instead of the previous CSV.
 - Party code normalization in tooling (e.g., JDU→JD(U), CPM→CPI(M), HAM→HAM(S), Ind→IND) using `parties.json` metadata.
 - Electors/shifted and turnout/percentages are not displayed at this time (data incomplete/out of scope).
 

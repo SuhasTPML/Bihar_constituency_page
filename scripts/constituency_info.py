@@ -97,7 +97,7 @@ def main(argv):
     # Load base data
     const_path = ROOT / "bihar_constituencies.json"
     parties_path = ROOT / "parties.json"
-    mla_csv = ROOT / "mla_current.csv"
+    mla_json = ROOT / "current_mla.json"
     electors_csv = ROOT / "electors_2024.csv"
     r2020_path = ROOT / "2020_results.json"
     r2015_path = ROOT / "2015_results.json"
@@ -107,7 +107,25 @@ def main(argv):
     parties = load_json(parties_path) if parties_path.exists() else []
     parties_idx = {p.get("code"): p for p in parties}
 
-    mla_idx = load_csv_indexed_by_no(mla_csv)
+    # Build MLA index from district-keyed JSON { District: [{"No.", "Name", "Party", "Alliance", "Remarks"}, ...] }
+    mla_idx = {}
+    if mla_json.exists():
+        mla_data = load_json(mla_json)
+        if isinstance(mla_data, dict):
+            for district, rows in mla_data.items():
+                if not isinstance(rows, list):
+                    continue
+                for row in rows:
+                    try:
+                        no = int(str(row.get("No.", "").strip()))
+                    except Exception:
+                        continue
+                    mla_idx[no] = {
+                        "mla": row.get("Name"),
+                        "party": row.get("Party"),
+                        "alliance": row.get("Alliance"),
+                        "note": (row.get("Remarks") or None),
+                    }
     elect_idx = load_csv_indexed_by_no(electors_csv)
 
     # Results files keyed by district
@@ -128,10 +146,7 @@ def main(argv):
     mla_party_raw = (mla_row.get("party") or "").strip() or None
     mla_party, mla_party_meta = enrich_party_meta(mla_party_raw)
     mla_alliance = (mla_row.get("alliance") or "").strip() or None
-    # Capture any trailing notes from extra columns (DictReader puts them under None)
-    mla_note = None
-    if isinstance(mla_row.get(None), list) and mla_row[None]:
-        mla_note = "; ".join([s for s in mla_row[None] if s])
+    mla_note = mla_row.get("note") or None
 
     # Electors
     e_row = elect_idx.get(seat_no) or {}
