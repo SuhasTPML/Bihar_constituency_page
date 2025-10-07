@@ -284,12 +284,8 @@
 
   <script>
     const FILES = {
-      constituencies: './bihar_constituencies.json',
       parties: './parties.json',
-      results2010: './2010_results.normalized.json',
-      results2015: './2015_results.normalized.json',
-      results2020: './2020_results.normalized.json',
-      mla: './current_mla.json',
+      resultsConsolidated: './bihar_election_results_consolidated.json',
     };
 
     const PARTY_NORMALIZE = new Map([
@@ -331,55 +327,41 @@
     async function loadAll(){
       const status = document.getElementById('status');
       status.textContent = 'Loading data...';
-      const [constRes, partiesRes, r10Res, r15Res, r20Res, mlaRes] = await Promise.all([
-        fetch(FILES.constituencies),
+      const [partiesRes, consolidatedRes] = await Promise.all([
         fetch(FILES.parties),
-        fetch(FILES.results2010),
-        fetch(FILES.results2015),
-        fetch(FILES.results2020),
-        fetch(FILES.mla)
+        fetch(FILES.resultsConsolidated)
       ]);
-      const [constituencies, parties, r2010, r2015, r2020, mlaJson] = await Promise.all([
-        constRes.json(), partiesRes.json(), r10Res.json(), r15Res.json(), r20Res.json(), mlaRes.json()
+      const [parties, consolidated] = await Promise.all([
+        partiesRes.json(), consolidatedRes.json()
       ]);
       status.textContent = 'Data loaded';
 
       // Indexes
       const partiesIdx = {}; (parties||[]).forEach(p=> partiesIdx[p.code]=p);
-      const byNo = (n)=> constituencies[String(n)] || null;
-
-      function resultByNo(resultsObj, no){
-        if (!resultsObj) return null;
-        const key = String(no);
-        for (const district of Object.keys(resultsObj)){
-          const arr = resultsObj[district];
-          if (!Array.isArray(arr)) continue;
-          for (const rec of arr){ if (String(rec['#'])===key) return rec; }
+      // Index consolidated rows by seat no and provide a byNo mapper with expected fields
+      const consolidatedByNo = new Map();
+      if (Array.isArray(consolidated)){
+        for (const row of consolidated){
+          const no = parseInt(String(row.no||''),10);
+          if (Number.isFinite(no)) consolidatedByNo.set(no, row);
         }
-        return null;
       }
+      const byNo = (n)=>{
+        const row = consolidatedByNo.get(n);
+        if (!row) return null;
+        return { name: row.constituency_name, district: row.district, reserved: row.reserved || 'General' };
+      };
 
-      const mlaIdx = {};
-      if (mlaJson && typeof mlaJson === 'object'){
-        for (const district of Object.keys(mlaJson)){
-          const rows = mlaJson[district];
-          if (!Array.isArray(rows)) continue;
-          for (const row of rows){
-            const no = parseInt(String((row['No.']||'')).trim(),10);
-            if (!Number.isFinite(no)) continue;
-            mlaIdx[no] = {
-              no,
-              constituency: row['Constituency'],
-              mla: row['Name'],
-              party: row['Party'],
-              alliance: row['Alliance'],
-              note: row['Remarks'] || null,
-            };
-          }
+      // Index consolidated rows by seat no
+      const consolidatedByNo = new Map();
+      if (Array.isArray(consolidated)){
+        for (const row of consolidated){
+          const no = parseInt(String(row.no||''),10);
+          if (Number.isFinite(no)) consolidatedByNo.set(no, row);
         }
       }
 
-      return { partiesIdx, byNo, r2010, r2015, r2020, mlaIdx };
+      return { partiesIdx, byNo, consolidated, consolidatedByNo };
     }
 
     function enrichParty(code, partiesIdx){
@@ -507,15 +489,35 @@
       const base = data.byNo(seatNo);
       const out = document.getElementById('output');
       if (!base){ out.innerHTML = `<div class="error">Seat #${seatNo} not found.</div>`; return; }
+      // Build per-year records from consolidated row (includes runner-up)
+      function recFromConsolidated(row, year){
+        if (!row) return null;
+        const y = String(year);
+        const wName = row[`y${y}_winner_name`];
+        const wParty = row[`y${y}_winner_party`];
+        const wVotes = row[`y${y}_winner_votes`];
+        const ruName = row[`y${y}_runner_name`];
+        const ruParty = row[`y${y}_runner_party`];
+        const ruVotes = row[`y${y}_runner_votes`];
+        const margin = row[`y${y}_margin`];
+        if (!wName && !wParty && !wVotes && !margin) return null;
+        return {
+          'Winner': { Candidate: wName || '-', Party: wParty || '-', Votes: wVotes || '0' },
+          'Runner up': { Candidate: ruName || '-', Party: ruParty || '-', Votes: ruVotes || '0' },
+          'Margin': margin || '0',
+        };
+      }
 
-      const r2010 = (data.r2010? (function(){ return (function(results){
-        const key = String(seatNo); for (const d of Object.keys(results)){ const arr = results[d]; if (!Array.isArray(arr)) continue; for (const rec of arr){ if (String(rec['#'])===key) return rec; } } return null; })(data.r2010); })() : null);
-      const r2015 = (data.r2015? (function(){ return (function(results){
-        const key = String(seatNo); for (const d of Object.keys(results)){ const arr = results[d]; if (!Array.isArray(arr)) continue; for (const rec of arr){ if (String(rec['#'])===key) return rec; } } return null; })(data.r2015); })() : null);
-      const r2020 = (data.r2020? (function(){ return (function(results){
-        const key = String(seatNo); for (const d of Object.keys(results)){ const arr = results[d]; if (!Array.isArray(arr)) continue; for (const rec of arr){ if (String(rec['#'])===key) return rec; } } return null; })(data.r2020); })() : null);
+      let r2010 = null, r2015 = null, r2020 = null;
+      let row = null;
+      if (data && data.consolidatedByNo){
+        row = data.consolidatedByNo.get(seatNo) || null;
+        r2010 = recFromConsolidated(row, 2010);
+        r2015 = recFromConsolidated(row, 2015);
+        r2020 = recFromConsolidated(row, 2020);
+      }
 
-      const mla = data.mlaIdx[seatNo] || {};
+      const mla = row ? { mla: row.current_mla_name, party: row.current_mla_party, alliance: row.current_mla_alliance } : {};
       const mlaParty = enrichParty(mla.party, data.partiesIdx);
       const reserved = base.reserved ? base.reserved : 'General';
       const trend = computeTrend(r2010, r2015, r2020);
