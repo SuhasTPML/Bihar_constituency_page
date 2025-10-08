@@ -14,7 +14,7 @@
     .container { max-width: 980px; margin: 0 auto; padding: 0 16px; }
     
     /* Header Styles */
-    .main-header { background: var(--header-bg); color: var(--header-text); padding: 12px 0; position: sticky; top: 0; z-index: 100; }
+    .main-header { display: none !important; }
     .header-content { max-width: 980px; margin: 0 auto; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; }
     .header-left { display: flex; align-items: center; gap: 16px; }
     .header-right { display: flex; align-items: center; gap: 16px; }
@@ -274,6 +274,10 @@
         <label for="seatNo">Constituency No:</label>
         <input id="seatNo" type="number" min="1" max="243" placeholder="e.g. 21" />
         <button id="loadBtn" class="primary-btn">Load</button>
+        <label style="margin-left:12px; display:flex; align-items:center; gap:6px;">
+          <input id="resultsToggle" type="checkbox" />
+          <span>Results announced</span>
+        </label>
       </div>
       <span id="status" class="status-text"></span>
       <div class="note">Tip: Serve this file over a local web server to allow fetching local JSON (e.g., <span class="mono">python -m http.server</span> and open http://localhost:8000/constituency_viewer.html).</div>
@@ -508,19 +512,22 @@
         };
       }
 
-      let r2010 = null, r2015 = null, r2020 = null;
+      let r2010 = null, r2015 = null, r2020 = null, r2025 = null;
       let row = null;
       if (data && data.consolidatedByNo){
         row = data.consolidatedByNo.get(seatNo) || null;
         r2010 = recFromConsolidated(row, 2010);
         r2015 = recFromConsolidated(row, 2015);
         r2020 = recFromConsolidated(row, 2020);
+        r2025 = recFromConsolidated(row, 2025);
       }
 
       const mla = row ? { mla: row.current_mla_name, party: row.current_mla_party, alliance: row.current_mla_alliance } : {};
       const mlaParty = enrichParty(mla.party, data.partiesIdx);
       const reserved = base.reserved ? base.reserved : 'General';
       const trend = computeTrend(r2010, r2015, r2020);
+
+      const announced = !!(document.getElementById('resultsToggle') && document.getElementById('resultsToggle').checked);
 
       const headerHTML = `
         <div class="card constituency-header">
@@ -530,6 +537,8 @@
             <div><strong>Seat Type:</strong> <span class="badge">${reserved}</span></div>
           </div>
         </div>
+        
+        ${announced ? renderYearBlock(2025, r2025, data.partiesIdx) : ''}
         
         <div class="card cms-content-card">
           <h3 class="cms-content-title">Constituency Map</h3>
@@ -545,13 +554,14 @@
           </div>
         </div>
         
+        ${announced ? '' : `
         <div class="card current-mla-card">
           <h3 class="current-mla-title">Current MLA</h3>
-          <div class="mla-name">${mla.mla ? mla.mla : '—'}</div>
-          <div class="mla-party">${mlaParty.name || mlaParty.code || '—'} ${mla.alliance? '['+mla.alliance+']':''}
-            ${mlaParty.code? `<span class="pill" style="background:${mlaParty.color}; margin-left:6px;">${mlaParty.code}</span>`:''}
+          <div class="mla-name">${mla.mla ? mla.mla : '-'}</div>
+          <div class="mla-party">${mlaParty.name || mlaParty.code || '-'} ${mla.alliance? '['+mla.alliance+']':''}
+            ${mlaParty.code? `<span class=\"pill\" style=\"background:${mlaParty.color}; margin-left:6px;\">${mlaParty.code}</span>`:''}
           </div>
-        </div>
+        </div>`}
         
         <div class="card">
           <h3 class="current-mla-title">Political Trends</h3>
@@ -578,6 +588,7 @@
         const data = await loadAll();
         const input = document.getElementById('seatNo');
         const btn = document.getElementById('loadBtn');
+        const toggle = document.getElementById('resultsToggle');
         const go = ()=>{
           const val = parseInt(input.value,10);
           if (!Number.isFinite(val) || val < 1 || val > 243){
@@ -588,6 +599,7 @@
         };
         btn.addEventListener('click', go);
         input.addEventListener('keydown', (e)=>{ if (e.key==='Enter') go(); });
+        if (toggle) toggle.addEventListener('change', go);
       } catch (e){
         document.getElementById('status').textContent = 'Failed to load data';
         document.getElementById('output').innerHTML = '<div class="error">Error loading files. If opened directly as file://, please serve over http:// with a local server.</div>';
