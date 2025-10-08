@@ -1,116 +1,211 @@
-[
-  {
-    "code": "BJP",
-    "name": "Bharatiya Janata Party",
-    "alliance": "NDA",
-    "color": "#ff9933"
-  },
-  {
-    "code": "JD(U)",
-    "name": "Janata Dal (United)",
-    "alliance": "NDA",
-    "color": "#006600"
-  },
-  {
-    "code": "RJD",
-    "name": "Rashtriya Janata Dal",
-    "alliance": "MGB",
-    "color": "#990000"
-  },
-  {
-    "code": "INC",
-    "name": "Indian National Congress",
-    "alliance": "MGB",
-    "color": "#3399ff"
-  },
-  {
-    "code": "LJP",
-    "name": "Lok Janshakti Party",
-    "alliance": "OTH",
-    "color": "#ff6699"
-  },
-  {
-    "code": "HAM(S)",
-    "name": "Hindustani Awam Morcha (Secular)",
-    "alliance": "NDA",
-    "color": "#003366"
-  },
-  {
-    "code": "RLSP",
-    "name": "Rashtriya Lok Samta Party",
-    "alliance": "OTH",
-    "color": "#ff9966"
-  },
-  {
-    "code": "VIP",
-    "name": "Vikassheel Insaan Party",
-    "alliance": "NDA",
-    "color": "#9966cc"
-  },
-  {
-    "code": "AIMIM",
-    "name": "All India Majlis-e-Ittehadul Muslimeen",
-    "alliance": "OTH",
-    "color": "#009933"
-  },
-  {
-    "code": "CPI(ML)L",
-    "name": "Communist Party of India (Marxist–Leninist) Liberation",
-    "alliance": "MGB",
-    "color": "#cc0000"
-  },
-  {
-    "code": "CPI",
-    "name": "Communist Party of India",
-    "alliance": "MGB",
-    "color": "#ff3333"
-  },
-  {
-    "code": "CPI(M)",
-    "name": "Communist Party of India (Marxist)",
-    "alliance": "MGB",
-    "color": "#cc3333"
-  },
-  {
-    "code": "BSP",
-    "name": "Bahujan Samaj Party",
-    "alliance": "OTH",
-    "color": "#0066ff"
-  },
-  {
-    "code": "SP",
-    "name": "Samajwadi Party",
-    "alliance": "OTH",
-    "color": "#ff0000"
-  },
-  {
-    "code": "NCP",
-    "name": "Nationalist Congress Party",
-    "alliance": "OTH",
-    "color": "#00ccff"
-  },
-  {
-    "code": "AIFB",
-    "name": "All India Forward Bloc",
-    "alliance": "OTH",
-    "color": "#ff6600"
-  },
-  {
-    "code": "SUCI",
-    "name": "Socialist Unity Centre of India (Communist)",
-    "alliance": "OTH",
-    "color": "#cc6600"
-  },
-  {
-    "code": "RSP",
-    "name": "Revolutionary Socialist Party",
-    "alliance": "OTH",
-    "color": "#ff3366"
-  },
-  {
-    "code": "IND",
-    "name": "Independent",
-    "alliance": "NA",
-    "color": "#999999"
-  }
+﻿[
+    {
+        "code":  "BJP",
+        "name":  "Bharatiya Janata Party",
+        "color":  "#ff9933",
+        "alliances":  {
+                          "2025":  "NDA",
+                          "2015":  "NDA",
+                          "2010":  "NDA",
+                          "2020":  "NDA"
+                      }
+    },
+    {
+        "code":  "JD(U)",
+        "name":  "Janata Dal (United)",
+        "color":  "#006600",
+        "alliances":  {
+                          "2025":  "NDA",
+                          "2015":  "NDA",
+                          "2010":  "NDA",
+                          "2020":  "NDA"
+                      }
+    },
+    {
+        "code":  "RJD",
+        "name":  "Rashtriya Janata Dal",
+        "color":  "#990000",
+        "alliances":  {
+                          "2025":  "MGB",
+                          "2015":  "MGB",
+                          "2010":  "MGB",
+                          "2020":  "MGB"
+                      }
+    },
+    {
+        "code":  "INC",
+        "name":  "Indian National Congress",
+        "color":  "#3399ff",
+        "alliances":  {
+                          "2025":  "MGB",
+                          "2015":  "MGB",
+                          "2010":  "MGB",
+                          "2020":  "MGB"
+                      }
+    },
+    {
+        "code":  "LJP",
+        "name":  "Lok Janshakti Party",
+        "color":  "#ff6699",
+        "alliances":  {
+                          "2025":  "OTH",
+                          "2015":  "OTH",
+                          "2010":  "OTH",
+                          "2020":  "OTH"
+                      }
+    },
+    {
+        "code":  "HAM(S)",
+        "name":  "Hindustani Awam Morcha (Secular)",
+        "color":  "#003366",
+        "alliances":  {
+                          "2025":  "NDA",
+                          "2015":  "NDA",
+                          "2010":  "NDA",
+                          "2020":  "NDA"
+                      }
+    },
+    {
+        "code":  "RLSP",
+        "name":  "Rashtriya Lok Samta Party",
+        "color":  "#ff9966",
+        "alliances":  {
+                          "2025":  "OTH",
+                          "2015":  "OTH",
+                          "2010":  "OTH",
+                          "2020":  "OTH"
+                      }
+    },
+    {
+        "code":  "VIP",
+        "name":  "Vikassheel Insaan Party",
+        "color":  "#9966cc",
+        "alliances":  {
+                          "2025":  "NDA",
+                          "2015":  "NDA",
+                          "2010":  "NDA",
+                          "2020":  "NDA"
+                      }
+    },
+    {
+        "code":  "AIMIM",
+        "name":  "All India Majlis-e-Ittehadul Muslimeen",
+        "color":  "#009933",
+        "alliances":  {
+                          "2025":  "OTH",
+                          "2015":  "OTH",
+                          "2010":  "OTH",
+                          "2020":  "OTH"
+                      }
+    },
+    {
+        "code":  "CPI(ML)L",
+        "name":  "Communist Party of India (Marxistâ€“Leninist) Liberation",
+        "color":  "#cc0000",
+        "alliances":  {
+                          "2025":  "MGB",
+                          "2015":  "MGB",
+                          "2010":  "MGB",
+                          "2020":  "MGB"
+                      }
+    },
+    {
+        "code":  "CPI",
+        "name":  "Communist Party of India",
+        "color":  "#ff3333",
+        "alliances":  {
+                          "2025":  "MGB",
+                          "2015":  "MGB",
+                          "2010":  "MGB",
+                          "2020":  "MGB"
+                      }
+    },
+    {
+        "code":  "CPI(M)",
+        "name":  "Communist Party of India (Marxist)",
+        "color":  "#cc3333",
+        "alliances":  {
+                          "2025":  "MGB",
+                          "2015":  "MGB",
+                          "2010":  "MGB",
+                          "2020":  "MGB"
+                      }
+    },
+    {
+        "code":  "BSP",
+        "name":  "Bahujan Samaj Party",
+        "color":  "#0066ff",
+        "alliances":  {
+                          "2025":  "OTH",
+                          "2015":  "OTH",
+                          "2010":  "OTH",
+                          "2020":  "OTH"
+                      }
+    },
+    {
+        "code":  "SP",
+        "name":  "Samajwadi Party",
+        "color":  "#ff0000",
+        "alliances":  {
+                          "2025":  "OTH",
+                          "2015":  "OTH",
+                          "2010":  "OTH",
+                          "2020":  "OTH"
+                      }
+    },
+    {
+        "code":  "NCP",
+        "name":  "Nationalist Congress Party",
+        "color":  "#00ccff",
+        "alliances":  {
+                          "2025":  "OTH",
+                          "2015":  "OTH",
+                          "2010":  "OTH",
+                          "2020":  "OTH"
+                      }
+    },
+    {
+        "code":  "AIFB",
+        "name":  "All India Forward Bloc",
+        "color":  "#ff6600",
+        "alliances":  {
+                          "2025":  "OTH",
+                          "2015":  "OTH",
+                          "2010":  "OTH",
+                          "2020":  "OTH"
+                      }
+    },
+    {
+        "code":  "SUCI",
+        "name":  "Socialist Unity Centre of India (Communist)",
+        "color":  "#cc6600",
+        "alliances":  {
+                          "2025":  "OTH",
+                          "2015":  "OTH",
+                          "2010":  "OTH",
+                          "2020":  "OTH"
+                      }
+    },
+    {
+        "code":  "RSP",
+        "name":  "Revolutionary Socialist Party",
+        "color":  "#ff3366",
+        "alliances":  {
+                          "2025":  "OTH",
+                          "2015":  "OTH",
+                          "2010":  "OTH",
+                          "2020":  "OTH"
+                      }
+    },
+    {
+        "code":  "IND",
+        "name":  "Independent",
+        "color":  "#999999",
+        "alliances":  {
+                          "2025":  "NA",
+                          "2015":  "NA",
+                          "2010":  "NA",
+                          "2020":  "NA"
+                      }
+    }
 ]

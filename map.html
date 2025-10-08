@@ -633,14 +633,12 @@
       const party_info = partyData.get(party);
       if (!party_info) return '#1f77b4';
 
-      let alliance;
-      if (year === '2015') {
-        alliance = party_info.alliance_2015;
-      } else if (year === '2010') {
-        alliance = party_info.alliance_2010;
-      } else {
-        alliance = party_info.alliance_2020;
-      }
+      // Resolve alliance for a given year from new or legacy fields
+      const alliances = party_info.alliances || null;
+      let alliance = (alliances && (alliances[String(year)] || alliances[year]))
+        || party_info[`alliance_${year}`]
+        || party_info.alliance_2020
+        || party_info.alliance;
 
       // Map to original alliance colors
       if (alliance === 'RJD+') return '#cc3300'; // RJD+ mapped to original red
@@ -1206,7 +1204,9 @@
         for (const party of partiesData) {
           // Store in maps
           partyColors.set(party.code, pastelizeColor(party.color));
-          partyToAlliance.set(party.code, party.alliance_2020); // Current alliance for general use
+          const alliances = party.alliances || {};
+          const a2020 = alliances['2020'] || alliances[2020] || party.alliance_2020 || party.alliance;
+          partyToAlliance.set(party.code, a2020); // Current alliance for general use
           partyData.set(party.code, party); // Full party data for historical lookups
         }
 
