@@ -396,7 +396,7 @@
 <body>
   <div id="controls">
     <div class="controls-header">
-      <strong>Bihar Election Map</strong>
+      <strong>Bihar Election Constituency Map</strong>
       <span id="status"></span>
     </div>
     <div class="controls-description">
@@ -778,7 +778,6 @@
 
       // Build structured content with hierarchical layout
       let content = `<div class="sheet-header" style="display: flex; align-items: baseline;">`;
-      content += `<span class="ac-number">${acNo}</span>`;
       content += `<span class="ac-name">${acName}</span>`;
       if (district) {
         content += `<span class="district-name">${district}</span>`;
@@ -996,7 +995,7 @@
         const pcname = p.PC_NAME || p.pc_name || '';
 
         // Update search bar with selected constituency
-        const searchLabel = `${acno} - ${acname}${dist? ' ('+dist+')':''}`;
+        const searchLabel = `${acname}${dist? ' ('+dist+')':''}`;
         searchEl.value = searchLabel;
 
         // Log selected constituency JSON row for debugging/inspection
