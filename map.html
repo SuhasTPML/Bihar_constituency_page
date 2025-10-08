@@ -1120,12 +1120,37 @@
       let legendItems = [];
 
       if (mode.includes('alliance')) {
-        legendItems = [
-          { color: allianceColors.get('NDA'), label: 'NDA' },
-          { color: allianceColors.get('MGB'), label: 'MGB' },
-          { color: allianceColors.get('OTH'), label: 'Others' },
-          { color: '#e5e7eb', label: 'Independent' }
-        ];
+        // Build alliance legend with counts for the selected year
+        const yearStr = mode.split('-')[1] || '2020';
+        const year = parseInt(yearStr, 10);
+        const allianceCount = new Map();
+        for (const [key, row] of electionData) {
+          let alliance = null;
+          if (year === 2020) {
+            alliance = row.current_mla_alliance || null;
+          }
+          if (!alliance) {
+            // Resolve via party mapping as fallback
+            const party = (year === 2025) ? row.y2025_winner_party
+                        : (year === 2015) ? row.y2015_winner_party
+                        : (year === 2010) ? row.y2010_winner_party
+                        : row.current_mla_party;
+            const info = partyData.get(party);
+            const alliances = info && (info.alliances || null);
+            alliance = (alliances && (alliances[String(year)] || alliances[year]))
+                    || (info && (info[`alliance_${year}`] || info.alliance_2020 || info.alliance))
+                    || (row.current_mla_alliance || null);
+          }
+          alliance = alliance || 'NA';
+          allianceCount.set(alliance, (allianceCount.get(alliance) || 0) + 1);
+        }
+
+        // Sort by frequency and map to legend items
+        const order = Array.from(allianceCount.entries()).sort((a,b)=> b[1]-a[1]);
+        legendItems = order.map(([a, count])=> ({
+          color: (a === 'NA') ? '#e5e7eb' : (allianceColors.get(a) || '#e5e7eb'),
+          label: `${a} (${count})`
+        }));
       } else if (mode === 'reserved') {
         legendItems = [
           { color: '#f9fafb', label: 'General' },
@@ -1137,7 +1162,8 @@
         // Show top parties only for party mode
         const partyCount = new Map();
         for (const [key, row] of electionData) {
-          const party = mode === 'party-2020' ? row.current_mla_party :
+          const party = mode === 'party-2025' ? row.y2025_winner_party :
+                       mode === 'party-2020' ? row.current_mla_party :
                        mode === 'party-2015' ? row.y2015_winner_party :
                        mode === 'party-2010' ? row.y2010_winner_party : null;
           if (party) partyCount.set(party, (partyCount.get(party) || 0) + 1);
