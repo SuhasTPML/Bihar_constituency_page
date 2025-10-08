@@ -538,14 +538,8 @@
         <div class="card cms-content-card">
           <h3 class="cms-content-title">Constituency Map</h3>
           <div class="cms-content-body">
-            <iframe
-              class="embed-map"
-              src="https://suhastpml.github.io/bihar_election_map/index.html?ac=${String(seatNo).padStart(3,'0')}"
-              style="width:100%; height:600px; border:0; border-radius:8px;"
-              loading="lazy"
-              referrerpolicy="no-referrer"
-            ></iframe>
-            <div class="note">If the map does not load, the source may restrict embedding via X-Frame-Options or Content-Security-Policy.</div>
+            <div id="mapEmbed" style="width:100%;"></div>
+            <div class="note">Loads remote map with local fallback.</div>
           </div>
         </div>
         
@@ -576,6 +570,31 @@
         </div>`;
 
       out.innerHTML = headerHTML;
+      // Mount map iframe with remote first and local fallback
+      try {
+        const mountMap = (num)=>{
+          const el = document.getElementById('mapEmbed');
+          if (!el) return;
+          el.innerHTML = '';
+          const ac = String(num).padStart(3,'0');
+          const iframe = document.createElement('iframe');
+          iframe.className = 'embed-map';
+          iframe.loading = 'lazy';
+          iframe.referrerPolicy = 'no-referrer';
+          iframe.style.width = '100%';
+          iframe.style.height = '600px';
+          iframe.style.border = '0';
+          iframe.style.borderRadius = '8px';
+          const remote = `https://suhastpml.github.io/bihar_election_map/index.html?ac=${ac}`;
+          const local = `./map.html?ac=${ac}`;
+          let loaded = false;
+          iframe.onload = ()=>{ loaded = true; };
+          iframe.src = remote;
+          el.appendChild(iframe);
+          setTimeout(()=>{ if (!loaded) iframe.src = local; }, 3000);
+        };
+        mountMap(seatNo);
+      } catch (_) {}
     }
 
     (async function init(){
