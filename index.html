@@ -383,7 +383,7 @@
     }
 
     function renderYearBlock(year, rec, partiesIdx){
-      if (!rec) return `<div class="card election-result"><h3 class="election-title">${year} Result</h3><div class="muted">Not available</div></div>`;
+      if (!rec) return `<div class="card election-result"><h3 class="election-title">Bihar Elections ${year} Results</h3><div class="muted">Not available</div></div>`;
       const w = rec['Winner'] || {}; const ru = rec['Runner up'] || {};
       const wP = enrichParty(w.Party, partiesIdx); const ruP = enrichParty(ru.Party, partiesIdx);
       const wVotes = parseInt(String(w.Votes||'').replace(/,/g,''),10) || 0;
@@ -397,7 +397,7 @@
       
       return `
         <div class="card election-result">
-          <h3 class="election-title">${year} Result</h3>
+          <h3 class="election-title">Bihar Elections ${year} Results</h3>
           
           <div class="candidate-row">
             <div class="candidate-info">
@@ -543,7 +543,7 @@
 
       const headerHTML = `
         <div class="card constituency-header">
-          <h2 class="constituency-title">${seatNo}. ${base.name}</h2>
+          <h2 class="constituency-title">${base.name} Assembly Election 2025</h2>
           <div class="constituency-info">
             <div><strong>District:</strong> ${base.district}</div>
             <div><strong>Seat Type:</strong> <span class="badge">${reserved}</span></div>
@@ -563,7 +563,6 @@
         <div class=\"card cms-content-card\" id=\"cms-post\">\n          <div class=\"cms-content-body\">\n            <div class=\"cms-placeholder\">Loading…</div>\n          </div>\n        </div>` : ''}
         
         <div class="card cms-content-card">
-          <h3 class="cms-content-title">Constituency Map</h3>
           <div class="cms-content-body">
             <div id="mapEmbed" style="width:100%;"></div>
             
@@ -572,7 +571,7 @@
         
         ${announced ? '' : `
         <div class="card current-mla-card">
-          <h3 class="current-mla-title">Current MLA</h3>
+          <h3 class="current-mla-title">${base.name} Current MLA</h3>
           <div class="mla-name">${mla.mla ? mla.mla : '-'}</div>
           <div class="mla-party">${mlaParty.name || mlaParty.code || '-'} ${mla.alliance? '['+mla.alliance+']':''}
             ${mlaParty.code? `<span class=\"pill\" style=\"background:${mlaParty.color}; margin-left:6px;\">${mlaParty.code}</span>`:''}
@@ -580,7 +579,7 @@
         </div>`}
         
         <div class="card">
-          <h3 class="current-mla-title">Past Results</h3>
+          <h3 class="current-mla-title">Bihar Assembly elections ${base.name} Past Results</h3>
           ${renderEnhancedTrends(r2010, r2015, r2020, r2025, data.partiesIdx)}
         </div>
         
@@ -696,4 +695,5 @@
   </script>
 </body>
 </html>
+
 
