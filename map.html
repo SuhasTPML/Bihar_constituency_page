@@ -409,15 +409,7 @@
       </div>
       <div class="controls-options">
         <label for="colorMode">Color by:</label>
-        <select id="colorMode">
-          <option value="alliance-2020" selected>2020 Alliance (Current)</option>
-          <option value="party-2020">2020 Party</option>
-          <option value="reserved">Reserved Status</option>
-          <option value="alliance-2015">2015 Alliance</option>
-          <option value="party-2015">2015 Party</option>
-          <option value="alliance-2010">2010 Alliance</option>
-          <option value="party-2010">2010 Party</option>
-        </select>
+        <select id="colorMode"></select>
       </div>
     </div>
     <div id="legend" class="controls-legend" style="display: none;"></div>
@@ -436,6 +428,7 @@
   <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
   <script>
     const width = 1200, height = 900;
+    const ENABLE_2025_MODES = false; // Toggle to expose 2025 Alliance/Party in the dropdown
     const svg = d3.select('#svg');
     const g = d3.select('#zoomlayer');
     const labelLayer = g.append('g').attr('id','labelLayer');
@@ -512,6 +505,10 @@
       if (!row) return '#f3f4f6'; // Light gray for missing data
 
       switch(mode) {
+        case 'alliance-2025':
+          return getHistoricalAllianceColor(row.y2025_winner_party, '2025');
+        case 'party-2025':
+          return partyColors.get(row.y2025_winner_party) || getHistoricalAllianceColor(row.y2025_winner_party, '2025');
         case 'alliance-2020':
           return allianceColors.get(row.current_mla_alliance) || '#f3f4f6';
         case 'party-2020':
@@ -540,7 +537,9 @@
       if (!party_info) return '#f3f4f6';
 
       let alliance;
-      if (year === '2015') {
+      if (year === '2025') {
+        alliance = party_info.alliance_2025 ?? party_info.alliance_2020;
+      } else if (year === '2015') {
         alliance = party_info.alliance_2015;
       } else if (year === '2010') {
         alliance = party_info.alliance_2010;
@@ -661,7 +660,10 @@
     // Pre-compute all color combinations for performance
     function preComputeColors() {
       if (DEBUG) console.log('Pre-computing color cache...');
-      const colorModes = ['alliance-2020', 'party-2020', 'reserved', 'alliance-2015', 'party-2015', 'alliance-2010', 'party-2010'];
+      const colorModes = [
+        ...(ENABLE_2025_MODES ? ['alliance-2025','party-2025'] : []),
+        'alliance-2020', 'party-2020', 'reserved', 'alliance-2015', 'party-2015', 'alliance-2010', 'party-2010'
+      ];
       let cached = 0;
 
       for (const [acNo, row] of electionData) {
@@ -670,6 +672,13 @@
           let color;
 
           switch(mode) {
+            case 'alliance-2025':
+              color = getHistoricalOriginalColor(row.y2025_winner_party, '2025');
+              break;
+            case 'party-2025':
+              const partyInfo2025 = partyData.get(row.y2025_winner_party);
+              color = partyInfo2025?.color || getHistoricalOriginalColor(row.y2025_winner_party, '2025');
+              break;
             case 'alliance-2020':
               color = allianceColors.get(row.current_mla_alliance) || '#f3f4f6';
               break;
@@ -721,6 +730,26 @@
       const crossBtn = document.getElementById('crossBtn');
       const zoomInBtn = document.getElementById('zoomInBtn');
       const zoomOutBtn = document.getElementById('zoomOutBtn');
+
+      // Build color mode options based on feature flag
+      if (colorModeEl) {
+        const opts = [];
+        if (ENABLE_2025_MODES) {
+          opts.push({v:'alliance-2025', t:'2025 Alliance'});
+          opts.push({v:'party-2025', t:'2025 Party'});
+        }
+        opts.push(
+          {v:'alliance-2020', t:'2020 Alliance (Current)'},
+          {v:'party-2020', t:'2020 Party'},
+          {v:'reserved', t:'Reserved Status'},
+          {v:'alliance-2015', t:'2015 Alliance'},
+          {v:'party-2015', t:'2015 Party'},
+          {v:'alliance-2010', t:'2010 Alliance'},
+          {v:'party-2010', t:'2010 Party'}
+        );
+        colorModeEl.innerHTML = opts.map(o=>`<option value="${o.v}">${o.t}</option>`).join('');
+        colorModeEl.value = 'alliance-2020';
+      }
 
       // Wire up event handlers
       crossBtn.addEventListener('click', clearAndReset);
@@ -1259,8 +1288,5 @@
   </div>
 </body>
 </html>
-
-
-
 
 
