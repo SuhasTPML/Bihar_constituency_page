@@ -1162,7 +1162,7 @@
     async function loadWithFallback(githubUrl, localPath, description = 'data') {
       try {
         console.log(`🌐 Loading ${description} from GitHub Pages: ${githubUrl}`);
-        const response = await fetch(githubUrl);
+        const response = await fetch(githubUrl, { cache: 'no-store' });
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
@@ -1172,7 +1172,7 @@
         console.warn(`⚠️ GitHub Pages failed for ${description}:`, error.message);
         console.log(`🔄 Falling back to local file: ${localPath}`);
         try {
-          const fallbackResponse = await fetch(localPath);
+          const fallbackResponse = await fetch(localPath, { cache: 'no-store' });
           if (!fallbackResponse.ok) {
             throw new Error(`Local fallback failed: HTTP ${fallbackResponse.status}`);
           }
@@ -1189,7 +1189,7 @@
       try {
         // Load parties.json with GitHub Pages CDN + local fallback
         const partiesResponse = await loadWithFallback(
-          'https://suhastpml.github.io/bihar_election_map/parties.json',
+          'https://suhastpml.github.io/Bihar_constituency_page/parties.json',
           './parties.json',
           'parties data'
         );
@@ -1211,7 +1211,7 @@
 
         // Load election results JSON with GitHub Pages CDN + local fallback
         const resultsResponse = await loadWithFallback(
-          'https://suhastpml.github.io/bihar_election_map/bihar_election_results_consolidated.json',
+          'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json',
           './bihar_election_results_consolidated.json',
           'election results data'
         );
