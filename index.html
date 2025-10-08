@@ -278,6 +278,10 @@
           <input id="resultsToggle" type="checkbox" />
           <span>Results announced</span>
         </label>
+        <label style="margin-left:12px; display:flex; align-items:center; gap:6px;">
+          <input id="sourceToggle" type="checkbox" />
+          <span>Use GitHub Pages data</span>
+        </label>
       </div>
       <span id="status" class="status-text"></span>
       <div class="note">Tip: Serve this file over a local web server to allow fetching local JSON (e.g., <span class="mono">python -m http.server</span> and open http://localhost:8000/constituency_viewer.html).</div>
@@ -290,10 +294,18 @@
   </div>
 
   <script>
-    const FILES = {
-      parties: './parties.json',
-      resultsConsolidated: './bihar_election_results_consolidated.json',
-    };
+    function getFiles(useLocal){
+      if (useLocal){
+        return {
+          parties: './parties.json',
+          resultsConsolidated: './bihar_election_results_consolidated.json',
+        };
+      }
+      return {
+        parties: 'https://dh-sandbox-web.quintype.io/parties.json',
+        resultsConsolidated: 'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated',
+      };
+    }
 
     const PARTY_NORMALIZE = new Map([
       ['JDU','JD(U)'], ['JD(U)','JD(U)'], ['CPM','CPI(M)'], ['HAM','HAM(S)'], ['Ind','IND'], ['IND','IND']
@@ -334,6 +346,8 @@
     async function loadAll(){
       const status = document.getElementById('status');
       status.textContent = 'Loading data...';
+      const useLocal = !!(document.getElementById('sourceToggle') && document.getElementById('sourceToggle').checked);
+      const FILES = getFiles(useLocal);
       const [partiesRes, consolidatedRes] = await Promise.all([
         fetch(FILES.parties),
         fetch(FILES.resultsConsolidated)
@@ -599,6 +613,17 @@
 
     (async function init(){
       try {
+        // Default data source toggle based on host/query
+        (function setDefaultSource(){
+          const sourceT = document.getElementById('sourceToggle');
+          const qp = new URLSearchParams(location.search);
+          const hostIsGh = (location.hostname || '').toLowerCase().includes('github.io');
+          let useLocalDefault = hostIsGh ? true : false;
+          const qps = qp.get('source');
+          if (qps === 'gh' || qps === 'local') useLocalDefault = true;
+          if (qps === 'sandbox') useLocalDefault = false;
+          if (sourceT) sourceT.checked = useLocalDefault;
+        })();
         const data = await loadAll();
         const input = document.getElementById('seatNo');
         const btn = document.getElementById('loadBtn');
@@ -614,6 +639,12 @@
         btn.addEventListener('click', go);
         input.addEventListener('keydown', (e)=>{ if (e.key==='Enter') go(); });
         if (toggle) toggle.addEventListener('change', go);
+        const sourceTNow = document.getElementById('sourceToggle');
+        if (sourceTNow) sourceTNow.addEventListener('change', ()=>{
+          const sp = new URLSearchParams(location.search);
+          sp.set('source', sourceTNow.checked ? 'gh' : 'sandbox');
+          location.search = sp.toString();
+        });
       } catch (e){
         document.getElementById('status').textContent = 'Failed to load data';
         document.getElementById('output').innerHTML = '<div class="error">Error loading files. If opened directly as file://, please serve over http:// with a local server.</div>';
