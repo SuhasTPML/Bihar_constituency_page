@@ -1243,9 +1243,9 @@
         // Load election data first
         const dataLoaded = await loadElectionData();
 
-        // Load GeoJSON with GitHub Pages CDN + local fallback
+        // Load GeoJSON from this repo's GitHub Pages (with local fallback)
         const geoResponse = await loadWithFallback(
-          'https://suhastpml.github.io/bihar_election_map/bihar_ac_all.geojson',
+          'https://suhastpml.github.io/Bihar_constituency_page/bihar_ac_all.geojson',
           './bihar_ac_all.geojson',
           'constituency map data'
         );
