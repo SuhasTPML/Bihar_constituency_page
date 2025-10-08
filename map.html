@@ -449,7 +449,7 @@
     let colorCache = new Map(); // Pre-computed color combinations
     let featureByAc = new Map(); // Cached feature lookup by AC key
     let centroidCache = new Map(); // Pre-computed centroids for each AC
-    let currentColorMode = 'alliance-2020';
+    let currentColorMode = ENABLE_2025_MODES ? 'alliance-2025' : 'alliance-2020';
 
     let biharData = null;
     let projection, path;
@@ -739,7 +739,7 @@
           opts.push({v:'party-2025', t:'2025 Party'});
         }
         opts.push(
-          {v:'alliance-2020', t:'2020 Alliance (Current)'},
+          {v:'alliance-2020', t:'2020 Alliance'},
           {v:'party-2020', t:'2020 Party'},
           {v:'reserved', t:'Reserved Status'},
           {v:'alliance-2015', t:'2015 Alliance'},
@@ -748,7 +748,7 @@
           {v:'party-2010', t:'2010 Party'}
         );
         colorModeEl.innerHTML = opts.map(o=>`<option value="${o.v}">${o.t}</option>`).join('');
-        colorModeEl.value = 'alliance-2020';
+        colorModeEl.value = ENABLE_2025_MODES ? 'alliance-2025' : 'alliance-2020';
       }
 
       // Wire up event handlers
