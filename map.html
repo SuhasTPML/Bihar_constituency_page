@@ -983,8 +983,9 @@
         const searchLabel = `${acno} - ${acname}${dist? ' ('+dist+')':''}`;
         searchEl.value = searchLabel;
 
-        // Console log detailed constituency information (only when DEBUG enabled)
+        // Log selected constituency JSON row for debugging/inspection
         const electionInfo = electionData.get(acno);
+        try { console.log('Selected constituency JSON:', { ac: acno, data: electionInfo }); } catch {}
         if (DEBUG) {
           console.log('=== CONSTITUENCY SELECTED ===');
           console.log('AC Number:', acno);
