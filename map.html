@@ -667,7 +667,7 @@
       if (DEBUG) console.log('Pre-computing color cache...');
       const colorModes = [
         ...(ENABLE_2025_MODES ? ['alliance-2025','party-2025'] : []),
-        'alliance-2020', 'party-2020', 'reserved', 'alliance-2015', 'party-2015', 'alliance-2010', 'party-2010'
+        'alliance-2020', 'party-2020', 'alliance-2015', 'party-2015', 'alliance-2010', 'party-2010'
       ];
       let cached = 0;
 
@@ -689,11 +689,6 @@
               break;
             case 'party-2020':
               color = partyColors.get(row.current_mla_party) || allianceColors.get(row.current_mla_alliance) || '#f3f4f6';
-              break;
-            case 'reserved':
-              const status = row.reserved || 'GEN';
-              const reservedColors = { 'GEN': '#f9fafb', 'SC': '#dbeafe', 'ST': '#dcfce7', 'NA': '#f3f4f6' };
-              color = reservedColors[status] || reservedColors['GEN'];
               break;
             case 'alliance-2015':
               color = getHistoricalOriginalColor(row.y2015_winner_party, '2015');
@@ -746,7 +741,6 @@
         opts.push(
           {v:'alliance-2020', t:'2020 Alliance'},
           {v:'party-2020', t:'2020 Party'},
-          {v:'reserved', t:'Reserved Status'},
           {v:'alliance-2015', t:'2015 Alliance'},
           {v:'party-2015', t:'2015 Party'},
           {v:'alliance-2010', t:'2010 Alliance'},
@@ -1162,13 +1156,6 @@
           color: (a === 'NA') ? '#e5e7eb' : (allianceColors.get(a) || '#e5e7eb'),
           label: `${a} (${count})`
         }));
-      } else if (mode === 'reserved') {
-        legendItems = [
-          { color: '#f9fafb', label: 'General' },
-          { color: '#dbeafe', label: 'SC Reserved' },
-          { color: '#dcfce7', label: 'ST Reserved' },
-          { color: '#f3f4f6', label: 'No Data' }
-        ];
       } else if (mode.includes('party')) {
         // Show top parties only for party mode
         const partyCount = new Map();
