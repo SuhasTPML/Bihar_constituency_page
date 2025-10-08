@@ -786,9 +786,20 @@
       content += `</div>`;
 
       if (electionRow) {
-        const mlaName = electionRow.current_mla_name || 'Not available';
-        const party = electionRow.current_mla_party || 'Unknown';
-        const alliance = electionRow.current_mla_alliance || 'Unknown';
+        let mlaName, party, alliance;
+        if (ENABLE_2025_MODES) {
+          mlaName = electionRow.y2025_winner_name || 'Not available';
+          party = electionRow.y2025_winner_party || 'Unknown';
+          const info = partyData.get(party);
+          const alliances = info && (info.alliances || null);
+          alliance = (alliances && (alliances['2025'] || alliances[2025]))
+                  || (info && (info['alliance_2025'] || info.alliance_2020 || info.alliance))
+                  || 'Unknown';
+        } else {
+          mlaName = electionRow.current_mla_name || 'Not available';
+          party = electionRow.current_mla_party || 'Unknown';
+          alliance = electionRow.current_mla_alliance || 'Unknown';
+        }
 
         // Get colors for party and alliance
         const partyColor = partyColors.get(party) || '#f3f4f6';
