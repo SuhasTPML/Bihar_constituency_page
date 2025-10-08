@@ -547,11 +547,12 @@
           </div>
         </div>
 
+        ${announced ? '' : `
         <div class="card cms-content-card" id="cms-pre">
           <div class="cms-content-body">
             <div class="cms-placeholder">Loading…</div>
           </div>
-        </div>
+        </div>`}
         
         ${announced ? renderYearBlock(2025, r2025, data.partiesIdx) : ''}
 
