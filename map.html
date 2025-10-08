@@ -779,6 +779,7 @@
       content += `</div>`;
 
       if (electionRow) {
+        const cleanName = (n)=> String(n||'').replace(/\s*\((SC|ST|GEN|General)\)\s*$/i, '');
         let mlaName, party, alliance;
         if (ENABLE_2025_MODES) {
           mlaName = electionRow.y2025_winner_name || 'Not available';
@@ -850,9 +851,10 @@
     }
 
     function populateSearch(features){
+      const cleanName = (n)=> String(n||'').replace(/\s*\((SC|ST|GEN|General)\)\s*$/i, '');
       searchData = features.map(f => ({
         key: featureKey(f.properties),
-        name: f.properties.AC_NAME || f.properties.ac_name || f.properties.Ac_Name || 'AC',
+        name: cleanName(f.properties.AC_NAME || f.properties.ac_name || f.properties.Ac_Name || 'AC'),
         dist: f.properties.DIST_NAME || f.properties.dist_name || ''
       })).sort((a,b) => a.key.localeCompare(b.key));
 
@@ -861,7 +863,7 @@
         const label = `${item.name}${item.dist? ' ('+item.dist+')':''}`;
         labelToKey.set(label, item.key);
         item.label = label;
-        // Keep constituency number in search text so users can search by number
+        // Keep constituency number and reserved tokens in search space
         item.searchText = `${item.key} ${item.name} ${item.dist}`.toLowerCase();
       });
     }
@@ -984,7 +986,8 @@
         fitToFeature(f);
         const p = f.properties;
         const acno = key;
-        const acname = p.AC_NAME || p.ac_name || p.Ac_Name || '';
+        const rawName = p.AC_NAME || p.ac_name || p.Ac_Name || '';
+        const acname = String(rawName).replace(/\s*\((SC|ST|GEN|General)\)\s*$/i, '');
         const dist = p.DIST_NAME || p.dist_name || '';
         const pcno = p.PC_NO || p.pc_no || '';
         const pcname = p.PC_NAME || p.pc_name || '';
