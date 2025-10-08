@@ -425,21 +425,23 @@
         </div>`;
     }
 
-    function computeTrend(r2010, r2015, r2020){
+    function computeTrend(r2010, r2015, r2020, r2025){
       const partyOf = (rec)=> normalizeParty((rec && rec['Winner'] && rec['Winner'].Party) || '');
       const nameOf = (rec)=> (rec && rec['Winner'] && rec['Winner'].Candidate) || null;
       const p10 = partyOf(r2010), p15 = partyOf(r2015), p20 = partyOf(r2020);
+      const p25 = partyOf(r2025);
       const lines = [];
       if (p10 && p15){ lines.push(p10 === p15 ? `2010 → 2015: Hold by ${p15}` : `2010 → 2015: Gain from ${p10} to ${p15}`); }
       if (p15 && p20){ lines.push(p15 === p20 ? `2015 → 2020: Hold by ${p20}` : `2015 → 2020: Gain from ${p15} to ${p20}`); }
       const winners = [];
       if (r2010) winners.push(`2010: ${nameOf(r2010) || '—'} (${p10 || '—'})`);
       if (r2015) winners.push(`2015: ${nameOf(r2015) || '—'} (${p15 || '—'})`);
-      if (r2020) winners.push(`2020: ${nameOf(r2020) || '—'} (${p20 || '—'})`);
+      if (r2020) winners.push(`2020: ${nameOf(r2020) || '-'} (${p20 || '-'})`);
+      if (r2025) winners.push(`2025: ${nameOf(r2025) || '-'} (${p25 || '-'})`);
       return { lines, winners };
     }
 
-    function renderEnhancedTrends(r2010, r2015, r2020, partiesIdx) {
+    function renderEnhancedTrends(r2010, r2015, r2020, r2025, partiesIdx) {
       const partyOf = (rec) => normalizeParty((rec && rec['Winner'] && rec['Winner'].Party) || '');
       const nameOf = (rec) => (rec && rec['Winner'] && rec['Winner'].Candidate) || null;
       
@@ -447,7 +449,8 @@
       const elections = [
         { year: '2010', rec: r2010, party: partyOf(r2010), name: nameOf(r2010) },
         { year: '2015', rec: r2015, party: partyOf(r2015), name: nameOf(r2015) },
-        { year: '2020', rec: r2020, party: partyOf(r2020), name: nameOf(r2020) }
+        { year: '2020', rec: r2020, party: partyOf(r2020), name: nameOf(r2020) },
+        { year: '2025', rec: r2025, party: partyOf(r2025), name: nameOf(r2025) }
       ].filter(e => e.rec);
       
       if (elections.length === 0) {
@@ -534,7 +537,7 @@
       const mla = row ? { mla: row.current_mla_name, party: row.current_mla_party, alliance: row.current_mla_alliance } : {};
       const mlaParty = enrichParty(mla.party, data.partiesIdx);
       const reserved = base.reserved ? base.reserved : 'General';
-      const trend = computeTrend(r2010, r2015, r2020);
+      const trend = computeTrend(r2010, r2015, r2020, r2025);
 
       const announced = !!(document.getElementById('resultsToggle') && document.getElementById('resultsToggle').checked);
 
@@ -578,7 +581,7 @@
         
         <div class="card">
           <h3 class="current-mla-title">Political Trends</h3>
-          ${renderEnhancedTrends(r2010, r2015, r2020, data.partiesIdx)}
+          ${renderEnhancedTrends(r2010, r2015, r2020, r2025, data.partiesIdx)}
         </div>
         
         <div class="results-container">
