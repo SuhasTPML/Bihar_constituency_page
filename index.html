@@ -612,8 +612,9 @@
           iframe.style.height = '600px';
           iframe.style.border = '0';
           iframe.style.borderRadius = '8px';
-          const remote = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac}`;
-          const local = `./map.html?ac=${ac}`;
+          const enable2025 = announced ? '1' : '0';
+          const remote = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac}&enable2025=${enable2025}`;
+          const local = `./map.html?ac=${ac}&enable2025=${enable2025}`;
           let loaded = false;
           iframe.onload = ()=>{ loaded = true; };
           iframe.src = remote;
