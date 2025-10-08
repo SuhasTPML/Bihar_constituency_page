@@ -546,8 +546,23 @@
             <div><strong>Seat Type:</strong> <span class="badge">${reserved}</span></div>
           </div>
         </div>
+
+        <div class="card cms-content-card" id="cms-pre">
+          <h3 class="cms-content-title">About This Election</h3>
+          <div class="cms-content-body">
+            <div class="cms-placeholder">Loading…</div>
+          </div>
+        </div>
         
         ${announced ? renderYearBlock(2025, r2025, data.partiesIdx) : ''}
+
+        ${announced ? `
+        <div class="card cms-content-card" id="cms-post">
+          <h3 class="cms-content-title">Analysis</h3>
+          <div class="cms-content-body">
+            <div class="cms-placeholder">Loading…</div>
+          </div>
+        </div>` : ''}
         
         <div class="card cms-content-card">
           <h3 class="cms-content-title">Constituency Map</h3>
@@ -608,6 +623,34 @@
           setTimeout(()=>{ if (!loaded) iframe.src = local; }, 3000);
         };
         mountMap(seatNo);
+        // Load CMS 2-paragraph content into pre/post blocks
+        const injectCms = async (id)=>{
+          const el = document.getElementById(id);
+          if (!el) return;
+          const body = el.querySelector('.cms-content-body');
+          if (!body) return;
+          // Choose source based on toggle (same as data source)
+          const sourceT = document.getElementById('sourceToggle');
+          const useLocal = !!(sourceT && sourceT.checked);
+          const remote = 'https://dh-sandbox-web.quintype.io/bihar_cms_content.html';
+          const local = './cms_content.html';
+          try {
+            const res = await fetch(useLocal ? local : remote);
+            if (!res.ok) throw new Error('CMS fetch failed');
+            const html = await res.text();
+            body.innerHTML = html;
+          } catch (e){
+            try {
+              const res2 = await fetch(local);
+              const html2 = await res2.text();
+              body.innerHTML = html2;
+            } catch {
+              body.innerHTML = '<div class="cms-placeholder">Content unavailable</div>';
+            }
+          }
+        };
+        injectCms('cms-pre');
+        injectCms('cms-post');
       } catch (_) {}
     }
 
