@@ -862,11 +862,12 @@
         dist: f.properties.DIST_NAME || f.properties.dist_name || ''
       })).sort((a,b) => a.key.localeCompare(b.key));
 
-      // Create searchable labels
+      // Create searchable labels (display name only; keep key in search text)
       searchData.forEach(item => {
-        const label = `${item.key} - ${item.name}${item.dist? ' ('+item.dist+')':''}`;
+        const label = `${item.name}${item.dist? ' ('+item.dist+')':''}`;
         labelToKey.set(label, item.key);
         item.label = label;
+        // Keep constituency number in search text so users can search by number
         item.searchText = `${item.key} ${item.name} ${item.dist}`.toLowerCase();
       });
     }
