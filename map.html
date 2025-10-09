@@ -434,7 +434,7 @@
         if (p === '1' || (p||'').toLowerCase() === 'true') return true;
         if (p === '0' || (p||'').toLowerCase() === 'false') return false;
       } catch {}
-      return true; // default
+      return false; // default disabled when no param
     })();
     const svg = d3.select('#svg');
     const g = d3.select('#zoomlayer');
