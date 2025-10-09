@@ -38,7 +38,7 @@ const RESULTS_PREFERRED_KEYS = [
   'y2025_margin',
   // current
   'current_mla_name','current_mla_party','current_mla_alliance','current_remarks',
-  'diff_party_vs_2020','diff_name_vs_2020',
+ 'diff_party_vs_2020','diff_name_vs_2020',
 ];
 
 function onOpen() {
@@ -58,6 +58,38 @@ function onOpen() {
 }
 
 /* ========== Core utilities ========== */
+
+function _sanitizeText(value) {
+  if (value == null) return '';
+  let s = String(value);
+  try { s = s.normalize('NFC'); } catch (e) {}
+  // Common UTF-8 -> ISO-8859-1 mojibake sequences mapped back
+  const replacements = [
+    ['Ã¢â‚¬â€œ', '–'], // en dash
+    ['Ã¢â‚¬â€�', '—'], // em dash
+    ['Ã¢â‚¬Ëœ', '‘'],
+    ['Ã¢â‚¬â„¢', '’'],
+    ['Ã¢â‚¬Å“', '“'],
+    ['Ã¢â‚¬Â�', '”'],
+    ['Ã¢â‚¬Â¦', '…'],
+    ['Ã‚Â', ''],     // stray non-breaking space marker
+  ];
+  for (const [bad, good] of replacements) {
+    if (s.indexOf(bad) !== -1) s = s.split(bad).join(good);
+  }
+  // Optional: collapse other non-printable chars
+  s = s.replace(/[\u0000-\u001F\u007F]/g, '');
+  return s;
+}
+
+function _sanitizeRecordStrings(rec) {
+  const out = {};
+  Object.keys(rec || {}).forEach(k => {
+    const v = rec[k];
+    out[k] = (typeof v === 'string') ? _sanitizeText(v) : v;
+  });
+  return out;
+}
 
 function _getSpreadsheet() {
   return CONFIG.SPREADSHEET_ID
@@ -204,14 +236,14 @@ function exportPartiesJsonCopy() {
       r['alliance_' + yr] || r['alliance_2020'] || r['alliance'] || ''
     ).trim();
     return {
-      code: String(r.code || '').trim(),
-      name: String(r.name || '').trim(),
-      color: String(r.color || '').trim(),
+      code: _sanitizeText(String(r.code || '').trim()),
+      name: _sanitizeText(String(r.name || '').trim()),
+      color: _sanitizeText(String(r.color || '').trim()),
       alliances: {
-        '2010': a(2010),
-        '2015': a(2015),
-        '2020': a(2020),
-        '2025': a(2025),
+        '2010': _sanitizeText(a(2010)),
+        '2015': _sanitizeText(a(2015)),
+        '2020': _sanitizeText(a(2020)),
+        '2025': _sanitizeText(a(2025)),
       },
     };
   });
@@ -225,7 +257,9 @@ function exportResultsJsonCopy() {
   const rows = _sheetToObjects(sheet);
 
   // Keep all fields; reorder to canonical order for readability
-  const out = rows.map(r => _reorderRecord(r, RESULTS_PREFERRED_KEYS));
+  const out = rows
+    .map(r => _sanitizeRecordStrings(r))
+    .map(r => _reorderRecord(r, RESULTS_PREFERRED_KEYS));
 
   const json = JSON.stringify(out, null, 2);
   _showJsonCopyDialog('Results JSON', json);
@@ -259,15 +293,18 @@ function importPartiesJsonFromText(jsonText, newSheetName) {
     rows = data.map(r => {
       const alliances = r.alliances || {};
       const val = (yr) =>
-        alliances[String(yr)] || alliances[yr] || r['alliance_' + yr] || r['alliance'] || '';
+        _sanitizeText(alliances[String(yr)] || alliances[yr] || r['alliance_' + yr] || r['alliance'] || '');
       return [
-        r.code || '', r.name || '', r.color || '',
+        _sanitizeText(r.code || ''), _sanitizeText(r.name || ''), _sanitizeText(r.color || ''),
         val(2010), val(2015), val(2020), val(2025),
       ];
     });
   } else {
     header = ['code','name','color','alliance'];
-    rows = data.map(r => [r.code || '', r.name || '', r.color || '', r.alliance || r.alliance_2020 || '']);
+    rows = data.map(r => [
+      _sanitizeText(r.code || ''), _sanitizeText(r.name || ''), _sanitizeText(r.color || ''),
+      _sanitizeText(r.alliance || r.alliance_2020 || '')
+    ]);
   }
 
   const sh = _ensureSheet(newSheetName || CONFIG.PARTIES_IMPORT_SHEET_NAME);
@@ -299,7 +336,10 @@ function importResultsJsonFromText(jsonText, newSheetName) {
     });
   });
 
-  const rows = data.map(r => header.map(k => (r && r[k] != null) ? r[k] : ''));
+  const rows = data.map(r => header.map(k => {
+    const v = (r && r[k] != null) ? r[k] : '';
+    return (typeof v === 'string') ? _sanitizeText(v) : v;
+  }));
   _writeTableToSheet(sh, header, rows);
   return 'Imported Results JSON into sheet: ' + (newSheetName || CONFIG.RESULTS_IMPORT_SHEET_NAME);
 }
