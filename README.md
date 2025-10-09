@@ -1,54 +1,56 @@
-# Bihar Constituency Page
+Bihar Constituency Viewer and Map
 
-This repository powers the constituency viewer and interactive map for Bihar results.
+Overview
+- `index.html`: Constituency viewer with results by year and trends.
+- `map.html`: Interactive Bihar assembly map with search, color modes, and details panel.
 
-- Live viewer: `index.html` (reads JSON from this repo’s GitHub Pages)
-- Interactive map: `map.html` (2025-aware, remote-first with local fallback)
+Data Sources
+- `parties.json`: Party metadata and alliances per year (2010/2015/2020/2025), with `code`, `name`, `color`.
+- `bihar_election_results_consolidated.json`: Consolidated per‑constituency results (2010/2015/2020/2025) plus current MLA fields.
+- `bihar_ac_all.geojson`: GeoJSON of assembly constituencies.
 
-## Data Sources
+Hosted JSON (GitHub Pages)
+- parties: https://suhastpml.github.io/Bihar_constituency_page/parties.json
+- results: https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json
+- geojson: https://suhastpml.github.io/Bihar_constituency_page/bihar_ac_all.geojson
 
-- `parties.json`: per-year alliances under `alliances` (2010/2015/2020/2025) and `code`, `name`, `color`.
-- `bihar_election_results_consolidated.json`: consolidated results per seat with 2010/2015/2020/2025 blocks + current MLA.
+Both `index.html` and `map.html` load these from GitHub Pages with a local fallback if the network source fails (no-store caching).
 
-Both are served from GitHub Pages at:
-
-- https://suhastpml.github.io/Bihar_constituency_page/parties.json
-- https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json
-
-## Wiring (Viewer and Map)
-
+End‑User Guide
 - Viewer (`index.html`)
-  - Data source toggle: Sandbox vs GitHub Pages (persists with `?source=` param).
-  - “Results announced” adds `enable2025=1` to the map iframe, so the map defaults to 2025 view.
-  - Section title changed to “Past Results”.
+  - Displays constituency name, district, and results blocks for 2010/2015/2020/2025 when available.
+  - Vote bars compare winner and runner‑up; margin is shown in votes.
+  - A trends section summarizes party holds/gains across years.
 
 - Map (`map.html`)
-  - Reads `enable2025=1/0` from URL. When enabled, default is “2025 Alliance/Party”, and bottom sheet’s “Current MLA” reflects 2025 winner.
-  - Data endpoints: parties/results/geojson all point to this repo’s GH Pages with local fallback; fetch uses `cache: 'no-store'`.
-  - Legends: Alliance legends include counts; Party legends show top parties (including 2025).
+  - Interactions: Click/tap a constituency to view details; search by number/name/district to select.
+  - Color Modes: Alliance/Party by year. Legend shows alliance counts or top parties depending on mode.
+  - Details Panel: Bottom sheet shows the selected constituency’s winner/MLA, party, and alliance for the active mode/year.
 
-## Drive JSON from Google Sheets
+URL Parameters
+- `enable2025` (on `map.html`)
+  - Controls whether 2025 color modes and winner details are enabled.
+  - Values: `1`/`true` to enable, `0`/`false` to disable.
+  - Default when absent: disabled (map starts in 2020 modes).
 
-A complete guide for connecting Google Sheets → JSON (Apps Script Web App or publishing to this repo) is in:
+- `ac` (on `map.html`)
+  - Preselects a constituency on load, if valid.
+  - Example: `map.html?ac=001`.
 
-- `docs/sheets-to-json.md`
+- `source` (on `index.html`, optional)
+  - Implementation detail for switching data source (e.g., sandbox vs GitHub Pages) when supported.
 
-It includes:
-- Apps Script to serve JSON over HTTPS (`doGet?file=parties|results`).
-- Publisher script to push static JSON to this repo via GitHub API for best performance.
+Data Pipeline (Google Sheets → JSON)
+- See `docs/sheets-to-json.md` for publishing flow:
+  - Apps Script web app to serve JSON.
+  - Scripted publishing of static JSON to this repo for fastest loads.
 
-## Local development
+Local Development
+- Serve files over HTTP to avoid `file://` CORS issues.
 
-Serve files locally to avoid CORS issues (for `file://`):
+  python -m http.server 8000
+  # then open http://localhost:8000/index.html or /map.html
 
-```bash
-# Python 3
-python -m http.server 8000
-# then open http://localhost:8000/index.html
-```
-
-## Notes
-
-- Colors for party “IND” are grey by design (independents); to change a seat’s color in “Party” modes, update its `yYYYY_winner_party` to the desired party code.
-- Margin displayed comes from JSON if present; otherwise computed as winner_votes − runner_votes.
-
+Notes
+- Party `IND` (independent) is gray by design. To change a seat’s color in Party modes, update `yYYYY_winner_party` in the consolidated JSON.
+- If explicit margin is missing in the data, the viewer computes it as `winner_votes - runner_up_votes`.
