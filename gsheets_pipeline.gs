@@ -1,23 +1,19 @@
 /**
  * Bihar Elections: Sheets <-> JSON pipeline (mirrors Python tools)
- * - Export parties/results sheets to JSON on Drive (schema-aware).
- * - Import parties/results JSON files to new sheets (schema-aware).
+ * - Export parties/results sheets to JSON with a copy-to-clipboard dialog (no Drive writes).
+ * - Import parties/results by pasting JSON into a dialog to create new sheets (no Drive reads).
  */
 
 const CONFIG = {
   // If null, uses the active spreadsheet
   SPREADSHEET_ID: null,
 
-  // Optional target folder for exported JSON files (null -> My Drive root)
-  OUTPUT_FOLDER_ID: null,
-
   // Sheet names for CSV-uploaded data
   PARTIES_SHEET_NAME: 'parties',
   RESULTS_SHEET_NAME: 'bihar_election_results_consolidated',
-
-  // Exported filenames
-  PARTIES_JSON_NAME: 'parties.json',
-  RESULTS_JSON_NAME: 'bihar_election_results_consolidated.json',
+  // Default sheet names for pasted JSON imports
+  PARTIES_IMPORT_SHEET_NAME: 'Parties (from JSON)',
+  RESULTS_IMPORT_SHEET_NAME: 'Results (from JSON)',
 };
 
 // Canonical results key order (as per Python scripts)
@@ -49,14 +45,14 @@ function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Bihar Data')
     .addSubMenu(
-      SpreadsheetApp.getUi().createMenu('Export (Sheets → JSON)')
-        .addItem('Export Parties JSON', 'exportPartiesJson')
-        .addItem('Export Results JSON', 'exportResultsJson')
+      SpreadsheetApp.getUi().createMenu('Export (Copy JSON)')
+        .addItem('Parties → JSON (copy)', 'exportPartiesJsonCopy')
+        .addItem('Results → JSON (copy)', 'exportResultsJsonCopy')
     )
     .addSubMenu(
-      SpreadsheetApp.getUi().createMenu('Import (JSON → Sheet)')
-        .addItem('Import Parties JSON to Sheet', 'importPartiesJsonToSheetPrompt')
-        .addItem('Import Results JSON to Sheet', 'importResultsJsonToSheetPrompt')
+      SpreadsheetApp.getUi().createMenu('Import (Paste JSON)')
+        .addItem('Paste Parties JSON → Sheet', 'importPartiesJsonPaste')
+        .addItem('Paste Results JSON → Sheet', 'importResultsJsonPaste')
     )
     .addToUi();
 }
@@ -67,15 +63,6 @@ function _getSpreadsheet() {
   return CONFIG.SPREADSHEET_ID
     ? SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID)
     : SpreadsheetApp.getActive();
-}
-
-function _getOutputFolder() {
-  if (!CONFIG.OUTPUT_FOLDER_ID) return null;
-  try {
-    return DriveApp.getFolderById(CONFIG.OUTPUT_FOLDER_ID);
-  } catch (e) {
-    throw new Error('Invalid OUTPUT_FOLDER_ID: ' + e);
-  }
 }
 
 function _getSheetOrThrow(name) {
@@ -106,22 +93,80 @@ function _sheetToObjects(sheet) {
   return records;
 }
 
-function _writeJsonToDrive(records, filename) {
-  const json = JSON.stringify(records, null, 2);
-  const blob = Utilities.newBlob(json, 'application/json', filename);
-  const folder = _getOutputFolder();
-  const file = folder ? folder.createFile(blob) : DriveApp.createFile(blob);
-  return file.getUrl();
+function _showJsonCopyDialog(title, jsonString) {
+  const html = HtmlService.createHtmlOutput(
+    `<!doctype html>
+    <html><head><meta charset="utf-8">
+    <style>
+      body{font:14px system-ui,Segoe UI,Arial,sans-serif;margin:16px;}
+      textarea{width:100%;height:360px;font:12px ui-monospace,Consolas,monospace;}
+      .row{display:flex;gap:8px;margin-top:8px}
+      button{padding:6px 10px}
+    </style></head>
+    <body>
+      <h3>${title}</h3>
+      <textarea id="txt" readonly></textarea>
+      <div class="row">
+        <button id="copy">Copy to clipboard</button>
+        <button id="close">Close</button>
+      </div>
+      <script>
+        const t = document.getElementById('txt');
+        t.value = ${JSON.stringify(jsonString)};
+        document.getElementById('copy').onclick = async ()=>{
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(t.value);
+            } else {
+              t.select(); document.execCommand('copy');
+            }
+            alert('Copied to clipboard');
+          } catch(e){ alert('Copy failed: ' + e); }
+        };
+        document.getElementById('close').onclick = ()=> google.script.host.close();
+      </script>
+    </body></html>`
+  ).setWidth(640).setHeight(500);
+  SpreadsheetApp.getUi().showModalDialog(html, title);
 }
 
-function _readJsonFromDriveFileId(fileId) {
-  const file = DriveApp.getFileById(fileId);
-  const text = file.getBlob().getDataAsString('utf-8');
-  const data = JSON.parse(text);
-  if (!Array.isArray(data)) {
-    throw new Error('Expected top-level array in JSON file: ' + file.getName());
-  }
-  return data;
+function _showPasteJsonDialog(kind, suggestedSheetName) {
+  const title = kind === 'parties' ? 'Paste Parties JSON → Sheet' : 'Paste Results JSON → Sheet';
+  const serverFn = kind === 'parties' ? 'importPartiesJsonFromText' : 'importResultsJsonFromText';
+  const html = HtmlService.createHtmlOutput(
+    `<!doctype html>
+    <html><head><meta charset="utf-8">
+    <style>
+      body{font:14px system-ui,Segoe UI,Arial,sans-serif;margin:16px;}
+      label{display:block;margin:6px 0}
+      input,textarea{width:100%;box-sizing:border-box}
+      textarea{height:320px;font:12px ui-monospace,Consolas,monospace}
+      .row{display:flex;gap:8px;margin-top:8px}
+      button{padding:6px 10px}
+    </style></head>
+    <body>
+      <h3>${title}</h3>
+      <label>Target sheet name <input id="sheet" value="${suggestedSheetName}"></label>
+      <label>Paste JSON array below</label>
+      <textarea id="txt" placeholder="[ { ... }, { ... } ]"></textarea>
+      <div class="row">
+        <button id="go">Convert to Sheet</button>
+        <button id="cancel">Cancel</button>
+      </div>
+      <script>
+        const go = document.getElementById('go');
+        go.onclick = ()=>{
+          go.disabled = true; go.textContent = 'Converting...';
+          const payload = { text: document.getElementById('txt').value, sheet: document.getElementById('sheet').value };
+          google.script.run.withSuccessHandler((msg)=>{ alert(msg||'Done'); google.script.host.close(); })
+            .withFailureHandler((e)=>{ alert('Error: ' + e.message); go.disabled=false; go.textContent='Convert to Sheet'; })
+            ['${serverFn}'](payload.text, payload.sheet);
+        };
+        document.getElementById('cancel').onclick = ()=> google.script.host.close();
+      </script>
+    </body></html>`
+  ).setWidth(640).setHeight(520);
+  SpreadsheetApp.getUi().showModalDialog(html, title);
 }
 
 function _reorderRecord(record, preferredOrder) {
@@ -147,9 +192,9 @@ function _writeTableToSheet(sheet, header, rows) {
   );
 }
 
-/* ========== Export: Sheets → JSON ========== */
+/* ========== Export: Sheets → JSON (copy dialog) ========== */
 
-function exportPartiesJson() {
+function exportPartiesJsonCopy() {
   const sheet = _getSheetOrThrow(CONFIG.PARTIES_SHEET_NAME);
   const rows = _sheetToObjects(sheet);
 
@@ -171,43 +216,39 @@ function exportPartiesJson() {
     };
   });
 
-  const url = _writeJsonToDrive(out, CONFIG.PARTIES_JSON_NAME);
-  SpreadsheetApp.getUi().alert('Exported parties.json\n' + url);
-  return url;
+  const json = JSON.stringify(out, null, 2);
+  _showJsonCopyDialog('Parties JSON', json);
 }
 
-function exportResultsJson() {
+function exportResultsJsonCopy() {
   const sheet = _getSheetOrThrow(CONFIG.RESULTS_SHEET_NAME);
   const rows = _sheetToObjects(sheet);
 
   // Keep all fields; reorder to canonical order for readability
   const out = rows.map(r => _reorderRecord(r, RESULTS_PREFERRED_KEYS));
 
-  const url = _writeJsonToDrive(out, CONFIG.RESULTS_JSON_NAME);
-  SpreadsheetApp.getUi().alert('Exported results JSON\n' + url);
-  return url;
+  const json = JSON.stringify(out, null, 2);
+  _showJsonCopyDialog('Results JSON', json);
 }
 
-/* ========== Import: JSON → Sheet ========== */
+/* ========== Import: JSON (paste) → Sheet ========== */
 
-function importPartiesJsonToSheetPrompt() {
-  const ui = SpreadsheetApp.getUi();
-  const resp = ui.prompt('Import Parties JSON', 'Enter Drive File ID of parties.json:', ui.ButtonSet.OK_CANCEL);
-  if (resp.getSelectedButton() !== ui.Button.OK) return;
-  const fileId = resp.getResponseText().trim();
-  importPartiesJsonToSheet(fileId, 'Parties (from JSON)');
+function importPartiesJsonPaste() {
+  _showPasteJsonDialog('parties', CONFIG.PARTIES_IMPORT_SHEET_NAME);
 }
 
-function importResultsJsonToSheetPrompt() {
-  const ui = SpreadsheetApp.getUi();
-  const resp = ui.prompt('Import Results JSON', 'Enter Drive File ID of bihar_election_results_consolidated.json:', ui.ButtonSet.OK_CANCEL);
-  if (resp.getSelectedButton() !== ui.Button.OK) return;
-  const fileId = resp.getResponseText().trim();
-  importResultsJsonToSheet(fileId, 'Results (from JSON)');
+function importResultsJsonPaste() {
+  _showPasteJsonDialog('results', CONFIG.RESULTS_IMPORT_SHEET_NAME);
 }
 
-function importPartiesJsonToSheet(fileId, newSheetName) {
-  const data = _readJsonFromDriveFileId(fileId);
+function importPartiesJsonFromText(jsonText, newSheetName) {
+  let data;
+  try {
+    data = JSON.parse(String(jsonText || ''));
+  } catch (e) {
+    throw new Error('Invalid JSON: ' + e);
+  }
+  if (!Array.isArray(data)) throw new Error('Expected a JSON array at top level');
 
   // Detect per-year alliances map
   const hasPerYear = data.some(r => r && typeof r.alliances === 'object');
@@ -229,17 +270,23 @@ function importPartiesJsonToSheet(fileId, newSheetName) {
     rows = data.map(r => [r.code || '', r.name || '', r.color || '', r.alliance || r.alliance_2020 || '']);
   }
 
-  const sh = _ensureSheet(newSheetName);
+  const sh = _ensureSheet(newSheetName || CONFIG.PARTIES_IMPORT_SHEET_NAME);
   _writeTableToSheet(sh, header, rows);
-  SpreadsheetApp.getUi().alert('Imported Parties JSON into sheet: ' + newSheetName);
+  return 'Imported Parties JSON into sheet: ' + (newSheetName || CONFIG.PARTIES_IMPORT_SHEET_NAME);
 }
 
-function importResultsJsonToSheet(fileId, newSheetName) {
-  const data = _readJsonFromDriveFileId(fileId);
-  const sh = _ensureSheet(newSheetName);
+function importResultsJsonFromText(jsonText, newSheetName) {
+  let data;
+  try {
+    data = JSON.parse(String(jsonText || ''));
+  } catch (e) {
+    throw new Error('Invalid JSON: ' + e);
+  }
+  if (!Array.isArray(data)) throw new Error('Expected a JSON array at top level');
+  const sh = _ensureSheet(newSheetName || CONFIG.RESULTS_IMPORT_SHEET_NAME);
   if (!data.length) {
     _writeTableToSheet(sh, [], []);
-    return;
+    return 'No records found; created empty sheet';
   }
 
   // Build header: start with preferred keys, then add any extras seen
@@ -254,37 +301,7 @@ function importResultsJsonToSheet(fileId, newSheetName) {
 
   const rows = data.map(r => header.map(k => (r && r[k] != null) ? r[k] : ''));
   _writeTableToSheet(sh, header, rows);
-  SpreadsheetApp.getUi().alert('Imported Results JSON into sheet: ' + newSheetName);
+  return 'Imported Results JSON into sheet: ' + (newSheetName || CONFIG.RESULTS_IMPORT_SHEET_NAME);
 }
 
-/* ========== Optional web endpoints (serve JSON from this sheet) ========== */
-/* Publish as web app to serve JSON: doGet?file=parties|results */
-function doGet(e) {
-  const p = (e && e.parameter && e.parameter.file || '').toLowerCase();
-  let data = [];
-  if (p === 'parties') {
-    const sheet = _getSheetOrThrow(CONFIG.PARTIES_SHEET_NAME);
-    const rows = _sheetToObjects(sheet);
-    data = rows.map(r => ({
-      code: String(r.code || '').trim(),
-      name: String(r.name || '').trim(),
-      color: String(r.color || '').trim(),
-      alliances: {
-        '2010': String(r.alliance_2010 || r.alliance_2020 || r.alliance || '').trim(),
-        '2015': String(r.alliance_2015 || r.alliance_2020 || r.alliance || '').trim(),
-        '2020': String(r.alliance_2020 || r.alliance || '').trim(),
-        '2025': String(r.alliance_2025 || r.alliance_2020 || r.alliance || '').trim(),
-      },
-    }));
-  } else if (p === 'results') {
-    const sheet = _getSheetOrThrow(CONFIG.RESULTS_SHEET_NAME);
-    const rows = _sheetToObjects(sheet);
-    data = rows.map(r => _reorderRecord(r, RESULTS_PREFERRED_KEYS));
-  } else {
-    return ContentService.createTextOutput('Specify ?file=parties or ?file=results')
-      .setMimeType(ContentService.MimeType.TEXT);
-  }
-  return ContentService.createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
+// Note: Web endpoint removed to keep interactions clipboard/paste-only.
