@@ -39,6 +39,7 @@
     .current-mla-title { font-size: 16px; font-weight: 600; margin: 0 0 12px; letter-spacing: 0.5px; }
     .mla-name { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
     .mla-party { color: var(--muted); font-size: 16px; }
+    .mla-alliance { color: var(--muted); font-size: 16px; margin-top: 2px; }
     
     /* CMS Content Placeholder */
     .cms-content-card { margin-bottom: 16px; }
@@ -573,9 +574,10 @@
         <div class="card current-mla-card">
           <h3 class="current-mla-title">${base.name} Current MLA</h3>
           <div class="mla-name">${mla.mla ? mla.mla : '-'}</div>
-          <div class="mla-party">${mlaParty.name || mlaParty.code || '-'} ${mla.alliance? '['+mla.alliance+']':''}
+          <div class="mla-party">${mlaParty.name || mlaParty.code || '-'}
             ${mlaParty.code? `<span class=\"pill\" style=\"background:${mlaParty.color}; margin-left:6px;\">${mlaParty.code}</span>`:''}
           </div>
+          <div class="mla-alliance">Alliance: <span class="badge">${mla.alliance || '-'}</span></div>
         </div>`}
         
         <div class="card">

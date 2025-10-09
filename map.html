@@ -795,12 +795,14 @@
           alliance = electionRow.current_mla_alliance || 'Unknown';
         }
 
+        const mlaLabel = ENABLE_2025_MODES ? 'Winner' : 'Current MLA';
+
         // Get colors for party and alliance
         const partyColor = partyColors.get(party) || '#f3f4f6';
         const allianceColor = allianceColors.get(alliance) || '#f3f4f6';
 
         // MLA information row
-        content += `<div class="info-row">Current MLA: <strong>${mlaName}</strong></div>`;
+        content += `<div class="info-row">${mlaLabel}: <strong>${mlaName}</strong></div>`;
 
         // Party and alliance cards with professional layout
         content += `<div class="card-grid">`;
