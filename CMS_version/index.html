@@ -295,6 +295,15 @@
   </div>
 
   <script>
+    // Inline CMS content blocks (hardcoded)
+    const CMS_PRE_HTML = `
+      <p>The Bihar Assembly elections are underway. Follow this page for constituency-wise context, key candidates, and background ahead of the 2025 results. We’ll update this section with quick takeaways as trends emerge.</p>
+      <p>Note: Past results and party colors are based on publicly available records. Turn the ‘Results announced’ toggle on when official 2025 results are declared to see updated summaries.</p>
+    `;
+    const CMS_POST_HTML = `
+      <p>The 2025 results for this constituency are in. The summary and margin details are displayed above. Use this section for quick context on how the outcome compares with 2010–2020 and what it means for the broader alliances.</p>
+      <p>Data sources include official ECI releases and curated archives. We will refine the summary as more granular booth-level data is published.</p>
+    `;
     function detectDataSource(){
       try {
         const qp = new URLSearchParams(location.search);
@@ -619,7 +628,7 @@
       out.innerHTML = headerHTML;
       // Mount map iframe: sandbox → dh-sandbox route; otherwise → GitHub Pages (with local fallback)
       try {
-        const mountMap = (num)=>{
+        const mountMap = async (num)=>{
           const el = document.getElementById('mapEmbed');
           if (!el) return;
           el.innerHTML = '';
@@ -635,49 +644,34 @@
           const enable2025 = announced ? '1' : '0';
           const host = (location.hostname||'').toLowerCase();
           const isSandbox = host.includes('quintype.io') || host.includes('sandbox');
+          const ghRemote = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac}&enable2025=${enable2025}`;
+          const local = `./map.html?ac=${ac}&enable2025=${enable2025}`;
+          let target = ghRemote;
           if (isSandbox) {
             const sandboxUrl = `https://dh-sandbox-web.quintype.io/biharmap?ac=${ac}&enable2025=${enable2025}`;
-            iframe.src = sandboxUrl;
-            el.appendChild(iframe);
-          } else {
-            const remote = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac}&enable2025=${enable2025}`;
-            const local = `./map.html?ac=${ac}&enable2025=${enable2025}`;
-            let loaded = false;
-            iframe.onload = ()=>{ loaded = true; };
-            iframe.src = remote;
-            el.appendChild(iframe);
-            setTimeout(()=>{ if (!loaded) iframe.src = local; }, 3000);
+            try {
+              const head = await fetch(sandboxUrl, { method: 'HEAD' });
+              if (head && head.ok) target = sandboxUrl;
+            } catch {}
           }
+          let loaded = false;
+          iframe.onload = ()=>{ loaded = true; };
+          iframe.src = target;
+          el.appendChild(iframe);
+          if (target !== local) setTimeout(()=>{ if (!loaded) iframe.src = local; }, 3000);
         };
+        // Fire-and-forget; do not await inside non-async scope
         mountMap(seatNo);
-        // Load CMS 2-paragraph content into pre/post blocks
-        const injectCms = async (id)=>{
+        // Inject hardcoded CMS content into pre/post blocks
+        const injectCms = (id, html)=>{
           const el = document.getElementById(id);
           if (!el) return;
           const body = el.querySelector('.cms-content-body');
           if (!body) return;
-          // Choose source based on toggle (same as data source)
-          const sourceT = document.getElementById('sourceToggle');
-          const useLocal = !!(sourceT && sourceT.checked);
-          const remote = 'https://dh-sandbox-web.quintype.io/bihar_cms_content.html';
-          const local = './cms_content.html';
-          try {
-            const res = await fetch(useLocal ? local : remote);
-            if (!res.ok) throw new Error('CMS fetch failed');
-            const html = await res.text();
-            body.innerHTML = html;
-          } catch (e){
-            try {
-              const res2 = await fetch(local);
-              const html2 = await res2.text();
-              body.innerHTML = html2;
-            } catch {
-              body.innerHTML = '<div class="cms-placeholder">Content unavailable</div>';
-            }
-          }
+          body.innerHTML = html;
         };
-        injectCms('cms-pre');
-        injectCms('cms-post');
+        if (!announced) injectCms('cms-pre', CMS_PRE_HTML);
+        if (announced) injectCms('cms-post', CMS_POST_HTML);
       } catch (_) {}
     }
 
