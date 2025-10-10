@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto+Serif:wght@400;500;600&family=Roboto+Slab:wght@400;500;600;700&display=swap" rel="stylesheet">
   <title>Bihar Assembly | Constituency Viewer</title>
   <style>
     :root {
       --bg: #F7F7F9;
       --card: #FFFFFF;
-      --text: #111827;
-      --muted: #6B7280;
+      --text: #000000;
+      --muted: #5B6064;
       --border: #E5E7EB;
       --primary: #0EA5E9;
       --primary-dark: #0284C7;
@@ -22,7 +22,7 @@
       --radius: 12px;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; font: 14px/1.5 Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); }
+    body { margin: 0; font: 16px/1.5 'Roboto Slab', 'Roboto Serif', Georgia, serif; background: var(--bg); color: var(--text); }
     .container { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
     
     /* Header Styles */
@@ -45,9 +45,9 @@
     .helper-text { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
     .status-text { color: var(--muted); font-size: 14px; }
     /* Mobile-first Card Layout */
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-sm), var(--shadow-md); margin-bottom: 16px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
     .constituency-header { margin-bottom: 24px; }
-    .constituency-title { font-size: 32px; font-weight: 700; margin: 0 0 8px; color: var(--text); line-height: 1.2; }
+    .constituency-title { font-family: 'Playfair Display', serif; font-size: 44px; font-weight: 700; margin: 0 0 8px; color: var(--text); line-height: 1.15; }
     .constituency-info { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
     .current-mla-card { margin-bottom: 16px; }
     .current-mla-title { font-size: 16px; font-weight: 600; margin: 0 0 12px; letter-spacing: 0.5px; }
