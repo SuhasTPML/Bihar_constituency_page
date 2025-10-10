@@ -62,6 +62,8 @@
     .cms-placeholder { color: var(--muted); font-style: italic; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px dashed var(--border); }
     .map-section-title { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 600; margin: 0 0 6px; color: #000; line-height: 1.15; }
     .map-helper { color: #000; font-size: 16px; margin: 0 0 12px; font-family: 'Roboto Slab', serif; }
+    /* Figma-aligned section titles */
+    .past-results-title { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 600; line-height: 36px; margin: 0 0 12px; color: #000; }
     
     /* Mobile-first: Stack everything vertically */
     .results-container { display: flex; flex-direction: column; gap: 16px; }
@@ -206,14 +208,14 @@
 
     /* Election Result Cards */
     .election-result { margin-bottom: 16px; }
-    .election-title { font-size: 16px; font-weight: 600; margin: 0 0 16px; letter-spacing: 0.5px; color: var(--text); }
+    .election-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 600; line-height: 36px; margin: 0 0 12px; color: var(--text); }
     .candidate-row { margin-bottom: 16px; }
     .candidate-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .candidate-name { font-weight: 600; font-size: 16px; }
+    .candidate-name { font-family: 'Roboto Slab', serif; font-weight: 700; font-size: 16px; }
     .candidate-party { color: var(--muted); font-size: 14px; }
     .vote-count { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 600; }
     .margin-info { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
-    .margin-text { font-weight: 600; }
+    .margin-text { font-family: 'Roboto Slab', serif; font-weight: 700; font-size: 12px; }
     
     /* Mobile Timeline Optimizations */
     @media (max-width: 767px) {
@@ -626,7 +628,7 @@
         </div>`}
         
         <div class="card">
-          <h3 class="current-mla-title">Bihar Assembly elections ${base.name} Past Results</h3>
+          <h3 class="past-results-title">Bihar Assembly Elections ${base.name} Past Results</h3>
           ${renderEnhancedTrends(r2010, r2015, r2020, (announced ? r2025 : null), data.partiesIdx)}
         </div>
         
