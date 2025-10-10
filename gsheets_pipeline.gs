@@ -42,19 +42,311 @@ const RESULTS_PREFERRED_KEYS = [
 ];
 
 function onOpen() {
-  SpreadsheetApp.getUi()
-    .createMenu('Bihar Data')
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('Bihar Data')
     .addSubMenu(
-      SpreadsheetApp.getUi().createMenu('Export (Copy JSON)')
+      ui.createMenu('Export (Copy JSON)')
         .addItem('Parties → JSON (copy)', 'exportPartiesJsonCopy')
         .addItem('Results → JSON (copy)', 'exportResultsJsonCopy')
     )
     .addSubMenu(
-      SpreadsheetApp.getUi().createMenu('Import (Paste JSON)')
+      ui.createMenu('Import (Paste JSON)')
         .addItem('Paste Parties JSON → Sheet', 'importPartiesJsonPaste')
         .addItem('Paste Results JSON → Sheet', 'importResultsJsonPaste')
     )
+    .addSubMenu(
+      ui.createMenu('2025 Placeholders')
+        .addItem('Seed 2025 from 2020 winners', 'seed2025From2020')
+        .addItem('Clear 2025 placeholders (results)', 'clear2025Placeholders')
+        .addSeparator()
+        .addItem('Ensure alliance_2025 (Parties)', 'ensureAlliance2025Column')
+        .addItem('Add validations for 2025 party fields', 'add2025Validations')
+        .addSeparator()
+        .addItem('Set 2025 fields (bulk input)…', 'openSet2025BulkDialog')
+    )
     .addToUi();
+}
+
+/* ========== 2025 placeholder utilities ========== */
+
+function _getHeader_(sheet) {
+  const values = sheet.getDataRange().getValues();
+  return (values && values.length) ? values[0].map(h => String(h || '').trim()) : [];
+}
+
+function _colIndex_(header, name) {
+  return Math.max(0, header.findIndex(h => h === name)); // returns 0 if missing; callers should check presence
+}
+
+function _getLastRow_(sheet, col) {
+  const range = sheet.getRange(2, col, Math.max(1, sheet.getMaxRows() - 1), 1);
+  const vals = range.getValues();
+  for (let i = vals.length - 1; i >= 0; i--) {
+    if (String(vals[i][0] || '').trim() !== '') return i + 2;
+  }
+  return 2;
+}
+
+function seed2025From2020() {
+  const sh = _getSheetOrThrow(CONFIG.RESULTS_SHEET_NAME);
+  const values = sh.getDataRange().getValues();
+  if (!values.length) return 'No data';
+  const header = values[0].map(h => String(h || '').trim());
+  const rows = values.slice(1);
+  const c = (n) => header.indexOf(n);
+
+  const i20n = c('y2020_winner_name');
+  const i20p = c('y2020_winner_party');
+  const i25n = c('y2025_winner_name');
+  const i25p = c('y2025_winner_party');
+  const i25wv = c('y2025_winner_votes');
+  const i25rn = c('y2025_runner_name');
+  const i25rp = c('y2025_runner_party');
+  const i25rv = c('y2025_runner_votes');
+  const i25m  = c('y2025_margin');
+  const required = [i20n,i20p,i25n,i25p,i25wv,i25rn,i25rp,i25rv,i25m].every(i => i >= 0);
+  if (!required) throw new Error('Required 2020/2025 columns not found.');
+
+  let changed = 0;
+  for (let r = 0; r < rows.length; r++) {
+    const row = rows[r];
+    const name2020 = row[i20n];
+    const party2020 = row[i20p];
+    // Only seed if empty
+    if (String(row[i25n]||'').trim() === '' && String(row[i25p]||'').trim() === '') {
+      row[i25n] = name2020 || '';
+      row[i25p] = party2020 || '';
+      changed++;
+    }
+    // Always clear numeric placeholders for 2025
+    row[i25wv] = '';
+    row[i25rn] = '';
+    row[i25rp] = '';
+    row[i25rv] = '';
+    row[i25m]  = '';
+  }
+  sh.getRange(2, 1, rows.length, header.length).setValues(rows);
+  SpreadsheetApp.getUi().alert(`Seeded ${changed} rows with 2025 placeholders from 2020 winners.`);
+}
+
+function clear2025Placeholders() {
+  const sh = _getSheetOrThrow(CONFIG.RESULTS_SHEET_NAME);
+  const values = sh.getDataRange().getValues();
+  if (!values.length) return 'No data';
+  const header = values[0].map(h => String(h || '').trim());
+  const rows = values.slice(1);
+  const cols = [
+    'y2025_winner_name','y2025_winner_party','y2025_winner_votes',
+    'y2025_runner_name','y2025_runner_party','y2025_runner_votes','y2025_margin'
+  ].map(n => header.indexOf(n));
+  if (cols.some(i => i < 0)) throw new Error('Missing 2025 result columns.');
+  for (let r = 0; r < rows.length; r++) {
+    for (const i of cols) rows[r][i] = '';
+  }
+  sh.getRange(2, 1, rows.length, header.length).setValues(rows);
+  SpreadsheetApp.getUi().alert('Cleared 2025 placeholder fields.');
+}
+
+function ensureAlliance2025Column() {
+  const sh = _getSheetOrThrow(CONFIG.PARTIES_SHEET_NAME);
+  const values = sh.getDataRange().getValues();
+  if (!values.length) return 'No data';
+  let header = values[0].map(h => String(h || '').trim());
+  const colCode = header.indexOf('code');
+  const colA20 = header.indexOf('alliance_2020');
+  let colA25 = header.indexOf('alliance_2025');
+
+  if (colA25 < 0) {
+    // Insert a new column at the end with header alliance_2025
+    sh.insertColumnAfter(header.length);
+    colA25 = header.length; // zero-based index of new column
+    sh.getRange(1, colA25 + 1).setValue('alliance_2025');
+    header = _getHeader_(sh);
+  }
+  const lastRow = _getLastRow_(sh, (colCode >= 0 ? colCode : 0) + 1);
+  const a20Range = (colA20 >= 0) ? sh.getRange(2, colA20 + 1, Math.max(0, lastRow - 1), 1) : null;
+  const a25Range = sh.getRange(2, colA25 + 1, Math.max(0, lastRow - 1), 1);
+  const a20 = a20Range ? a20Range.getValues() : [];
+  const a25 = a25Range.getValues();
+  for (let i = 0; i < a25.length; i++) {
+    if (String(a25[i][0]||'').trim() === '') {
+      a25[i][0] = (a20[i] && a20[i][0]) ? a20[i][0] : '';
+    }
+  }
+  a25Range.setValues(a25);
+  SpreadsheetApp.getUi().alert('Ensured alliance_2025 exists and backfilled from alliance_2020 (where empty).');
+}
+
+function add2025Validations() {
+  const ss = _getSpreadsheet();
+  const parties = _getSheetOrThrow(CONFIG.PARTIES_SHEET_NAME);
+  const results = _getSheetOrThrow(CONFIG.RESULTS_SHEET_NAME);
+
+  // Determine parties code range
+  const pHeader = _getHeader_(parties);
+  const codeIdx = pHeader.indexOf('code');
+  if (codeIdx < 0) throw new Error('Parties sheet is missing a "code" column.');
+  const pLast = _getLastRow_(parties, codeIdx + 1);
+  const codesRange = parties.getRange(2, codeIdx + 1, Math.max(0, pLast - 1), 1);
+
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInRange(codesRange, true)
+    .setAllowInvalid(false)
+    .build();
+
+  const rHeader = _getHeader_(results);
+  const cols = ['y2025_winner_party','y2025_runner_party'].map(n => rHeader.indexOf(n));
+  if (cols.some(i => i < 0)) throw new Error('Missing results columns for 2025 party fields.');
+  const rLast = _getLastRow_(results, 1);
+  cols.forEach((idx) => {
+    const rng = results.getRange(2, idx + 1, Math.max(0, rLast - 1), 1);
+    rng.setDataValidation(rule);
+  });
+
+  // Optional: highlight missing mandatory 2025 fields
+  const cfBuilder = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('')
+    .setBackground('#fde68a')
+    .setRanges(cols.map(idx => results.getRange(2, idx + 1, Math.max(0, rLast - 1), 1)));
+  const existing = results.getConditionalFormatRules();
+  existing.push(cfBuilder.build());
+  results.setConditionalFormatRules(existing);
+
+  SpreadsheetApp.getUi().alert('Added data validation for 2025 party fields and conditional formatting for blanks.');
+}
+
+function openSet2025BulkDialog(){
+  const html = HtmlService.createHtmlOutput(
+    `<!doctype html>
+    <html><head><meta charset="utf-8">
+    <style>
+      body{font:14px system-ui,Segoe UI,Arial,sans-serif;margin:16px;}
+      fieldset{border:1px solid #ddd;border-radius:8px;padding:12px;margin:0 0 12px}
+      label{display:block;margin:6px 0}
+      input[type=text],input[type=number]{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px}
+      .row{display:flex;gap:10px}
+      .col{flex:1}
+      .actions{display:flex;gap:8px;margin-top:12px}
+      button{padding:8px 12px}
+      small{color:#666}
+    </style></head>
+    <body>
+      <h3>Set 2025 Fields (Bulk)</h3>
+      <p>Enter values to apply to all rows. Leave any field blank to skip updating that column. Choose whether to overwrite or only fill blanks.</p>
+
+      <fieldset>
+        <legend>Results – 2025</legend>
+        <div class="row">
+          <div class="col"><label>Winner name <input id="y2025_winner_name" type="text"></label></div>
+          <div class="col"><label>Winner party <input id="y2025_winner_party" type="text" placeholder="e.g., JD(U)"></label></div>
+          <div class="col"><label>Winner votes <input id="y2025_winner_votes" type="number" min="0" step="1"></label></div>
+        </div>
+        <div class="row">
+          <div class="col"><label>Runner name <input id="y2025_runner_name" type="text"></label></div>
+          <div class="col"><label>Runner party <input id="y2025_runner_party" type="text"></label></div>
+          <div class="col"><label>Runner votes <input id="y2025_runner_votes" type="number" min="0" step="1"></label></div>
+        </div>
+        <label>Margin <input id="y2025_margin" type="number" min="0" step="1"></label>
+        <label><input id="overwrite_results" type="checkbox"> Overwrite existing values (unchecked = fill blanks only)</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Parties – alliance_2025</legend>
+        <label>Alliance 2025 (set for all parties) <input id="alliance_2025" type="text" placeholder="e.g., NDA / MGB / OTH"></label>
+        <label><input id="overwrite_alliance" type="checkbox"> Overwrite existing values (unchecked = fill blanks only)</label>
+        <small>Leave blank to skip updating Parties sheet.</small>
+      </fieldset>
+
+      <div class="actions">
+        <button id="apply">Apply</button>
+        <button id="close">Close</button>
+      </div>
+
+      <script>
+        document.getElementById('close').onclick = () => google.script.host.close();
+        document.getElementById('apply').onclick = () => {
+          const payload = {
+            results: {
+              y2025_winner_name: document.getElementById('y2025_winner_name').value.trim(),
+              y2025_winner_party: document.getElementById('y2025_winner_party').value.trim(),
+              y2025_winner_votes: document.getElementById('y2025_winner_votes').value.trim(),
+              y2025_runner_name: document.getElementById('y2025_runner_name').value.trim(),
+              y2025_runner_party: document.getElementById('y2025_runner_party').value.trim(),
+              y2025_runner_votes: document.getElementById('y2025_runner_votes').value.trim(),
+              y2025_margin: document.getElementById('y2025_margin').value.trim(),
+              overwrite: document.getElementById('overwrite_results').checked
+            },
+            parties: {
+              alliance_2025: document.getElementById('alliance_2025').value.trim(),
+              overwrite: document.getElementById('overwrite_alliance').checked
+            }
+          };
+          google.script.run.withSuccessHandler((msg)=>{ alert(msg||'Done'); google.script.host.close(); })
+            .withFailureHandler((e)=>{ alert('Error: ' + (e.message||e)); })
+            .set2025FieldsBulk(payload);
+        };
+      </script>
+    </body></html>`
+  ).setWidth(760).setHeight(640);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Set 2025 Fields (Bulk)');
+}
+
+function set2025FieldsBulk(payload){
+  if (!payload || !payload.results) throw new Error('Invalid payload');
+  // Results updates
+  const rSh = _getSheetOrThrow(CONFIG.RESULTS_SHEET_NAME);
+  const rVals = rSh.getDataRange().getValues();
+  if (rVals.length) {
+    const header = rVals[0].map(h => String(h||'').trim());
+    const rows = rVals.slice(1);
+    const fields = ['y2025_winner_name','y2025_winner_party','y2025_winner_votes','y2025_runner_name','y2025_runner_party','y2025_runner_votes','y2025_margin'];
+    const idx = Object.fromEntries(fields.map(f => [f, header.indexOf(f)]));
+    if (Object.values(idx).some(i => i < 0)) throw new Error('Missing one or more 2025 result columns');
+    const overwrite = !!payload.results.overwrite;
+    rows.forEach((row) => {
+      fields.forEach((f) => {
+        const v = (payload.results[f] ?? '').toString();
+        if (v === '') return; // skip if user left blank
+        const i = idx[f];
+        if (i < 0) return;
+        const cur = String(row[i] || '').trim();
+        if (overwrite || cur === '') {
+          // Cast numeric fields
+          if (f.endsWith('_votes') || f === 'y2025_margin') {
+            const n = Number(v.replace(/[,\s]/g, ''));
+            row[i] = Number.isFinite(n) ? n : v; // fallback to text if not numeric
+          } else {
+            row[i] = v;
+          }
+        }
+      });
+    });
+    rSh.getRange(2, 1, rows.length, header.length).setValues(rows);
+  }
+
+  // Parties updates (optional)
+  if (payload.parties && typeof payload.parties.alliance_2025 === 'string' && payload.parties.alliance_2025.trim() !== '') {
+    const pSh = _getSheetOrThrow(CONFIG.PARTIES_SHEET_NAME);
+    const pVals = pSh.getDataRange().getValues();
+    if (pVals.length) {
+      let header = pVals[0].map(h => String(h||'').trim());
+      let a25 = header.indexOf('alliance_2025');
+      if (a25 < 0) {
+        pSh.insertColumnAfter(header.length);
+        a25 = header.length;
+        pSh.getRange(1, a25 + 1).setValue('alliance_2025');
+        header = _getHeader_(pSh);
+      }
+      const overwriteA = !!payload.parties.overwrite;
+      const rows = pVals.slice(1);
+      rows.forEach((row) => {
+        const cur = String(row[a25] || '').trim();
+        if (overwriteA || cur === '') row[a25] = payload.parties.alliance_2025;
+      });
+      pSh.getRange(2, 1, rows.length, header.length).setValues(rows);
+    }
+  }
+  return 'Applied bulk updates to 2025 fields.';
 }
 
 /* ========== Core utilities ========== */
