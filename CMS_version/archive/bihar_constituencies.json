@@ -1,0 +1,2189 @@
+{
+  "1": {
+    "no": 1,
+    "name": "Valmiki Nagar",
+    "slug": "valmiki-nagar",
+    "district": "Paschim Champaran",
+    "reserved": null,
+    "lok_sabha_no": 1,
+    "lok_sabha": "Valmiki Nagar"
+  },
+  "2": {
+    "no": 2,
+    "name": "Ramnagar",
+    "slug": "ramnagar-sc",
+    "district": "Paschim Champaran",
+    "reserved": "SC",
+    "lok_sabha_no": 1,
+    "lok_sabha": "Valmiki Nagar"
+  },
+  "3": {
+    "no": 3,
+    "name": "Narkatiaganj",
+    "slug": "narkatiaganj",
+    "district": "Paschim Champaran",
+    "reserved": null,
+    "lok_sabha_no": 1,
+    "lok_sabha": "Valmiki Nagar"
+  },
+  "4": {
+    "no": 4,
+    "name": "Bagaha",
+    "slug": "bagaha",
+    "district": "Paschim Champaran",
+    "reserved": null,
+    "lok_sabha_no": 1,
+    "lok_sabha": "Valmiki Nagar"
+  },
+  "5": {
+    "no": 5,
+    "name": "Lauriya",
+    "slug": "lauriya",
+    "district": "Paschim Champaran",
+    "reserved": null,
+    "lok_sabha_no": 1,
+    "lok_sabha": "Valmiki Nagar"
+  },
+  "6": {
+    "no": 6,
+    "name": "Nautan",
+    "slug": "nautan",
+    "district": "Paschim Champaran",
+    "reserved": null,
+    "lok_sabha_no": 2,
+    "lok_sabha": "Paschim Champaran"
+  },
+  "7": {
+    "no": 7,
+    "name": "Chanpatia",
+    "slug": "chanpatia",
+    "district": "Paschim Champaran",
+    "reserved": null,
+    "lok_sabha_no": 2,
+    "lok_sabha": "Paschim Champaran"
+  },
+  "8": {
+    "no": 8,
+    "name": "Bettiah",
+    "slug": "bettiah",
+    "district": "Paschim Champaran",
+    "reserved": null,
+    "lok_sabha_no": 2,
+    "lok_sabha": "Paschim Champaran"
+  },
+  "9": {
+    "no": 9,
+    "name": "Sikta",
+    "slug": "sikta",
+    "district": "Paschim Champaran",
+    "reserved": null,
+    "lok_sabha_no": 1,
+    "lok_sabha": "Valmiki Nagar"
+  },
+  "10": {
+    "no": 10,
+    "name": "Raxaul",
+    "slug": "raxaul",
+    "district": "Purvi Champaran",
+    "reserved": null,
+    "lok_sabha_no": 2,
+    "lok_sabha": "Paschim Champaran"
+  },
+  "11": {
+    "no": 11,
+    "name": "Sugauli",
+    "slug": "sugauli",
+    "district": "Purvi Champaran",
+    "reserved": null,
+    "lok_sabha_no": 2,
+    "lok_sabha": "Paschim Champaran"
+  },
+  "12": {
+    "no": 12,
+    "name": "Narkatiya",
+    "slug": "narkatiya",
+    "district": "Purvi Champaran",
+    "reserved": null,
+    "lok_sabha_no": 2,
+    "lok_sabha": "Paschim Champaran"
+  },
+  "13": {
+    "no": 13,
+    "name": "Harsidhi",
+    "slug": "harsidhi-sc",
+    "district": "Purvi Champaran",
+    "reserved": "SC",
+    "lok_sabha_no": 3,
+    "lok_sabha": "Purvi Champaran"
+  },
+  "14": {
+    "no": 14,
+    "name": "Govindganj",
+    "slug": "govindganj",
+    "district": "Purvi Champaran",
+    "reserved": null,
+    "lok_sabha_no": 3,
+    "lok_sabha": "Purvi Champaran"
+  },
+  "15": {
+    "no": 15,
+    "name": "Kesaria",
+    "slug": "kesaria",
+    "district": "Purvi Champaran",
+    "reserved": null,
+    "lok_sabha_no": 3,
+    "lok_sabha": "Purvi Champaran"
+  },
+  "16": {
+    "no": 16,
+    "name": "Kalyanpur",
+    "slug": "kalyanpur",
+    "district": "Purvi Champaran",
+    "reserved": null,
+    "lok_sabha_no": 3,
+    "lok_sabha": "Purvi Champaran"
+  },
+  "17": {
+    "no": 17,
+    "name": "Pipra",
+    "slug": "pipra",
+    "district": "Purvi Champaran",
+    "reserved": null,
+    "lok_sabha_no": 3,
+    "lok_sabha": "Purvi Champaran"
+  },
+  "18": {
+    "no": 18,
+    "name": "Madhuban",
+    "slug": "madhuban",
+    "district": "Purvi Champaran",
+    "reserved": null,
+    "lok_sabha_no": 4,
+    "lok_sabha": "Sheohar"
+  },
+  "19": {
+    "no": 19,
+    "name": "Motihari",
+    "slug": "motihari",
+    "district": "Purvi Champaran",
+    "reserved": null,
+    "lok_sabha_no": 3,
+    "lok_sabha": "Purvi Champaran"
+  },
+  "20": {
+    "no": 20,
+    "name": "Chiraia",
+    "slug": "chiraia",
+    "district": "Purvi Champaran",
+    "reserved": null,
+    "lok_sabha_no": 4,
+    "lok_sabha": "Sheohar"
+  },
+  "21": {
+    "no": 21,
+    "name": "Dhaka",
+    "slug": "dhaka",
+    "district": "Purvi Champaran",
+    "reserved": null,
+    "lok_sabha_no": 4,
+    "lok_sabha": "Sheohar"
+  },
+  "22": {
+    "no": 22,
+    "name": "Sheohar",
+    "slug": "sheohar",
+    "district": "Sheohar",
+    "reserved": null,
+    "lok_sabha_no": 4,
+    "lok_sabha": "Sheohar"
+  },
+  "23": {
+    "no": 23,
+    "name": "Riga",
+    "slug": "riga",
+    "district": "Sitamarhi",
+    "reserved": null,
+    "lok_sabha_no": 4,
+    "lok_sabha": "Sheohar"
+  },
+  "24": {
+    "no": 24,
+    "name": "Bathnaha",
+    "slug": "bathnaha-sc",
+    "district": "Sitamarhi",
+    "reserved": "SC",
+    "lok_sabha_no": 5,
+    "lok_sabha": "Sitamarhi"
+  },
+  "25": {
+    "no": 25,
+    "name": "Parihar",
+    "slug": "parihar",
+    "district": "Sitamarhi",
+    "reserved": null,
+    "lok_sabha_no": 5,
+    "lok_sabha": "Sitamarhi"
+  },
+  "26": {
+    "no": 26,
+    "name": "Sursand",
+    "slug": "sursand",
+    "district": "Sitamarhi",
+    "reserved": null,
+    "lok_sabha_no": 5,
+    "lok_sabha": "Sitamarhi"
+  },
+  "27": {
+    "no": 27,
+    "name": "Bajpatti",
+    "slug": "bajpatti",
+    "district": "Sitamarhi",
+    "reserved": null,
+    "lok_sabha_no": 5,
+    "lok_sabha": "Sitamarhi"
+  },
+  "28": {
+    "no": 28,
+    "name": "Sitamarhi",
+    "slug": "sitamarhi",
+    "district": "Sitamarhi",
+    "reserved": null,
+    "lok_sabha_no": 5,
+    "lok_sabha": "Sitamarhi"
+  },
+  "29": {
+    "no": 29,
+    "name": "Runnisaidpur",
+    "slug": "runnisaidpur",
+    "district": "Sitamarhi",
+    "reserved": null,
+    "lok_sabha_no": 5,
+    "lok_sabha": "Sitamarhi"
+  },
+  "30": {
+    "no": 30,
+    "name": "Belsand",
+    "slug": "belsand",
+    "district": "Sitamarhi",
+    "reserved": null,
+    "lok_sabha_no": 4,
+    "lok_sabha": "Sheohar"
+  },
+  "31": {
+    "no": 31,
+    "name": "Harlakhi",
+    "slug": "harlakhi",
+    "district": "Madhubani",
+    "reserved": null,
+    "lok_sabha_no": 6,
+    "lok_sabha": "Madhubani"
+  },
+  "32": {
+    "no": 32,
+    "name": "Benipatti",
+    "slug": "benipatti",
+    "district": "Madhubani",
+    "reserved": null,
+    "lok_sabha_no": 6,
+    "lok_sabha": "Madhubani"
+  },
+  "33": {
+    "no": 33,
+    "name": "Khajauli",
+    "slug": "khajauli",
+    "district": "Madhubani",
+    "reserved": null,
+    "lok_sabha_no": 7,
+    "lok_sabha": "Jhanjharpur"
+  },
+  "34": {
+    "no": 34,
+    "name": "Babubarhi",
+    "slug": "babubarhi",
+    "district": "Madhubani",
+    "reserved": null,
+    "lok_sabha_no": 7,
+    "lok_sabha": "Jhanjharpur"
+  },
+  "35": {
+    "no": 35,
+    "name": "Bisfi",
+    "slug": "bisfi",
+    "district": "Madhubani",
+    "reserved": null,
+    "lok_sabha_no": 6,
+    "lok_sabha": "Madhubani"
+  },
+  "36": {
+    "no": 36,
+    "name": "Madhubani",
+    "slug": "madhubani",
+    "district": "Madhubani",
+    "reserved": null,
+    "lok_sabha_no": 6,
+    "lok_sabha": "Madhubani"
+  },
+  "37": {
+    "no": 37,
+    "name": "Rajnagar",
+    "slug": "rajnagar-sc",
+    "district": "Madhubani",
+    "reserved": "SC",
+    "lok_sabha_no": 7,
+    "lok_sabha": "Jhanjharpur"
+  },
+  "38": {
+    "no": 38,
+    "name": "Jhanjharpur",
+    "slug": "jhanjharpur",
+    "district": "Madhubani",
+    "reserved": null,
+    "lok_sabha_no": 7,
+    "lok_sabha": "Jhanjharpur"
+  },
+  "39": {
+    "no": 39,
+    "name": "Phulparas",
+    "slug": "phulparas",
+    "district": "Madhubani",
+    "reserved": null,
+    "lok_sabha_no": 7,
+    "lok_sabha": "Jhanjharpur"
+  },
+  "40": {
+    "no": 40,
+    "name": "Laukaha",
+    "slug": "laukaha",
+    "district": "Madhubani",
+    "reserved": null,
+    "lok_sabha_no": 7,
+    "lok_sabha": "Jhanjharpur"
+  },
+  "41": {
+    "no": 41,
+    "name": "Nirmali",
+    "slug": "nirmali",
+    "district": "Supaul",
+    "reserved": null,
+    "lok_sabha_no": 8,
+    "lok_sabha": "Supaul"
+  },
+  "42": {
+    "no": 42,
+    "name": "Pipra",
+    "slug": "pipra",
+    "district": "Supaul",
+    "reserved": null,
+    "lok_sabha_no": 8,
+    "lok_sabha": "Supaul"
+  },
+  "43": {
+    "no": 43,
+    "name": "Supaul",
+    "slug": "supaul",
+    "district": "Supaul",
+    "reserved": null,
+    "lok_sabha_no": 8,
+    "lok_sabha": "Supaul"
+  },
+  "44": {
+    "no": 44,
+    "name": "Triveniganj",
+    "slug": "triveniganj-sc",
+    "district": "Supaul",
+    "reserved": "SC",
+    "lok_sabha_no": 8,
+    "lok_sabha": "Supaul"
+  },
+  "45": {
+    "no": 45,
+    "name": "Chhatapur",
+    "slug": "chhatapur",
+    "district": "Supaul",
+    "reserved": null,
+    "lok_sabha_no": 8,
+    "lok_sabha": "Supaul"
+  },
+  "46": {
+    "no": 46,
+    "name": "Narpatganj",
+    "slug": "narpatganj",
+    "district": "Araria",
+    "reserved": null,
+    "lok_sabha_no": 9,
+    "lok_sabha": "Araria"
+  },
+  "47": {
+    "no": 47,
+    "name": "Raniganj",
+    "slug": "raniganj-sc",
+    "district": "Araria",
+    "reserved": "SC",
+    "lok_sabha_no": 9,
+    "lok_sabha": "Araria"
+  },
+  "48": {
+    "no": 48,
+    "name": "Forbesganj",
+    "slug": "forbesganj",
+    "district": "Araria",
+    "reserved": null,
+    "lok_sabha_no": 9,
+    "lok_sabha": "Araria"
+  },
+  "49": {
+    "no": 49,
+    "name": "Araria",
+    "slug": "araria",
+    "district": "Araria",
+    "reserved": null,
+    "lok_sabha_no": 9,
+    "lok_sabha": "Araria"
+  },
+  "50": {
+    "no": 50,
+    "name": "Jokihat",
+    "slug": "jokihat",
+    "district": "Araria",
+    "reserved": null,
+    "lok_sabha_no": 9,
+    "lok_sabha": "Araria"
+  },
+  "51": {
+    "no": 51,
+    "name": "Sikti",
+    "slug": "sikti",
+    "district": "Araria",
+    "reserved": null,
+    "lok_sabha_no": 9,
+    "lok_sabha": "Araria"
+  },
+  "52": {
+    "no": 52,
+    "name": "Bahadurganj",
+    "slug": "bahadurganj",
+    "district": "Kishanganj",
+    "reserved": null,
+    "lok_sabha_no": 10,
+    "lok_sabha": "Kishanganj"
+  },
+  "53": {
+    "no": 53,
+    "name": "Thakurganj",
+    "slug": "thakurganj",
+    "district": "Kishanganj",
+    "reserved": null,
+    "lok_sabha_no": 10,
+    "lok_sabha": "Kishanganj"
+  },
+  "54": {
+    "no": 54,
+    "name": "Kishanganj",
+    "slug": "kishanganj",
+    "district": "Kishanganj",
+    "reserved": null,
+    "lok_sabha_no": 10,
+    "lok_sabha": "Kishanganj"
+  },
+  "55": {
+    "no": 55,
+    "name": "Kochadhaman",
+    "slug": "kochadhaman",
+    "district": "Kishanganj",
+    "reserved": null,
+    "lok_sabha_no": 10,
+    "lok_sabha": "Kishanganj"
+  },
+  "56": {
+    "no": 56,
+    "name": "Amour",
+    "slug": "amour",
+    "district": "Purnia",
+    "reserved": null,
+    "lok_sabha_no": 10,
+    "lok_sabha": "Kishanganj"
+  },
+  "57": {
+    "no": 57,
+    "name": "Baisi",
+    "slug": "baisi",
+    "district": "Purnia",
+    "reserved": null,
+    "lok_sabha_no": 10,
+    "lok_sabha": "Kishanganj"
+  },
+  "58": {
+    "no": 58,
+    "name": "Kasba",
+    "slug": "kasba",
+    "district": "Purnia",
+    "reserved": null,
+    "lok_sabha_no": 12,
+    "lok_sabha": "Purnia"
+  },
+  "59": {
+    "no": 59,
+    "name": "Banmankhi",
+    "slug": "banmankhi-sc",
+    "district": "Purnia",
+    "reserved": "SC",
+    "lok_sabha_no": 12,
+    "lok_sabha": "Purnia"
+  },
+  "60": {
+    "no": 60,
+    "name": "Rupauli",
+    "slug": "rupauli",
+    "district": "Purnia",
+    "reserved": null,
+    "lok_sabha_no": 12,
+    "lok_sabha": "Purnia"
+  },
+  "61": {
+    "no": 61,
+    "name": "Dhamdaha",
+    "slug": "dhamdaha",
+    "district": "Purnia",
+    "reserved": null,
+    "lok_sabha_no": 12,
+    "lok_sabha": "Purnia"
+  },
+  "62": {
+    "no": 62,
+    "name": "Purnia",
+    "slug": "purnia",
+    "district": "Purnia",
+    "reserved": null,
+    "lok_sabha_no": 12,
+    "lok_sabha": "Purnia"
+  },
+  "63": {
+    "no": 63,
+    "name": "Katihar",
+    "slug": "katihar",
+    "district": "Katihar",
+    "reserved": null,
+    "lok_sabha_no": 11,
+    "lok_sabha": "Katihar"
+  },
+  "64": {
+    "no": 64,
+    "name": "Kadwa",
+    "slug": "kadwa",
+    "district": "Katihar",
+    "reserved": null,
+    "lok_sabha_no": 11,
+    "lok_sabha": "Katihar"
+  },
+  "65": {
+    "no": 65,
+    "name": "Balrampur",
+    "slug": "balrampur",
+    "district": "Katihar",
+    "reserved": null,
+    "lok_sabha_no": 11,
+    "lok_sabha": "Katihar"
+  },
+  "66": {
+    "no": 66,
+    "name": "Pranpur",
+    "slug": "pranpur",
+    "district": "Katihar",
+    "reserved": null,
+    "lok_sabha_no": 11,
+    "lok_sabha": "Katihar"
+  },
+  "67": {
+    "no": 67,
+    "name": "Manihari",
+    "slug": "manihari-st",
+    "district": "Katihar",
+    "reserved": "ST",
+    "lok_sabha_no": 11,
+    "lok_sabha": "Katihar"
+  },
+  "68": {
+    "no": 68,
+    "name": "Barari",
+    "slug": "barari",
+    "district": "Katihar",
+    "reserved": null,
+    "lok_sabha_no": 11,
+    "lok_sabha": "Katihar"
+  },
+  "69": {
+    "no": 69,
+    "name": "Korha",
+    "slug": "korha-sc",
+    "district": "Katihar",
+    "reserved": "SC",
+    "lok_sabha_no": 12,
+    "lok_sabha": "Purnia"
+  },
+  "70": {
+    "no": 70,
+    "name": "Alamnagar",
+    "slug": "alamnagar",
+    "district": "Madhepura",
+    "reserved": null,
+    "lok_sabha_no": 13,
+    "lok_sabha": "Madhepura"
+  },
+  "71": {
+    "no": 71,
+    "name": "Bihariganj",
+    "slug": "bihariganj",
+    "district": "Madhepura",
+    "reserved": null,
+    "lok_sabha_no": 13,
+    "lok_sabha": "Madhepura"
+  },
+  "72": {
+    "no": 72,
+    "name": "Singheshwar",
+    "slug": "singheshwar-sc",
+    "district": "Madhepura",
+    "reserved": "SC",
+    "lok_sabha_no": 8,
+    "lok_sabha": "Supaul"
+  },
+  "73": {
+    "no": 73,
+    "name": "Madhepura",
+    "slug": "madhepura",
+    "district": "Madhepura",
+    "reserved": null,
+    "lok_sabha_no": 13,
+    "lok_sabha": "Madhepura"
+  },
+  "74": {
+    "no": 74,
+    "name": "Sonbarsha",
+    "slug": "sonbarsha-sc",
+    "district": "Saharsa",
+    "reserved": "SC",
+    "lok_sabha_no": 13,
+    "lok_sabha": "Madhepura"
+  },
+  "75": {
+    "no": 75,
+    "name": "Saharsa",
+    "slug": "saharsa",
+    "district": "Saharsa",
+    "reserved": null,
+    "lok_sabha_no": 13,
+    "lok_sabha": "Madhepura"
+  },
+  "76": {
+    "no": 76,
+    "name": "Simri Bakhtiarpur",
+    "slug": "simri-bakhtiarpur",
+    "district": "Saharsa",
+    "reserved": null,
+    "lok_sabha_no": 25,
+    "lok_sabha": "Khagaria"
+  },
+  "77": {
+    "no": 77,
+    "name": "Mahishi",
+    "slug": "mahishi",
+    "district": "Saharsa",
+    "reserved": null,
+    "lok_sabha_no": 13,
+    "lok_sabha": "Madhepura"
+  },
+  "78": {
+    "no": 78,
+    "name": "Kusheshwar Asthan",
+    "slug": "kusheshwar-asthan-sc",
+    "district": "Darbhanga",
+    "reserved": "SC",
+    "lok_sabha_no": 23,
+    "lok_sabha": "Samastipur"
+  },
+  "79": {
+    "no": 79,
+    "name": "Gaura Bauram",
+    "slug": "gaura-bauram",
+    "district": "Darbhanga",
+    "reserved": null,
+    "lok_sabha_no": 14,
+    "lok_sabha": "Darbhanga"
+  },
+  "80": {
+    "no": 80,
+    "name": "Benipur",
+    "slug": "benipur",
+    "district": "Darbhanga",
+    "reserved": null,
+    "lok_sabha_no": 14,
+    "lok_sabha": "Darbhanga"
+  },
+  "81": {
+    "no": 81,
+    "name": "Alinagar",
+    "slug": "alinagar",
+    "district": "Darbhanga",
+    "reserved": null,
+    "lok_sabha_no": 14,
+    "lok_sabha": "Darbhanga"
+  },
+  "82": {
+    "no": 82,
+    "name": "Darbhanga Rural",
+    "slug": "darbhanga-rural",
+    "district": "Darbhanga",
+    "reserved": null,
+    "lok_sabha_no": 14,
+    "lok_sabha": "Darbhanga"
+  },
+  "83": {
+    "no": 83,
+    "name": "Darbhanga",
+    "slug": "darbhanga",
+    "district": "Darbhanga",
+    "reserved": null,
+    "lok_sabha_no": 14,
+    "lok_sabha": "Darbhanga"
+  },
+  "84": {
+    "no": 84,
+    "name": "Hayaghat",
+    "slug": "hayaghat",
+    "district": "Darbhanga",
+    "reserved": null,
+    "lok_sabha_no": 23,
+    "lok_sabha": "Samastipur"
+  },
+  "85": {
+    "no": 85,
+    "name": "Bahadurpur",
+    "slug": "bahadurpur",
+    "district": "Darbhanga",
+    "reserved": null,
+    "lok_sabha_no": 14,
+    "lok_sabha": "Darbhanga"
+  },
+  "86": {
+    "no": 86,
+    "name": "Keoti",
+    "slug": "keoti",
+    "district": "Darbhanga",
+    "reserved": null,
+    "lok_sabha_no": 6,
+    "lok_sabha": "Madhubani"
+  },
+  "87": {
+    "no": 87,
+    "name": "Jale",
+    "slug": "jale",
+    "district": "Darbhanga",
+    "reserved": null,
+    "lok_sabha_no": 6,
+    "lok_sabha": "Madhubani"
+  },
+  "88": {
+    "no": 88,
+    "name": "Gaighat",
+    "slug": "gaighat",
+    "district": "Muzaffarpur",
+    "reserved": null,
+    "lok_sabha_no": 15,
+    "lok_sabha": "Muzaffarpur"
+  },
+  "89": {
+    "no": 89,
+    "name": "Aurai",
+    "slug": "aurai",
+    "district": "Muzaffarpur",
+    "reserved": null,
+    "lok_sabha_no": 15,
+    "lok_sabha": "Muzaffarpur"
+  },
+  "90": {
+    "no": 90,
+    "name": "Minapur",
+    "slug": "minapur",
+    "district": "Muzaffarpur",
+    "reserved": null,
+    "lok_sabha_no": 15,
+    "lok_sabha": "Muzaffarpur"
+  },
+  "91": {
+    "no": 91,
+    "name": "Bochahan",
+    "slug": "bochahan-sc",
+    "district": "Muzaffarpur",
+    "reserved": "SC",
+    "lok_sabha_no": 15,
+    "lok_sabha": "Muzaffarpur"
+  },
+  "92": {
+    "no": 92,
+    "name": "Sakra",
+    "slug": "sakra-sc",
+    "district": "Muzaffarpur",
+    "reserved": "SC",
+    "lok_sabha_no": 15,
+    "lok_sabha": "Muzaffarpur"
+  },
+  "93": {
+    "no": 93,
+    "name": "Kurhani",
+    "slug": "kurhani",
+    "district": "Muzaffarpur",
+    "reserved": null,
+    "lok_sabha_no": 15,
+    "lok_sabha": "Muzaffarpur"
+  },
+  "94": {
+    "no": 94,
+    "name": "Muzaffarpur",
+    "slug": "muzaffarpur",
+    "district": "Muzaffarpur",
+    "reserved": null,
+    "lok_sabha_no": 15,
+    "lok_sabha": "Muzaffarpur"
+  },
+  "95": {
+    "no": 95,
+    "name": "Kanti",
+    "slug": "kanti",
+    "district": "Muzaffarpur",
+    "reserved": null,
+    "lok_sabha_no": 16,
+    "lok_sabha": "Vaishali"
+  },
+  "96": {
+    "no": 96,
+    "name": "Baruraj",
+    "slug": "baruraj",
+    "district": "Muzaffarpur",
+    "reserved": null,
+    "lok_sabha_no": 16,
+    "lok_sabha": "Vaishali"
+  },
+  "97": {
+    "no": 97,
+    "name": "Paroo",
+    "slug": "paroo",
+    "district": "Muzaffarpur",
+    "reserved": null,
+    "lok_sabha_no": 16,
+    "lok_sabha": "Vaishali"
+  },
+  "98": {
+    "no": 98,
+    "name": "Sahebganj",
+    "slug": "sahebganj",
+    "district": "Muzaffarpur",
+    "reserved": null,
+    "lok_sabha_no": 16,
+    "lok_sabha": "Vaishali"
+  },
+  "99": {
+    "no": 99,
+    "name": "Baikunthpur",
+    "slug": "baikunthpur",
+    "district": "Gopalganj",
+    "reserved": null,
+    "lok_sabha_no": 17,
+    "lok_sabha": "Gopalganj"
+  },
+  "100": {
+    "no": 100,
+    "name": "Barauli",
+    "slug": "barauli",
+    "district": "Gopalganj",
+    "reserved": null,
+    "lok_sabha_no": 17,
+    "lok_sabha": "Gopalganj"
+  },
+  "101": {
+    "no": 101,
+    "name": "Gopalganj",
+    "slug": "gopalganj",
+    "district": "Gopalganj",
+    "reserved": null,
+    "lok_sabha_no": 17,
+    "lok_sabha": "Gopalganj"
+  },
+  "102": {
+    "no": 102,
+    "name": "Kuchaikote",
+    "slug": "kuchaikote",
+    "district": "Gopalganj",
+    "reserved": null,
+    "lok_sabha_no": 17,
+    "lok_sabha": "Gopalganj"
+  },
+  "103": {
+    "no": 103,
+    "name": "Bhore",
+    "slug": "bhore-sc",
+    "district": "Gopalganj",
+    "reserved": "SC",
+    "lok_sabha_no": 17,
+    "lok_sabha": "Gopalganj"
+  },
+  "104": {
+    "no": 104,
+    "name": "Hathua",
+    "slug": "hathua",
+    "district": "Gopalganj",
+    "reserved": null,
+    "lok_sabha_no": 17,
+    "lok_sabha": "Gopalganj"
+  },
+  "105": {
+    "no": 105,
+    "name": "Siwan",
+    "slug": "siwan",
+    "district": "Siwan",
+    "reserved": null,
+    "lok_sabha_no": 18,
+    "lok_sabha": "Siwan"
+  },
+  "106": {
+    "no": 106,
+    "name": "Ziradei",
+    "slug": "ziradei",
+    "district": "Siwan",
+    "reserved": null,
+    "lok_sabha_no": 18,
+    "lok_sabha": "Siwan"
+  },
+  "107": {
+    "no": 107,
+    "name": "Darauli",
+    "slug": "darauli-sc",
+    "district": "Siwan",
+    "reserved": "SC",
+    "lok_sabha_no": 18,
+    "lok_sabha": "Siwan"
+  },
+  "108": {
+    "no": 108,
+    "name": "Raghunathpur",
+    "slug": "raghunathpur",
+    "district": "Siwan",
+    "reserved": null,
+    "lok_sabha_no": 18,
+    "lok_sabha": "Siwan"
+  },
+  "109": {
+    "no": 109,
+    "name": "Daraunda",
+    "slug": "daraunda",
+    "district": "Siwan",
+    "reserved": null,
+    "lok_sabha_no": 18,
+    "lok_sabha": "Siwan"
+  },
+  "110": {
+    "no": 110,
+    "name": "Barharia",
+    "slug": "barharia",
+    "district": "Siwan",
+    "reserved": null,
+    "lok_sabha_no": 18,
+    "lok_sabha": "Siwan"
+  },
+  "111": {
+    "no": 111,
+    "name": "Goriakothi",
+    "slug": "goriakothi",
+    "district": "Siwan",
+    "reserved": null,
+    "lok_sabha_no": 19,
+    "lok_sabha": "Maharajganj"
+  },
+  "112": {
+    "no": 112,
+    "name": "Maharajganj",
+    "slug": "maharajganj",
+    "district": "Siwan",
+    "reserved": null,
+    "lok_sabha_no": 19,
+    "lok_sabha": "Maharajganj"
+  },
+  "113": {
+    "no": 113,
+    "name": "Ekma",
+    "slug": "ekma",
+    "district": "Saran",
+    "reserved": null,
+    "lok_sabha_no": 19,
+    "lok_sabha": "Maharajganj"
+  },
+  "114": {
+    "no": 114,
+    "name": "Manjhi",
+    "slug": "manjhi",
+    "district": "Saran",
+    "reserved": null,
+    "lok_sabha_no": 19,
+    "lok_sabha": "Maharajganj"
+  },
+  "115": {
+    "no": 115,
+    "name": "Baniapur",
+    "slug": "baniapur",
+    "district": "Saran",
+    "reserved": null,
+    "lok_sabha_no": 19,
+    "lok_sabha": "Maharajganj"
+  },
+  "116": {
+    "no": 116,
+    "name": "Taraiya",
+    "slug": "taraiya",
+    "district": "Saran",
+    "reserved": null,
+    "lok_sabha_no": 19,
+    "lok_sabha": "Maharajganj"
+  },
+  "117": {
+    "no": 117,
+    "name": "Marhaura",
+    "slug": "marhaura",
+    "district": "Saran",
+    "reserved": null,
+    "lok_sabha_no": 20,
+    "lok_sabha": "Saran"
+  },
+  "118": {
+    "no": 118,
+    "name": "Chapra",
+    "slug": "chapra",
+    "district": "Saran",
+    "reserved": null,
+    "lok_sabha_no": 20,
+    "lok_sabha": "Saran"
+  },
+  "119": {
+    "no": 119,
+    "name": "Garkha",
+    "slug": "garkha-sc",
+    "district": "Saran",
+    "reserved": "SC",
+    "lok_sabha_no": 20,
+    "lok_sabha": "Saran"
+  },
+  "120": {
+    "no": 120,
+    "name": "Amnour",
+    "slug": "amnour",
+    "district": "Saran",
+    "reserved": null,
+    "lok_sabha_no": 20,
+    "lok_sabha": "Saran"
+  },
+  "121": {
+    "no": 121,
+    "name": "Parsa",
+    "slug": "parsa",
+    "district": "Saran",
+    "reserved": null,
+    "lok_sabha_no": 20,
+    "lok_sabha": "Saran"
+  },
+  "122": {
+    "no": 122,
+    "name": "Sonpur",
+    "slug": "sonpur",
+    "district": "Saran",
+    "reserved": null,
+    "lok_sabha_no": 20,
+    "lok_sabha": "Saran"
+  },
+  "123": {
+    "no": 123,
+    "name": "Hajipur",
+    "slug": "hajipur",
+    "district": "Vaishali",
+    "reserved": null,
+    "lok_sabha_no": 21,
+    "lok_sabha": "Hajipur"
+  },
+  "124": {
+    "no": 124,
+    "name": "Lalganj",
+    "slug": "lalganj",
+    "district": "Vaishali",
+    "reserved": null,
+    "lok_sabha_no": 21,
+    "lok_sabha": "Hajipur"
+  },
+  "125": {
+    "no": 125,
+    "name": "Vaishali",
+    "slug": "vaishali",
+    "district": "Vaishali",
+    "reserved": null,
+    "lok_sabha_no": 16,
+    "lok_sabha": "Vaishali"
+  },
+  "126": {
+    "no": 126,
+    "name": "Mahua",
+    "slug": "mahua",
+    "district": "Vaishali",
+    "reserved": null,
+    "lok_sabha_no": 21,
+    "lok_sabha": "Hajipur"
+  },
+  "127": {
+    "no": 127,
+    "name": "Raja Pakar",
+    "slug": "raja-pakar-sc",
+    "district": "Vaishali",
+    "reserved": "SC",
+    "lok_sabha_no": 21,
+    "lok_sabha": "Hajipur"
+  },
+  "128": {
+    "no": 128,
+    "name": "Raghopur",
+    "slug": "raghopur",
+    "district": "Vaishali",
+    "reserved": null,
+    "lok_sabha_no": 21,
+    "lok_sabha": "Hajipur"
+  },
+  "129": {
+    "no": 129,
+    "name": "Mahnar",
+    "slug": "mahnar",
+    "district": "Vaishali",
+    "reserved": null,
+    "lok_sabha_no": 21,
+    "lok_sabha": "Hajipur"
+  },
+  "130": {
+    "no": 130,
+    "name": "Patepur",
+    "slug": "patepur-sc",
+    "district": "Vaishali",
+    "reserved": "SC",
+    "lok_sabha_no": 22,
+    "lok_sabha": "Ujiarpur"
+  },
+  "131": {
+    "no": 131,
+    "name": "Kalyanpur",
+    "slug": "kalyanpur-sc",
+    "district": "Samastipur",
+    "reserved": "SC",
+    "lok_sabha_no": 23,
+    "lok_sabha": "Samastipur"
+  },
+  "132": {
+    "no": 132,
+    "name": "Warisnagar",
+    "slug": "warisnagar",
+    "district": "Samastipur",
+    "reserved": null,
+    "lok_sabha_no": 23,
+    "lok_sabha": "Samastipur"
+  },
+  "133": {
+    "no": 133,
+    "name": "Samastipur",
+    "slug": "samastipur",
+    "district": "Samastipur",
+    "reserved": null,
+    "lok_sabha_no": 23,
+    "lok_sabha": "Samastipur"
+  },
+  "134": {
+    "no": 134,
+    "name": "Ujiarpur",
+    "slug": "ujiarpur",
+    "district": "Samastipur",
+    "reserved": null,
+    "lok_sabha_no": 22,
+    "lok_sabha": "Ujiarpur"
+  },
+  "135": {
+    "no": 135,
+    "name": "Morwa",
+    "slug": "morwa",
+    "district": "Samastipur",
+    "reserved": null,
+    "lok_sabha_no": 22,
+    "lok_sabha": "Ujiarpur"
+  },
+  "136": {
+    "no": 136,
+    "name": "Sarairanjan",
+    "slug": "sarairanjan",
+    "district": "Samastipur",
+    "reserved": null,
+    "lok_sabha_no": 22,
+    "lok_sabha": "Ujiarpur"
+  },
+  "137": {
+    "no": 137,
+    "name": "Mohiuddinnagar",
+    "slug": "mohiuddinnagar",
+    "district": "Samastipur",
+    "reserved": null,
+    "lok_sabha_no": 22,
+    "lok_sabha": "Ujiarpur"
+  },
+  "138": {
+    "no": 138,
+    "name": "Bibhutipur",
+    "slug": "bibhutipur",
+    "district": "Samastipur",
+    "reserved": null,
+    "lok_sabha_no": 22,
+    "lok_sabha": "Ujiarpur"
+  },
+  "139": {
+    "no": 139,
+    "name": "Rosera",
+    "slug": "rosera-sc",
+    "district": "Samastipur",
+    "reserved": "SC",
+    "lok_sabha_no": 23,
+    "lok_sabha": "Samastipur"
+  },
+  "140": {
+    "no": 140,
+    "name": "Hasanpur",
+    "slug": "hasanpur",
+    "district": "Samastipur",
+    "reserved": null,
+    "lok_sabha_no": 25,
+    "lok_sabha": "Khagaria"
+  },
+  "141": {
+    "no": 141,
+    "name": "Cheria-Bariarpur",
+    "slug": "cheria-bariarpur",
+    "district": "Begusarai",
+    "reserved": null,
+    "lok_sabha_no": 24,
+    "lok_sabha": "Begusarai"
+  },
+  "142": {
+    "no": 142,
+    "name": "Bachhwara",
+    "slug": "bachhwara",
+    "district": "Begusarai",
+    "reserved": null,
+    "lok_sabha_no": 24,
+    "lok_sabha": "Begusarai"
+  },
+  "143": {
+    "no": 143,
+    "name": "Teghra",
+    "slug": "teghra",
+    "district": "Begusarai",
+    "reserved": null,
+    "lok_sabha_no": 24,
+    "lok_sabha": "Begusarai"
+  },
+  "144": {
+    "no": 144,
+    "name": "Matihani",
+    "slug": "matihani",
+    "district": "Begusarai",
+    "reserved": null,
+    "lok_sabha_no": 24,
+    "lok_sabha": "Begusarai"
+  },
+  "145": {
+    "no": 145,
+    "name": "Sahebpur Kamal",
+    "slug": "sahebpur-kamal",
+    "district": "Begusarai",
+    "reserved": null,
+    "lok_sabha_no": 24,
+    "lok_sabha": "Begusarai"
+  },
+  "146": {
+    "no": 146,
+    "name": "Begusarai",
+    "slug": "begusarai",
+    "district": "Begusarai",
+    "reserved": null,
+    "lok_sabha_no": 24,
+    "lok_sabha": "Begusarai"
+  },
+  "147": {
+    "no": 147,
+    "name": "Bakhri",
+    "slug": "bakhri-sc",
+    "district": "Begusarai",
+    "reserved": "SC",
+    "lok_sabha_no": 24,
+    "lok_sabha": "Begusarai"
+  },
+  "148": {
+    "no": 148,
+    "name": "Alauli",
+    "slug": "alauli-sc",
+    "district": "Khagaria",
+    "reserved": "SC",
+    "lok_sabha_no": 25,
+    "lok_sabha": "Khagaria"
+  },
+  "149": {
+    "no": 149,
+    "name": "Khagaria",
+    "slug": "khagaria",
+    "district": "Khagaria",
+    "reserved": null,
+    "lok_sabha_no": 25,
+    "lok_sabha": "Khagaria"
+  },
+  "150": {
+    "no": 150,
+    "name": "Beldaur",
+    "slug": "beldaur",
+    "district": "Khagaria",
+    "reserved": null,
+    "lok_sabha_no": 25,
+    "lok_sabha": "Khagaria"
+  },
+  "151": {
+    "no": 151,
+    "name": "Parbatta",
+    "slug": "parbatta",
+    "district": "Khagaria",
+    "reserved": null,
+    "lok_sabha_no": 25,
+    "lok_sabha": "Khagaria"
+  },
+  "152": {
+    "no": 152,
+    "name": "Bihpur",
+    "slug": "bihpur",
+    "district": "Bhagalpur",
+    "reserved": null,
+    "lok_sabha_no": 26,
+    "lok_sabha": "Bhagalpur"
+  },
+  "153": {
+    "no": 153,
+    "name": "Gopalpur",
+    "slug": "gopalpur",
+    "district": "Bhagalpur",
+    "reserved": null,
+    "lok_sabha_no": 26,
+    "lok_sabha": "Bhagalpur"
+  },
+  "154": {
+    "no": 154,
+    "name": "Pirpainti",
+    "slug": "pirpainti-sc",
+    "district": "Bhagalpur",
+    "reserved": "SC",
+    "lok_sabha_no": 26,
+    "lok_sabha": "Bhagalpur"
+  },
+  "155": {
+    "no": 155,
+    "name": "Kahalgaon",
+    "slug": "kahalgaon",
+    "district": "Bhagalpur",
+    "reserved": null,
+    "lok_sabha_no": 26,
+    "lok_sabha": "Bhagalpur"
+  },
+  "156": {
+    "no": 156,
+    "name": "Bhagalpur",
+    "slug": "bhagalpur",
+    "district": "Bhagalpur",
+    "reserved": null,
+    "lok_sabha_no": 26,
+    "lok_sabha": "Bhagalpur"
+  },
+  "157": {
+    "no": 157,
+    "name": "Sultanganj",
+    "slug": "sultanganj",
+    "district": "Bhagalpur",
+    "reserved": null,
+    "lok_sabha_no": 27,
+    "lok_sabha": "Banka"
+  },
+  "158": {
+    "no": 158,
+    "name": "Nathnagar",
+    "slug": "nathnagar",
+    "district": "Bhagalpur",
+    "reserved": null,
+    "lok_sabha_no": 26,
+    "lok_sabha": "Bhagalpur"
+  },
+  "159": {
+    "no": 159,
+    "name": "Amarpur",
+    "slug": "amarpur",
+    "district": "Banka",
+    "reserved": null,
+    "lok_sabha_no": 27,
+    "lok_sabha": "Banka"
+  },
+  "160": {
+    "no": 160,
+    "name": "Dhoraiya",
+    "slug": "dhoraiya-sc",
+    "district": "Banka",
+    "reserved": "SC",
+    "lok_sabha_no": 27,
+    "lok_sabha": "Banka"
+  },
+  "161": {
+    "no": 161,
+    "name": "Banka",
+    "slug": "banka",
+    "district": "Banka",
+    "reserved": null,
+    "lok_sabha_no": 27,
+    "lok_sabha": "Banka"
+  },
+  "162": {
+    "no": 162,
+    "name": "Katoria",
+    "slug": "katoria-st",
+    "district": "Banka",
+    "reserved": "ST",
+    "lok_sabha_no": 27,
+    "lok_sabha": "Banka"
+  },
+  "163": {
+    "no": 163,
+    "name": "Belhar",
+    "slug": "belhar",
+    "district": "Banka",
+    "reserved": null,
+    "lok_sabha_no": 27,
+    "lok_sabha": "Banka"
+  },
+  "164": {
+    "no": 164,
+    "name": "Tarapur",
+    "slug": "tarapur",
+    "district": "Munger",
+    "reserved": null,
+    "lok_sabha_no": 40,
+    "lok_sabha": "Jamui"
+  },
+  "165": {
+    "no": 165,
+    "name": "Munger",
+    "slug": "munger",
+    "district": "Munger",
+    "reserved": null,
+    "lok_sabha_no": 28,
+    "lok_sabha": "Munger"
+  },
+  "166": {
+    "no": 166,
+    "name": "Jamalpur",
+    "slug": "jamalpur",
+    "district": "Munger",
+    "reserved": null,
+    "lok_sabha_no": 28,
+    "lok_sabha": "Munger"
+  },
+  "167": {
+    "no": 167,
+    "name": "Suryagarha",
+    "slug": "suryagarha",
+    "district": "Lakhisarai",
+    "reserved": null,
+    "lok_sabha_no": 28,
+    "lok_sabha": "Munger"
+  },
+  "168": {
+    "no": 168,
+    "name": "Lakhisarai",
+    "slug": "lakhisarai",
+    "district": "Lakhisarai",
+    "reserved": null,
+    "lok_sabha_no": 28,
+    "lok_sabha": "Munger"
+  },
+  "169": {
+    "no": 169,
+    "name": "Sheikhpura",
+    "slug": "sheikhpura",
+    "district": "Sheikhpura",
+    "reserved": null,
+    "lok_sabha_no": 40,
+    "lok_sabha": "Jamui"
+  },
+  "170": {
+    "no": 170,
+    "name": "Barbigha",
+    "slug": "barbigha",
+    "district": "Sheikhpura",
+    "reserved": null,
+    "lok_sabha_no": 39,
+    "lok_sabha": "Nawada"
+  },
+  "171": {
+    "no": 171,
+    "name": "Asthawan",
+    "slug": "asthawan",
+    "district": "Nalanda",
+    "reserved": null,
+    "lok_sabha_no": 29,
+    "lok_sabha": "Nalanda"
+  },
+  "172": {
+    "no": 172,
+    "name": "Biharsharif",
+    "slug": "biharsharif",
+    "district": "Nalanda",
+    "reserved": null,
+    "lok_sabha_no": 29,
+    "lok_sabha": "Nalanda"
+  },
+  "173": {
+    "no": 173,
+    "name": "Rajgir",
+    "slug": "rajgir-sc",
+    "district": "Nalanda",
+    "reserved": "SC",
+    "lok_sabha_no": 29,
+    "lok_sabha": "Nalanda"
+  },
+  "174": {
+    "no": 174,
+    "name": "Islampur",
+    "slug": "islampur",
+    "district": "Nalanda",
+    "reserved": null,
+    "lok_sabha_no": 29,
+    "lok_sabha": "Nalanda"
+  },
+  "175": {
+    "no": 175,
+    "name": "Hilsa",
+    "slug": "hilsa",
+    "district": "Nalanda",
+    "reserved": null,
+    "lok_sabha_no": 29,
+    "lok_sabha": "Nalanda"
+  },
+  "176": {
+    "no": 176,
+    "name": "Nalanda",
+    "slug": "nalanda",
+    "district": "Nalanda",
+    "reserved": null,
+    "lok_sabha_no": 29,
+    "lok_sabha": "Nalanda"
+  },
+  "177": {
+    "no": 177,
+    "name": "Harnaut",
+    "slug": "harnaut",
+    "district": "Nalanda",
+    "reserved": null,
+    "lok_sabha_no": 29,
+    "lok_sabha": "Nalanda"
+  },
+  "178": {
+    "no": 178,
+    "name": "Mokama",
+    "slug": "mokama",
+    "district": "Patna",
+    "reserved": null,
+    "lok_sabha_no": 28,
+    "lok_sabha": "Munger"
+  },
+  "179": {
+    "no": 179,
+    "name": "Barh",
+    "slug": "barh",
+    "district": "Patna",
+    "reserved": null,
+    "lok_sabha_no": 28,
+    "lok_sabha": "Munger"
+  },
+  "180": {
+    "no": 180,
+    "name": "Bakhtiarpur",
+    "slug": "bakhtiarpur",
+    "district": "Patna",
+    "reserved": null,
+    "lok_sabha_no": 30,
+    "lok_sabha": "Patna Sahib"
+  },
+  "181": {
+    "no": 181,
+    "name": "Digha",
+    "slug": "digha",
+    "district": "Patna",
+    "reserved": null,
+    "lok_sabha_no": 30,
+    "lok_sabha": "Patna Sahib"
+  },
+  "182": {
+    "no": 182,
+    "name": "Bankipur",
+    "slug": "bankipur",
+    "district": "Patna",
+    "reserved": null,
+    "lok_sabha_no": 30,
+    "lok_sabha": "Patna Sahib"
+  },
+  "183": {
+    "no": 183,
+    "name": "Kumhrar",
+    "slug": "kumhrar",
+    "district": "Patna",
+    "reserved": null,
+    "lok_sabha_no": 30,
+    "lok_sabha": "Patna Sahib"
+  },
+  "184": {
+    "no": 184,
+    "name": "Patna Sahib",
+    "slug": "patna-sahib",
+    "district": "Patna",
+    "reserved": null,
+    "lok_sabha_no": 30,
+    "lok_sabha": "Patna Sahib"
+  },
+  "185": {
+    "no": 185,
+    "name": "Fatuha",
+    "slug": "fatuha",
+    "district": "Patna",
+    "reserved": null,
+    "lok_sabha_no": 30,
+    "lok_sabha": "Patna Sahib"
+  },
+  "186": {
+    "no": 186,
+    "name": "Danapur",
+    "slug": "danapur",
+    "district": "Patna",
+    "reserved": null,
+    "lok_sabha_no": 31,
+    "lok_sabha": "Pataliputra"
+  },
+  "187": {
+    "no": 187,
+    "name": "Maner",
+    "slug": "maner",
+    "district": "Patna",
+    "reserved": null,
+    "lok_sabha_no": 31,
+    "lok_sabha": "Pataliputra"
+  },
+  "188": {
+    "no": 188,
+    "name": "Phulwari",
+    "slug": "phulwari-sc",
+    "district": "Patna",
+    "reserved": "SC",
+    "lok_sabha_no": 31,
+    "lok_sabha": "Pataliputra"
+  },
+  "189": {
+    "no": 189,
+    "name": "Masaurhi",
+    "slug": "masaurhi-sc",
+    "district": "Patna",
+    "reserved": "SC",
+    "lok_sabha_no": 31,
+    "lok_sabha": "Pataliputra"
+  },
+  "190": {
+    "no": 190,
+    "name": "Paliganj",
+    "slug": "paliganj",
+    "district": "Patna",
+    "reserved": null,
+    "lok_sabha_no": 31,
+    "lok_sabha": "Pataliputra"
+  },
+  "191": {
+    "no": 191,
+    "name": "Bikram",
+    "slug": "bikram",
+    "district": "Patna",
+    "reserved": null,
+    "lok_sabha_no": 31,
+    "lok_sabha": "Pataliputra"
+  },
+  "192": {
+    "no": 192,
+    "name": "Sandesh",
+    "slug": "sandesh",
+    "district": "Bhojpur",
+    "reserved": null,
+    "lok_sabha_no": 32,
+    "lok_sabha": "Arrah"
+  },
+  "193": {
+    "no": 193,
+    "name": "Barhara",
+    "slug": "barhara",
+    "district": "Bhojpur",
+    "reserved": null,
+    "lok_sabha_no": 32,
+    "lok_sabha": "Arrah"
+  },
+  "194": {
+    "no": 194,
+    "name": "Arrah",
+    "slug": "arrah",
+    "district": "Bhojpur",
+    "reserved": null,
+    "lok_sabha_no": 32,
+    "lok_sabha": "Arrah"
+  },
+  "195": {
+    "no": 195,
+    "name": "Agiaon",
+    "slug": "agiaon-sc",
+    "district": "Bhojpur",
+    "reserved": "SC",
+    "lok_sabha_no": 32,
+    "lok_sabha": "Arrah"
+  },
+  "196": {
+    "no": 196,
+    "name": "Tarari",
+    "slug": "tarari",
+    "district": "Bhojpur",
+    "reserved": null,
+    "lok_sabha_no": 32,
+    "lok_sabha": "Arrah"
+  },
+  "197": {
+    "no": 197,
+    "name": "Jagdishpur",
+    "slug": "jagdishpur",
+    "district": "Bhojpur",
+    "reserved": null,
+    "lok_sabha_no": 32,
+    "lok_sabha": "Arrah"
+  },
+  "198": {
+    "no": 198,
+    "name": "Shahpur",
+    "slug": "shahpur",
+    "district": "Bhojpur",
+    "reserved": null,
+    "lok_sabha_no": 32,
+    "lok_sabha": "Arrah"
+  },
+  "199": {
+    "no": 199,
+    "name": "Brahampur",
+    "slug": "brahampur",
+    "district": "Buxar",
+    "reserved": null,
+    "lok_sabha_no": 33,
+    "lok_sabha": "Buxar"
+  },
+  "200": {
+    "no": 200,
+    "name": "Buxar",
+    "slug": "buxar",
+    "district": "Buxar",
+    "reserved": null,
+    "lok_sabha_no": 33,
+    "lok_sabha": "Buxar"
+  },
+  "201": {
+    "no": 201,
+    "name": "Dumraon",
+    "slug": "dumraon",
+    "district": "Buxar",
+    "reserved": null,
+    "lok_sabha_no": 33,
+    "lok_sabha": "Buxar"
+  },
+  "202": {
+    "no": 202,
+    "name": "Rajpur",
+    "slug": "rajpur-sc",
+    "district": "Buxar",
+    "reserved": "SC",
+    "lok_sabha_no": 33,
+    "lok_sabha": "Buxar"
+  },
+  "203": {
+    "no": 203,
+    "name": "Ramgarh",
+    "slug": "ramgarh",
+    "district": "Kaimur",
+    "reserved": null,
+    "lok_sabha_no": 33,
+    "lok_sabha": "Buxar"
+  },
+  "204": {
+    "no": 204,
+    "name": "Mohania",
+    "slug": "mohania-sc",
+    "district": "Kaimur",
+    "reserved": "SC",
+    "lok_sabha_no": 34,
+    "lok_sabha": "Sasaram"
+  },
+  "205": {
+    "no": 205,
+    "name": "Bhabua",
+    "slug": "bhabua",
+    "district": "Kaimur",
+    "reserved": null,
+    "lok_sabha_no": 34,
+    "lok_sabha": "Sasaram"
+  },
+  "206": {
+    "no": 206,
+    "name": "Chainpur",
+    "slug": "chainpur",
+    "district": "Kaimur",
+    "reserved": null,
+    "lok_sabha_no": 34,
+    "lok_sabha": "Sasaram"
+  },
+  "207": {
+    "no": 207,
+    "name": "Chenari",
+    "slug": "chenari-sc",
+    "district": "Rohtas",
+    "reserved": "SC",
+    "lok_sabha_no": 34,
+    "lok_sabha": "Sasaram"
+  },
+  "208": {
+    "no": 208,
+    "name": "Sasaram",
+    "slug": "sasaram",
+    "district": "Rohtas",
+    "reserved": null,
+    "lok_sabha_no": 34,
+    "lok_sabha": "Sasaram"
+  },
+  "209": {
+    "no": 209,
+    "name": "Kargahar",
+    "slug": "kargahar",
+    "district": "Rohtas",
+    "reserved": null,
+    "lok_sabha_no": 34,
+    "lok_sabha": "Sasaram"
+  },
+  "210": {
+    "no": 210,
+    "name": "Dinara",
+    "slug": "dinara",
+    "district": "Rohtas",
+    "reserved": null,
+    "lok_sabha_no": 33,
+    "lok_sabha": "Buxar"
+  },
+  "211": {
+    "no": 211,
+    "name": "Nokha",
+    "slug": "nokha",
+    "district": "Rohtas",
+    "reserved": null,
+    "lok_sabha_no": 35,
+    "lok_sabha": "Karakat"
+  },
+  "212": {
+    "no": 212,
+    "name": "Dehri",
+    "slug": "dehri",
+    "district": "Rohtas",
+    "reserved": null,
+    "lok_sabha_no": 35,
+    "lok_sabha": "Karakat"
+  },
+  "213": {
+    "no": 213,
+    "name": "Karakat",
+    "slug": "karakat",
+    "district": "Rohtas",
+    "reserved": null,
+    "lok_sabha_no": 35,
+    "lok_sabha": "Karakat"
+  },
+  "214": {
+    "no": 214,
+    "name": "Arwal",
+    "slug": "arwal",
+    "district": "Arwal",
+    "reserved": null,
+    "lok_sabha_no": 36,
+    "lok_sabha": "Jahanabad"
+  },
+  "215": {
+    "no": 215,
+    "name": "Kurtha",
+    "slug": "kurtha",
+    "district": "Arwal",
+    "reserved": null,
+    "lok_sabha_no": 36,
+    "lok_sabha": "Jahanabad"
+  },
+  "216": {
+    "no": 216,
+    "name": "Jehanabad",
+    "slug": "jehanabad",
+    "district": "Jehanabad",
+    "reserved": null,
+    "lok_sabha_no": 36,
+    "lok_sabha": "Jahanabad"
+  },
+  "217": {
+    "no": 217,
+    "name": "Ghosi",
+    "slug": "ghosi",
+    "district": "Jehanabad",
+    "reserved": null,
+    "lok_sabha_no": 36,
+    "lok_sabha": "Jahanabad"
+  },
+  "218": {
+    "no": 218,
+    "name": "Makhdumpur",
+    "slug": "makhdumpur-sc",
+    "district": "Jehanabad",
+    "reserved": "SC",
+    "lok_sabha_no": 36,
+    "lok_sabha": "Jahanabad"
+  },
+  "219": {
+    "no": 219,
+    "name": "Goh",
+    "slug": "goh",
+    "district": "Aurangabad",
+    "reserved": null,
+    "lok_sabha_no": 35,
+    "lok_sabha": "Karakat"
+  },
+  "220": {
+    "no": 220,
+    "name": "Obra",
+    "slug": "obra",
+    "district": "Aurangabad",
+    "reserved": null,
+    "lok_sabha_no": 35,
+    "lok_sabha": "Karakat"
+  },
+  "221": {
+    "no": 221,
+    "name": "Nabinagar",
+    "slug": "nabinagar",
+    "district": "Aurangabad",
+    "reserved": null,
+    "lok_sabha_no": 35,
+    "lok_sabha": "Karakat"
+  },
+  "222": {
+    "no": 222,
+    "name": "Kutumba",
+    "slug": "kutumba-sc",
+    "district": "Aurangabad",
+    "reserved": "SC",
+    "lok_sabha_no": 37,
+    "lok_sabha": "Aurangabad"
+  },
+  "223": {
+    "no": 223,
+    "name": "Aurangabad",
+    "slug": "aurangabad",
+    "district": "Aurangabad",
+    "reserved": null,
+    "lok_sabha_no": 37,
+    "lok_sabha": "Aurangabad"
+  },
+  "224": {
+    "no": 224,
+    "name": "Rafiganj",
+    "slug": "rafiganj",
+    "district": "Aurangabad",
+    "reserved": null,
+    "lok_sabha_no": 37,
+    "lok_sabha": "Aurangabad"
+  },
+  "225": {
+    "no": 225,
+    "name": "Gurua",
+    "slug": "gurua",
+    "district": "Gaya",
+    "reserved": null,
+    "lok_sabha_no": 37,
+    "lok_sabha": "Aurangabad"
+  },
+  "226": {
+    "no": 226,
+    "name": "Sherghati",
+    "slug": "sherghati",
+    "district": "Gaya",
+    "reserved": null,
+    "lok_sabha_no": 38,
+    "lok_sabha": "Gaya"
+  },
+  "227": {
+    "no": 227,
+    "name": "Imamganj",
+    "slug": "imamganj-sc",
+    "district": "Gaya",
+    "reserved": "SC",
+    "lok_sabha_no": 37,
+    "lok_sabha": "Aurangabad"
+  },
+  "228": {
+    "no": 228,
+    "name": "Barachatti",
+    "slug": "barachatti-sc",
+    "district": "Gaya",
+    "reserved": "SC",
+    "lok_sabha_no": 38,
+    "lok_sabha": "Gaya"
+  },
+  "229": {
+    "no": 229,
+    "name": "Bodh Gaya",
+    "slug": "bodh-gaya-sc",
+    "district": "Gaya",
+    "reserved": "SC",
+    "lok_sabha_no": 38,
+    "lok_sabha": "Gaya"
+  },
+  "230": {
+    "no": 230,
+    "name": "Gaya Town",
+    "slug": "gaya-town",
+    "district": "Gaya",
+    "reserved": null,
+    "lok_sabha_no": 38,
+    "lok_sabha": "Gaya"
+  },
+  "231": {
+    "no": 231,
+    "name": "Tikari",
+    "slug": "tikari",
+    "district": "Gaya",
+    "reserved": null,
+    "lok_sabha_no": 37,
+    "lok_sabha": "Aurangabad"
+  },
+  "232": {
+    "no": 232,
+    "name": "Belaganj",
+    "slug": "belaganj",
+    "district": "Gaya",
+    "reserved": null,
+    "lok_sabha_no": 38,
+    "lok_sabha": "Gaya"
+  },
+  "233": {
+    "no": 233,
+    "name": "Atri",
+    "slug": "atri",
+    "district": "Gaya",
+    "reserved": null,
+    "lok_sabha_no": 36,
+    "lok_sabha": "Jahanabad"
+  },
+  "234": {
+    "no": 234,
+    "name": "Wazirganj",
+    "slug": "wazirganj",
+    "district": "Gaya",
+    "reserved": null,
+    "lok_sabha_no": 38,
+    "lok_sabha": "Gaya"
+  },
+  "235": {
+    "no": 235,
+    "name": "Rajauli",
+    "slug": "rajauli-sc",
+    "district": "Nawada",
+    "reserved": "SC",
+    "lok_sabha_no": 39,
+    "lok_sabha": "Nawada"
+  },
+  "236": {
+    "no": 236,
+    "name": "Hisua",
+    "slug": "hisua",
+    "district": "Nawada",
+    "reserved": null,
+    "lok_sabha_no": 39,
+    "lok_sabha": "Nawada"
+  },
+  "237": {
+    "no": 237,
+    "name": "Nawada",
+    "slug": "nawada",
+    "district": "Nawada",
+    "reserved": null,
+    "lok_sabha_no": 39,
+    "lok_sabha": "Nawada"
+  },
+  "238": {
+    "no": 238,
+    "name": "Gobindpur",
+    "slug": "gobindpur",
+    "district": "Nawada",
+    "reserved": null,
+    "lok_sabha_no": 39,
+    "lok_sabha": "Nawada"
+  },
+  "239": {
+    "no": 239,
+    "name": "Warsaliganj",
+    "slug": "warsaliganj",
+    "district": "Nawada",
+    "reserved": null,
+    "lok_sabha_no": 39,
+    "lok_sabha": "Nawada"
+  },
+  "240": {
+    "no": 240,
+    "name": "Sikandra",
+    "slug": "sikandra-sc",
+    "district": "Jamui",
+    "reserved": "SC",
+    "lok_sabha_no": 40,
+    "lok_sabha": "Jamui"
+  },
+  "241": {
+    "no": 241,
+    "name": "Jamui",
+    "slug": "jamui",
+    "district": "Jamui",
+    "reserved": null,
+    "lok_sabha_no": 40,
+    "lok_sabha": "Jamui"
+  },
+  "242": {
+    "no": 242,
+    "name": "Jhajha",
+    "slug": "jhajha",
+    "district": "Jamui",
+    "reserved": null,
+    "lok_sabha_no": 40,
+    "lok_sabha": "Jamui"
+  },
+  "243": {
+    "no": 243,
+    "name": "Chakai",
+    "slug": "chakai",
+    "district": "Jamui",
+    "reserved": null,
+    "lok_sabha_no": 40,
+    "lok_sabha": "Jamui"
+  }
+}
