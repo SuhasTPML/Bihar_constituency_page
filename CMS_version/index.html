@@ -54,6 +54,7 @@
     .mla-name { font-family: 'Roboto Slab', serif; font-size: 16px; font-weight: 400; margin: 0; }
     .mla-party { color: var(--muted); font-size: 14px; }
     .mla-alliance { color: var(--muted); font-size: 14px; margin-top: 2px; }
+    .current-mla-meta { font-family: 'Roboto Slab', serif; font-size: 14px; color: var(--muted); margin: 0; }
     
     /* CMS Content Placeholder */
     .cms-content-card { margin-bottom: 16px; }
@@ -620,11 +621,9 @@
         
         ${announced ? '' : `
         <div class="card current-mla-card">
-          <h3 class="current-mla-title">Current MLA: <span class="mla-name">${mla.mla ? mla.mla : '-'}</span></h3>
-          <div class="mla-party">${mlaParty.name || mlaParty.code || '-'}
-            ${mlaParty.code? `<span class=\"pill\" style=\"background:${mlaParty.color}; margin-left:6px;\">${mlaParty.code}</span>`:''}
-          </div>
-          <div class="mla-alliance">Alliance: <span class="badge">${mla.alliance || '-'}</span></div>
+          <h3 class="current-mla-title">${base.name} Current MLA</h3>
+          <p class="mla-name">${mla.mla ? mla.mla : '-'}</p>
+          ${(() => { const parts=[]; if (mlaParty && (mlaParty.name || mlaParty.code)) parts.push(mlaParty.name || mlaParty.code); if (mla && mla.alliance) parts.push(`Alliance: ${mla.alliance}`); return parts.length ? `<p class=\"current-mla-meta\">${parts.join(' • ')}</p>` : '' })()}
         </div>`}
         
         <div class="card">
