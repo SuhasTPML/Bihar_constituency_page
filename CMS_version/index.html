@@ -3,19 +3,31 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <title>Bihar Assembly | Constituency Viewer</title>
   <style>
     :root {
-      --bg: #f7f7f9; --card: #fff; --text: #222; --muted: #666; --border: #e5e7eb; --accent: #0091ac;
-      --primary: #0091ac; --primary-dark: #007a93; --header-bg: #0091ac; --header-text: #fff;
+      --bg: #F7F7F9;
+      --card: #FFFFFF;
+      --text: #111827;
+      --muted: #6B7280;
+      --border: #E5E7EB;
+      --primary: #0EA5E9;
+      --primary-dark: #0284C7;
+      --header-bg: #0EA5E9; --header-text: #FFFFFF;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-md: 0 8px 24px rgba(0,0,0,0.06);
+      --radius: 12px;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); }
-    .container { max-width: 980px; margin: 0 auto; padding: 0 16px; }
+    body { margin: 0; font: 14px/1.5 Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); }
+    .container { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
     
     /* Header Styles */
     .main-header { display: none !important; }
-    .header-content { max-width: 980px; margin: 0 auto; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; }
+    .header-content { max-width: 1120px; margin: 0 auto; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; }
     .header-left { display: flex; align-items: center; gap: 16px; }
     .header-right { display: flex; align-items: center; gap: 16px; }
     .menu-icon, .search-icon, .account-icon { cursor: pointer; font-size: 18px; }
@@ -23,21 +35,23 @@
     
     /* Search Section */
     .search-section { padding: 24px 0 16px; }
-    .search-controls { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+    .search-controls { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
     .search-controls label { font-weight: 500; color: var(--text); }
-    input[type="number"] { padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; width: 180px; font-size: 16px; }
+    input[type="number"] { padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; width: 260px; font-size: 16px; min-height: 48px; background: #fff; }
+    input[type="number"]::placeholder { color: var(--muted); opacity: 1; }
     input[type="number"]:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0, 145, 172, 0.1); }
-    .primary-btn { padding: 12px 20px; border: none; border-radius: 8px; background: var(--primary); color: #fff; cursor: pointer; font-size: 16px; font-weight: 500; }
+    .primary-btn { padding: 12px 20px; border: none; border-radius: 10px; background: var(--primary); color: #fff; cursor: pointer; font-size: 16px; font-weight: 600; min-height: 48px; }
     .primary-btn:hover { background: var(--primary-dark); }
+    .helper-text { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
     .status-text { color: var(--muted); font-size: 14px; }
     /* Mobile-first Card Layout */
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); margin-bottom: 16px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-sm), var(--shadow-md); margin-bottom: 16px; }
     .constituency-header { margin-bottom: 24px; }
-    .constituency-title { font-size: 24px; font-weight: 700; margin: 0 0 8px; color: var(--text); }
+    .constituency-title { font-size: 32px; font-weight: 700; margin: 0 0 8px; color: var(--text); line-height: 1.2; }
     .constituency-info { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
     .current-mla-card { margin-bottom: 16px; }
     .current-mla-title { font-size: 16px; font-weight: 600; margin: 0 0 12px; letter-spacing: 0.5px; }
-    .mla-name { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+    .mla-name { font-size: 18px; font-weight: 700; margin: 0 0 4px; }
     .mla-party { color: var(--muted); font-size: 16px; }
     .mla-alliance { color: var(--muted); font-size: 16px; margin-top: 2px; }
     
@@ -46,6 +60,8 @@
     .cms-content-title { font-size: 16px; font-weight: 600; margin: 0 0 12px; letter-spacing: 0.5px; color: var(--text); }
     .cms-content-body { color: var(--text); line-height: 1.6; font-size: 15px; }
     .cms-placeholder { color: var(--muted); font-style: italic; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px dashed var(--border); }
+    .map-section-title { font-size: 18px; font-weight: 600; margin: 0 0 6px; color: var(--text); }
+    .map-helper { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
     
     /* Mobile-first: Stack everything vertically */
     .results-container { display: flex; flex-direction: column; gap: 16px; }
@@ -284,6 +300,7 @@
           <span>Use local bundled data</span>
         </label>
       </div>
+      <div class="helper-text">Search constituency by number, name, or district.</div>
       <span id="status" class="status-text"></span>
       <div class="note">Tip: Serve this file over a local web server to allow fetching local JSON (e.g., <span class="mono">python -m http.server</span> and open http://localhost:8000/constituency_viewer.html).</div>
     </div>
@@ -593,15 +610,15 @@
         
         <div class="card cms-content-card">
           <div class="cms-content-body">
+            <h3 class="map-section-title">Bihar Election Map</h3>
+            <div class="map-helper">Tap on a constituency to view details, or search by number/name/district.</div>
             <div id="mapEmbed" style="width:100%;"></div>
-            
           </div>
         </div>
         
         ${announced ? '' : `
         <div class="card current-mla-card">
-          <h3 class="current-mla-title">${base.name} Current MLA</h3>
-          <div class="mla-name">${mla.mla ? mla.mla : '-'}</div>
+          <h3 class="current-mla-title">Current MLA: <span class="mla-name">${mla.mla ? mla.mla : '-'}</span></h3>
           <div class="mla-party">${mlaParty.name || mlaParty.code || '-'}
             ${mlaParty.code? `<span class=\"pill\" style=\"background:${mlaParty.color}; margin-left:6px;\">${mlaParty.code}</span>`:''}
           </div>
