@@ -731,7 +731,7 @@
 
           switch(mode) {
             case 'alliance-2025':
-              color = getHistoricalOriginalColor(row.y2025_winner_party, '2025');
+              color = getHistoricalAllianceColor(row.y2025_winner_party, '2025');
               break;
             case 'party-2025':
               const partyInfo2025 = partyData.get(row.y2025_winner_party);
@@ -744,14 +744,14 @@
               color = partyColors.get(row.current_mla_party) || allianceColors.get(row.current_mla_alliance) || '#f3f4f6';
               break;
             case 'alliance-2015':
-              color = getHistoricalOriginalColor(row.y2015_winner_party, '2015');
+              color = getHistoricalAllianceColor(row.y2015_winner_party, '2015');
               break;
             case 'party-2015':
               const partyInfo2015 = partyData.get(row.y2015_winner_party);
               color = partyInfo2015?.color || getHistoricalOriginalColor(row.y2015_winner_party, '2015');
               break;
             case 'alliance-2010':
-              color = getHistoricalOriginalColor(row.y2010_winner_party, '2010');
+              color = getHistoricalAllianceColor(row.y2010_winner_party, '2010');
               break;
             case 'party-2010':
               const partyInfo2010 = partyData.get(row.y2010_winner_party);
