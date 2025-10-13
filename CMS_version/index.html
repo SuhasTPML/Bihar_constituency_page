@@ -385,6 +385,59 @@
 
     function normalizeParty(code){ if(!code) return code; const c = code.trim(); return PARTY_NORMALIZE.get(c) || c; }
 
+    // Color utilities and dynamic alliance palette (aligned with map.html)
+    function pastelizeColor(hex, mix = 0.25) {
+      if (!hex || typeof hex !== 'string') return '#e5e7eb';
+      const normalized = hex.replace('#', '').trim();
+      if (!normalized || normalized.length !== 6 || /[^0-9a-f]/i.test(normalized)) return '#e5e7eb';
+      const r = parseInt(normalized.slice(0, 2), 16);
+      const g = parseInt(normalized.slice(2, 4), 16);
+      const b = parseInt(normalized.slice(4, 6), 16);
+      const blend = (c) => Math.round(c + (255 - c) * mix);
+      const toHex = (v) => v.toString(16).padStart(2, '0');
+      return '#' + toHex(blend(r)) + toHex(blend(g)) + toHex(blend(b));
+    }
+
+    function normalizeAllianceKey(a){ return (a == null) ? null : String(a).trim().toUpperCase(); }
+    function isValidHexColor(hex){ if(!hex || typeof hex !== 'string') return false; const h = hex.trim(); return /^#?[0-9a-fA-F]{6}$/.test(h); }
+    function to6Hex(hex){ const h = hex.replace('#','').trim(); return '#' + h.toLowerCase(); }
+    function deterministicColorFor(key){ let h=0, s=55, l=52; for(let i=0;i<key.length;i++){ h=((h<<5)-h)+key.charCodeAt(i); h|=0; } const hue=Math.abs(h)%360; const a=s/100*Math.min(l/100,1-l/100); const f=n=>{ const k=(n+hue/30)%12; const col=l/100 - a*Math.max(Math.min(k-3, 9-k, 1), -1); return Math.round(255*col).toString(16).padStart(2,'0'); }; return '#'+f(0)+f(8)+f(4); }
+    function resolveAllianceForYear(party, year, partiesIdx){
+      const info = partiesIdx[party] || partiesIdx[normalizeParty(party)] || null;
+      if (!info) return 'NA';
+      const alliances = info.alliances || null;
+      const a = (alliances && (alliances[String(year)] || alliances[year]))
+        || info[`alliance_${year}`]
+        || info.alliance_2020
+        || info.alliance
+        || 'NA';
+      return normalizeAllianceKey(a) || 'NA';
+    }
+    function buildAllianceColorsFromParties(parties){
+      const pastel = new Map();
+      const original = new Map();
+      // Always seed NA
+      original.set('NA', '#999999'); pastel.set('NA', '#e5e7eb');
+      for(const p of (parties||[])){
+        const ac = p.alliance_colour_code || p.alliance_color_code || p.alliance_colour || p.alliance_color || '';
+        const apply = (a)=>{
+          const key = normalizeAllianceKey(a);
+          if(!key || original.has(key)) return;
+          const chosen = isValidHexColor(ac) ? to6Hex(ac) : deterministicColorFor(key);
+          original.set(key, chosen);
+          pastel.set(key, pastelizeColor(chosen));
+        };
+        if (p.alliance) apply(p.alliance);
+        const almap = p.alliances || {};
+        for (const y of Object.keys(almap)) apply(almap[y]);
+      }
+      // Seed common ones if missing
+      if (!original.has('NDA')) { original.set('NDA','#0066cc'); pastel.set('NDA', pastelizeColor('#0066cc')); }
+      if (!original.has('MGB')) { original.set('MGB','#cc3300'); pastel.set('MGB', pastelizeColor('#cc3300')); }
+      if (!original.has('OTH')) { original.set('OTH','#8A2BE2'); pastel.set('OTH', pastelizeColor('#8A2BE2')); }
+      return { allianceColors: pastel, allianceOriginalColors: original };
+    }
+
     function parseCSV(text){
       // Robust-enough CSV parser supporting quoted fields and commas
       const rows = [];
@@ -429,6 +482,8 @@
 
       // Indexes
       const partiesIdx = {}; (parties||[]).forEach(p=> partiesIdx[p.code]=p);
+      // Build dynamic alliance palettes (for consistency with map.html)
+      const { allianceColors, allianceOriginalColors } = buildAllianceColorsFromParties(parties||[]);
       // Index consolidated by seat number
       const consolidatedByNo = new Map();
       if (Array.isArray(consolidated)){
@@ -443,7 +498,7 @@
         return { name: row.constituency_name, district: row.district, reserved: row.reserved || 'General' };
       };
 
-      return { partiesIdx, byNo, consolidated, consolidatedByNo };
+      return { partiesIdx, allianceColors, allianceOriginalColors, byNo, consolidated, consolidatedByNo };
     }
 
     function enrichParty(code, partiesIdx){
