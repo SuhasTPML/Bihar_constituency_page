@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
@@ -332,13 +332,12 @@
       top: 20px;
       right: 20px;
     }
-
     .map-control-btn {
       width: 60px;
       height: 60px;
       border: 2px solid #666;
       border-radius: 50%;
-      background: white;
+      background: #fff;
       color: #333;
       font-size: 28px;
       font-weight: bold;
@@ -348,6 +347,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
+      line-height: 1;
+      padding: 0;
     }
 
     .map-control-btn:hover {
@@ -372,11 +374,7 @@
         top: 15px;
         right: 15px;
       }
-      .map-control-btn {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
-      }
+      .map-control-btn { width: 50px; height: 50px; font-size: 24px; }
     }
 
     @media (max-width: 480px) {
@@ -389,14 +387,27 @@
         top: 10px;
         right: 10px;
       }
-      .map-control-btn {
-        width: 44px;
-        height: 44px;
-        font-size: 20px;
-        border-width: 1.5px;
-      }
+      .map-control-btn { width: 44px; height: 44px; font-size: 20px; border-width: 1.5px; }
     }
-  </style>
+    #mapControls .map-control-btn { position: relative; }
+    #mapControls .map-control-btn:focus { outline: none; box-shadow: 0 0 0 2px rgba(0,0,0,0.15); }
+    #mapControls .map-control-btn::-moz-focus-inner { border: 0; }
+    #mapControls .map-control-btn svg { width: 60%; height: 60%; display: block; pointer-events: none; }
+  #crossBtn.cross::before,
+  #crossBtn.cross::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 24px;
+    height: 2px;
+    background: #333;
+    border-radius: 2px;
+    transform-origin: center center;
+    pointer-events: none;
+  }
+  #crossBtn.cross::before { transform: translate(-50%, -50%) rotate(45deg); }
+  #crossBtn.cross::after  { transform: translate(-50%, -50%) rotate(-45deg); }</style>
 </head>
 <body>
   <div id="controls">
@@ -421,10 +432,10 @@
     <svg id="svg" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMin meet">
       <g id="zoomlayer"></g>
     </svg>
-    <button id="crossBtn" class="map-control-btn" style="display: none;" title="Clear selection and reset view">×</button>
+    <button id="crossBtn" class="map-control-btn" style="display: none;" title="Clear selection and reset view">?</button>
     <div id="mapControls">
       <button id="zoomInBtn" class="map-control-btn" title="Zoom in">+</button>
-      <button id="zoomOutBtn" class="map-control-btn" title="Zoom out">−</button>
+      <button id="zoomOutBtn" class="map-control-btn" title="Zoom out">-</button>
     </div>
   </div>
 
@@ -536,9 +547,9 @@
         case 'party-2025':
           return partyColors.get(row.y2025_winner_party) || getHistoricalAllianceColor(row.y2025_winner_party, '2025');
         case 'alliance-2020':
-          return allianceColors.get(row.current_mla_alliance) || '#f3f4f6';
+          return getHistoricalAllianceColor(row.current_mla_party, '2020');
         case 'party-2020':
-          return partyColors.get(row.current_mla_party) || allianceColors.get(row.current_mla_alliance) || '#f3f4f6';
+          return partyColors.get(row.current_mla_party) || getHistoricalAllianceColor(row.current_mla_party, '2020');
         case 'reserved':
           const status = row.reserved || 'GEN';
           const reservedColors = { 'GEN': '#f9fafb', 'SC': '#dbeafe', 'ST': '#dcfce7', 'NA': '#f3f4f6' };
@@ -623,11 +634,7 @@
 
       switch(mode) {
         case 'alliance-2020':
-          const alliance2020 = row.current_mla_alliance;
-          if (alliance2020 === 'NDA') return '#0066cc';
-          if (alliance2020 === 'MGB') return '#cc3300';
-          if (alliance2020 === 'OTH') return '#8A2BE2';
-          return '#1f77b4';
+          return getHistoricalOriginalColor(row.current_mla_party, '2020');
         case 'party-2020':
           const party2020 = row.current_mla_party;
           const partyInfo2020 = partyData.get(party2020);
@@ -750,6 +757,12 @@
       const zoomInBtn = document.getElementById('zoomInBtn');
       const zoomOutBtn = document.getElementById('zoomOutBtn');
 
+      // Ensure the cross button uses an inline SVG (avoids font/encoding issues)
+      if (crossBtn) {
+        crossBtn.setAttribute('aria-label', 'Clear selection');
+        crossBtn.innerHTML = ''; crossBtn.classList.add('cross');
+      }
+
       // Build color mode options based on feature flag
       if (colorModeEl) {
         const opts = [];
@@ -811,11 +824,13 @@
         } else {
           mlaName = electionRow.current_mla_name || 'Not available';
           party = electionRow.current_mla_party || 'Unknown';
-          alliance = electionRow.current_mla_alliance || 'Unknown';
+          const info = partyData.get(party);
+          const alliances = info && (info.alliances || null);
+          alliance = (alliances && (alliances['2020'] || alliances[2020]))
+                  || (info && (info['alliance_2020'] || info.alliance))
+                  || 'Unknown';
         }
-
         const mlaLabel = ENABLE_2025_MODES ? 'Winner' : 'Current MLA';
-
         // Get colors for party and alliance
         const partyColor = partyColors.get(party) || '#f3f4f6';
         const allianceColor = allianceColors.get(alliance) || '#f3f4f6';
@@ -833,7 +848,7 @@
         content += `<div class="color-swatch" style="background: ${allianceColor};"></div>`;
         content += `<span><strong>Alliance:</strong> ${alliance}</span>`;
         content += `</div>`;
-        content += `<button id="moreDetailsBtn" class="action-button">More details →</button>`;
+        content += `<button id="moreDetailsBtn" class="action-button">More details ?</button>`;
         content += `</div>`;
       } else {
         content += `<div class="info-row" style="color: #9ca3af; font-style: italic;">No election data available for this constituency.</div>`;
@@ -956,7 +971,7 @@
       svg.transition().duration(750).call(zoom.transform, transform);
     }
 
-    function clearAndReset(){
+  function clearAndReset(){
       selectedId = null;
       g.selectAll('path').classed('selected', false);
 
@@ -970,6 +985,8 @@
       g.selectAll('path').attr('stroke', '#1f77b4');
 
       searchEl.value = '';
+      // Also remove focus from the search input so the caret doesn't blink
+      try { searchEl.blur(); } catch(e) {}
       labelLayer.selectAll('*').remove();
       // Reset zoom
       svg.transition().duration(400).call(zoom.transform, d3.zoomIdentity);
@@ -1056,7 +1073,7 @@
             console.log('\n--- RAW DATA OBJECT ---');
             console.log(electionInfo);
           } else {
-            console.log('\n⚠️ No election data found for this constituency');
+            console.log('\n?? No election data found for this constituency');
           }
           console.log('==============================\n');
         }
@@ -1125,7 +1142,7 @@
       }
     });
 
-    // Handle browser's built-in search clear button (×)
+    // Handle browser's built-in search clear button (?)
     searchEl.addEventListener('search', () => {
       if (!searchEl.value.trim()) {
         clearAndReset();
@@ -1154,11 +1171,7 @@
         const year = parseInt(yearStr, 10);
         const allianceCount = new Map();
         for (const [key, row] of electionData) {
-          let alliance = null;
-          if (year === 2020) {
-            alliance = row.current_mla_alliance || null;
-          }
-          if (!alliance) {
+          let alliance = null;if (!alliance) {
             // Resolve via party mapping as fallback
             const party = (year === 2025) ? row.y2025_winner_party
                         : (year === 2015) ? row.y2015_winner_party
@@ -1168,17 +1181,18 @@
             const alliances = info && (info.alliances || null);
             alliance = (alliances && (alliances[String(year)] || alliances[year]))
                     || (info && (info[`alliance_${year}`] || info.alliance_2020 || info.alliance))
-                    || (row.current_mla_alliance || null);
+                    ;
           }
           alliance = alliance || 'NA';
           allianceCount.set(alliance, (allianceCount.get(alliance) || 0) + 1);
         }
 
-        // Sort by frequency and map to legend items
+        // Sort by frequency and map to legend items (separate name/count)
         const order = Array.from(allianceCount.entries()).sort((a,b)=> b[1]-a[1]);
         legendItems = order.map(([a, count])=> ({
           color: (a === 'NA') ? '#e5e7eb' : (allianceColors.get(a) || '#e5e7eb'),
-          label: `${a} (${count})`
+          name: a,
+          count: count
         }));
       } else if (mode.includes('party')) {
         // Show top parties only for party mode
@@ -1196,14 +1210,21 @@
           .slice(0, 6)
           .map(([party, count]) => ({
             color: partyColors.get(party) || '#f3f4f6',
-            label: `${party} (${count})`
+            name: party,
+            count: count
           }));
 
         legendItems = topParties;
       }
 
       legendEl.innerHTML = legendItems
-        .map(item => `<span style="margin-right: 15px;"><span style="color: ${item.color}; font-size: 16px;">■</span> ${item.label}</span>`)
+        .map(item => `
+          <span style="margin-right: 16px; display:inline-flex; align-items:center; gap:8px;">
+            <span style="display:inline-block; width:12px; height:12px; border-radius:3px; background:${item.color}; border:1px solid rgba(0,0,0,0.15);"></span>
+            <span style="font-weight:500;">${item.name}</span>
+            <span style="font-size:12px; color:#374151; background:#F3F4F6; border:1px solid #E5E7EB; padding:1px 6px; border-radius:999px;">${item.count}</span>
+          </span>
+        `)
         .join('');
 
       legendEl.style.display = 'block';
@@ -1215,25 +1236,25 @@
     // Robust data loading with GitHub Pages CDN + local fallback
     async function loadWithFallback(githubUrl, localPath, description = 'data') {
       try {
-        console.log(`🌐 Loading ${description} from GitHub Pages: ${githubUrl}`);
+        console.log(`?? Loading ${description} from GitHub Pages: ${githubUrl}`);
         const response = await fetch(githubUrl, { cache: 'no-store' });
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        console.log(`✅ Successfully loaded ${description} from GitHub Pages CDN`);
+        console.log(`? Successfully loaded ${description} from GitHub Pages CDN`);
         return response;
       } catch (error) {
-        console.warn(`⚠️ GitHub Pages failed for ${description}:`, error.message);
-        console.log(`🔄 Falling back to local file: ${localPath}`);
+        console.warn(`?? GitHub Pages failed for ${description}:`, error.message);
+        console.log(`?? Falling back to local file: ${localPath}`);
         try {
           const fallbackResponse = await fetch(localPath, { cache: 'no-store' });
           if (!fallbackResponse.ok) {
             throw new Error(`Local fallback failed: HTTP ${fallbackResponse.status}`);
           }
-          console.log(`✅ Successfully loaded ${description} from local fallback`);
+          console.log(`? Successfully loaded ${description} from local fallback`);
           return fallbackResponse;
         } catch (fallbackError) {
-          console.error(`❌ Both GitHub Pages and local fallback failed for ${description}:`, fallbackError.message);
+          console.error(`? Both GitHub Pages and local fallback failed for ${description}:`, fallbackError.message);
           throw new Error(`Failed to load ${description} from both GitHub Pages and local sources`);
         }
       }
@@ -1249,16 +1270,27 @@
         );
         const partiesData = await partiesResponse.json();
 
-        // Set up alliance colors with more distinct colors
-        allianceColors.set('NDA', pastelizeColor('#0066cc'));  // Blue
-        allianceColors.set('MGB', pastelizeColor('#cc3300'));  // Red
-        allianceColors.set('OTH', pastelizeColor('#8A2BE2'));  // Purple
-        allianceColors.set('NA', '#e5e7eb');  // Light gray
+        // Build alliance colors from parties.json when available; fallback to defaults
+        // First, scan parties to collect explicit alliance colours
+        const seenAlliance = new Set();
+        for (const party of partiesData) {
+          const alliances = party.alliances || {};
+          const a = (alliances['2025'] || alliances[2025] || party.alliance_2025 || party.alliance || null);
+          if (a && party.alliance_colour_code && !allianceColors.has(a)) {
+            allianceColors.set(a, party.alliance_colour_code);
+            seenAlliance.add(a);
+          }
+        }
+        // Fallback defaults for any missing well-known alliances
+        if (!allianceColors.has('NDA')) allianceColors.set('NDA', pastelizeColor('#0066cc'));
+        if (!allianceColors.has('MGB')) allianceColors.set('MGB', pastelizeColor('#cc3300'));
+        if (!allianceColors.has('OTH')) allianceColors.set('OTH', pastelizeColor('#8A2BE2'));
+        if (!allianceColors.has('NA')) allianceColors.set('NA', '#e5e7eb');
 
         // Process parties JSON data
         for (const party of partiesData) {
           // Store in maps
-          partyColors.set(party.code, pastelizeColor(party.color));
+          if (party && party.code) partyColors.set(party.code, pastelizeColor(party.color));
           const alliances = party.alliances || {};
           const a2020 = alliances['2020'] || alliances[2020] || party.alliance_2020 || party.alliance;
           partyToAlliance.set(party.code, a2020); // Current alliance for general use
@@ -1281,14 +1313,14 @@
           electionData.set(acNo, row);
         }
 
-        console.log(`📊 Successfully loaded ${electionData.size} constituency records from remote/local sources`);
+        console.log(`?? Successfully loaded ${electionData.size} constituency records from remote/local sources`);
 
         // Pre-compute color cache for performance
         preComputeColors();
 
         return true;
       } catch (e) {
-        console.error('❌ Critical error loading election data:', e);
+        console.error('? Critical error loading election data:', e);
         statusEl.textContent = 'Failed to load election data - check network connection';
         return false;
       }
@@ -1346,5 +1378,11 @@
   </div>
 </body>
 </html>
+
+
+
+
+
+
 
 
