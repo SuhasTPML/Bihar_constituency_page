@@ -449,23 +449,7 @@
     function enrichParty(code, partiesIdx){
       const norm = normalizeParty(code||'');
       const meta = partiesIdx[norm] || partiesIdx[code] || null;
-      let alliance = null;
-      let allianceColor = null;
-      if (meta) {
-        const alliances = meta.alliances || null;
-        alliance = (alliances && (alliances['2025'] || alliances[2025]))
-          || meta.alliance_2025
-          || meta.alliance
-          || null;
-        allianceColor = meta.alliance_colour_code || null;
-      }
-      return {
-        code: norm || null,
-        name: meta ? meta.name : null,
-        color: meta ? meta.color : '#888',
-        alliance,
-        allianceColor
-      };
+      return { code: norm || null, name: meta? meta.name : null, color: meta? meta.color : '#888' };
     }
 
     function renderYearBlock(year, rec, partiesIdx){
@@ -489,7 +473,7 @@
             <div class="candidate-info">
               <div>
                 <div class="candidate-name">WINNER: ${w.Candidate || '—'}</div>
-                <div class="candidate-party">${wP.name || wP.code || '—'} • <span class="vote-count">${fmtNumber(wVotes)} votes</span>${(String(year)==='2025' && wP.alliance) ? ` • Alliance: ${wP.alliance}` : ''}</div>
+                <div class="candidate-party">${wP.name || wP.code || '—'} • <span class="vote-count">${fmtNumber(wVotes)} votes</span></div>
               </div>
             </div>
             <div class="bar"><span style="width:${wPct}%; background:${wP.color}"></span></div>
@@ -620,15 +604,8 @@
         r2025 = recFromConsolidated(row, 2025);
       }
 
-      const mla = row ? { mla: row.current_mla_name, party: row.current_mla_party } : {};
+      const mla = row ? { mla: row.current_mla_name, party: row.current_mla_party, alliance: row.current_mla_alliance } : {};
       const mlaParty = enrichParty(mla.party, data.partiesIdx);
-      const mlaAlliance2020 = (() => {
-        if (!mlaParty || !mlaParty.code) return null;
-        const meta = data.partiesIdx[mlaParty.code] || data.partiesIdx[mla.party] || null;
-        if (!meta) return null;
-        const alliances = meta.alliances || null;
-        return (alliances && (alliances['2020'] || alliances[2020])) || meta.alliance_2020 || meta.alliance || null;
-      })();
       const reserved = base.reserved ? base.reserved : 'General';
       const trend = computeTrend(r2010, r2015, r2020, r2025);
 
@@ -665,7 +642,7 @@
         <div class="card current-mla-card">
           <h3 class="current-mla-title">${base.name} Current MLA</h3>
           <p class="mla-name">${mla.mla ? mla.mla : '-'}</p>
-          ${(() => { const parts=[]; if (mlaParty && (mlaParty.name || mlaParty.code)) parts.push(mlaParty.name || mlaParty.code); if (mlaAlliance2020) parts.push(`Alliance: ${mlaAlliance2020}`); return parts.length ? `<p class=\"current-mla-meta\">${parts.join(' • ')}</p>` : '' })()}
+          ${(() => { const parts=[]; if (mlaParty && (mlaParty.name || mlaParty.code)) parts.push(mlaParty.name || mlaParty.code); if (mla && mla.alliance) parts.push(`Alliance: ${mla.alliance}`); return parts.length ? `<p class=\"current-mla-meta\">${parts.join(' • ')}</p>` : '' })()}
         </div>`}
         
         <div class="card">

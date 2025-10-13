@@ -59,7 +59,8 @@ function onOpen() {
         .addItem('Seed 2025 from 2020 winners', 'seed2025From2020')
         .addItem('Clear 2025 placeholders (results)', 'clear2025Placeholders')
         .addSeparator()
-        
+        .addItem('Ensure alliance_2025 (Parties)', 'ensureAlliance2025Column')
+        .addItem('Add validations for 2025 party fields', 'add2025Validations')
         .addSeparator()
         .addItem('Set 2025 fields (bulk input)…', 'openSet2025BulkDialog')
     )
@@ -146,7 +147,73 @@ function clear2025Placeholders() {
   SpreadsheetApp.getUi().alert('Cleared 2025 placeholder fields.');
 }
 
-// Removed ensureAlliance2025Column and add2025Validations per request.
+function ensureAlliance2025Column() {
+  const sh = _getSheetOrThrow(CONFIG.PARTIES_SHEET_NAME);
+  const values = sh.getDataRange().getValues();
+  if (!values.length) return 'No data';
+  let header = values[0].map(h => String(h || '').trim());
+  const colCode = header.indexOf('code');
+  const colA20 = header.indexOf('alliance_2020');
+  let colA25 = header.indexOf('alliance_2025');
+
+  if (colA25 < 0) {
+    // Insert a new column at the end with header alliance_2025
+    sh.insertColumnAfter(header.length);
+    colA25 = header.length; // zero-based index of new column
+    sh.getRange(1, colA25 + 1).setValue('alliance_2025');
+    header = _getHeader_(sh);
+  }
+  const lastRow = _getLastRow_(sh, (colCode >= 0 ? colCode : 0) + 1);
+  const a20Range = (colA20 >= 0) ? sh.getRange(2, colA20 + 1, Math.max(0, lastRow - 1), 1) : null;
+  const a25Range = sh.getRange(2, colA25 + 1, Math.max(0, lastRow - 1), 1);
+  const a20 = a20Range ? a20Range.getValues() : [];
+  const a25 = a25Range.getValues();
+  for (let i = 0; i < a25.length; i++) {
+    if (String(a25[i][0]||'').trim() === '') {
+      a25[i][0] = (a20[i] && a20[i][0]) ? a20[i][0] : '';
+    }
+  }
+  a25Range.setValues(a25);
+  SpreadsheetApp.getUi().alert('Ensured alliance_2025 exists and backfilled from alliance_2020 (where empty).');
+}
+
+function add2025Validations() {
+  const ss = _getSpreadsheet();
+  const parties = _getSheetOrThrow(CONFIG.PARTIES_SHEET_NAME);
+  const results = _getSheetOrThrow(CONFIG.RESULTS_SHEET_NAME);
+
+  // Determine parties code range
+  const pHeader = _getHeader_(parties);
+  const codeIdx = pHeader.indexOf('code');
+  if (codeIdx < 0) throw new Error('Parties sheet is missing a "code" column.');
+  const pLast = _getLastRow_(parties, codeIdx + 1);
+  const codesRange = parties.getRange(2, codeIdx + 1, Math.max(0, pLast - 1), 1);
+
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInRange(codesRange, true)
+    .setAllowInvalid(false)
+    .build();
+
+  const rHeader = _getHeader_(results);
+  const cols = ['y2025_winner_party','y2025_runner_party'].map(n => rHeader.indexOf(n));
+  if (cols.some(i => i < 0)) throw new Error('Missing results columns for 2025 party fields.');
+  const rLast = _getLastRow_(results, 1);
+  cols.forEach((idx) => {
+    const rng = results.getRange(2, idx + 1, Math.max(0, rLast - 1), 1);
+    rng.setDataValidation(rule);
+  });
+
+  // Optional: highlight missing mandatory 2025 fields
+  const cfBuilder = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('')
+    .setBackground('#fde68a')
+    .setRanges(cols.map(idx => results.getRange(2, idx + 1, Math.max(0, rLast - 1), 1)));
+  const existing = results.getConditionalFormatRules();
+  existing.push(cfBuilder.build());
+  results.setConditionalFormatRules(existing);
+
+  SpreadsheetApp.getUi().alert('Added data validation for 2025 party fields and conditional formatting for blanks.');
+}
 
 function openSet2025BulkDialog(){
   const html = HtmlService.createHtmlOutput(
@@ -179,8 +246,15 @@ function openSet2025BulkDialog(){
           <div class="col"><label>Runner party <input id="y2025_runner_party" type="text"></label></div>
           <div class="col"><label>Runner votes <input id="y2025_runner_votes" type="number" min="0" step="1"></label></div>
         </div>
-        
+        <label>Margin <input id="y2025_margin" type="number" min="0" step="1"></label>
         <label><input id="overwrite_results" type="checkbox"> Overwrite existing values (unchecked = fill blanks only)</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Parties – alliance_2025</legend>
+        <label>Alliance 2025 (set for all parties) <input id="alliance_2025" type="text" placeholder="e.g., NDA / MGB / OTH"></label>
+        <label><input id="overwrite_alliance" type="checkbox"> Overwrite existing values (unchecked = fill blanks only)</label>
+        <small>Leave blank to skip updating Parties sheet.</small>
       </fieldset>
 
       <div class="actions">
@@ -199,9 +273,14 @@ function openSet2025BulkDialog(){
               y2025_runner_name: document.getElementById('y2025_runner_name').value.trim(),
               y2025_runner_party: document.getElementById('y2025_runner_party').value.trim(),
               y2025_runner_votes: document.getElementById('y2025_runner_votes').value.trim(),
-              
+              y2025_margin: document.getElementById('y2025_margin').value.trim(),
               overwrite: document.getElementById('overwrite_results').checked
-            }};
+            },
+            parties: {
+              alliance_2025: document.getElementById('alliance_2025').value.trim(),
+              overwrite: document.getElementById('overwrite_alliance').checked
+            }
+          };
           google.script.run.withSuccessHandler((msg)=>{ alert(msg||'Done'); google.script.host.close(); })
             .withFailureHandler((e)=>{ alert('Error: ' + (e.message||e)); })
             .set2025FieldsBulk(payload);
@@ -220,7 +299,7 @@ function set2025FieldsBulk(payload){
   if (rVals.length) {
     const header = rVals[0].map(h => String(h||'').trim());
     const rows = rVals.slice(1);
-    const fields = ['y2025_winner_name','y2025_winner_party','y2025_winner_votes','y2025_runner_name','y2025_runner_party','y2025_runner_votes'];
+    const fields = ['y2025_winner_name','y2025_winner_party','y2025_winner_votes','y2025_runner_name','y2025_runner_party','y2025_runner_votes','y2025_margin'];
     const idx = Object.fromEntries(fields.map(f => [f, header.indexOf(f)]));
     if (Object.values(idx).some(i => i < 0)) throw new Error('Missing one or more 2025 result columns');
     const overwrite = !!payload.results.overwrite;
@@ -233,7 +312,7 @@ function set2025FieldsBulk(payload){
         const cur = String(row[i] || '').trim();
         if (overwrite || cur === '') {
           // Cast numeric fields
-          if (f.endsWith('_votes')) {
+          if (f.endsWith('_votes') || f === 'y2025_margin') {
             const n = Number(v.replace(/[,\s]/g, ''));
             row[i] = Number.isFinite(n) ? n : v; // fallback to text if not numeric
           } else {
@@ -245,7 +324,28 @@ function set2025FieldsBulk(payload){
     rSh.getRange(2, 1, rows.length, header.length).setValues(rows);
   }
 
-  
+  // Parties updates (optional)
+  if (payload.parties && typeof payload.parties.alliance_2025 === 'string' && payload.parties.alliance_2025.trim() !== '') {
+    const pSh = _getSheetOrThrow(CONFIG.PARTIES_SHEET_NAME);
+    const pVals = pSh.getDataRange().getValues();
+    if (pVals.length) {
+      let header = pVals[0].map(h => String(h||'').trim());
+      let a25 = header.indexOf('alliance_2025');
+      if (a25 < 0) {
+        pSh.insertColumnAfter(header.length);
+        a25 = header.length;
+        pSh.getRange(1, a25 + 1).setValue('alliance_2025');
+        header = _getHeader_(pSh);
+      }
+      const overwriteA = !!payload.parties.overwrite;
+      const rows = pVals.slice(1);
+      rows.forEach((row) => {
+        const cur = String(row[a25] || '').trim();
+        if (overwriteA || cur === '') row[a25] = payload.parties.alliance_2025;
+      });
+      pSh.getRange(2, 1, rows.length, header.length).setValues(rows);
+    }
+  }
   return 'Applied bulk updates to 2025 fields.';
 }
 
@@ -419,21 +519,52 @@ function _writeTableToSheet(sheet, header, rows) {
 /* ========== Export: Sheets → JSON (copy dialog) ========== */
 
 function exportPartiesJsonCopy() {
-  _showExportSheetPicker('parties');
+  const sheet = _getSheetOrThrow(CONFIG.PARTIES_SHEET_NAME);
+  const rows = _sheetToObjects(sheet);
+
+  // Map rows to schema with per-year alliances
+  const out = rows.map(r => {
+    const a = (yr) => String(
+      r['alliance_' + yr] || r['alliance_2020'] || r['alliance'] || ''
+    ).trim();
+    return {
+      code: _sanitizeText(String(r.code || '').trim()),
+      name: _sanitizeText(String(r.name || '').trim()),
+      color: _sanitizeText(String(r.color || '').trim()),
+      alliances: {
+        '2010': _sanitizeText(a(2010)),
+        '2015': _sanitizeText(a(2015)),
+        '2020': _sanitizeText(a(2020)),
+        '2025': _sanitizeText(a(2025)),
+      },
+    };
+  });
+
+  const json = JSON.stringify(out, null, 2);
+  _showJsonCopyDialog('Parties JSON', json);
 }
 
 function exportResultsJsonCopy() {
-  _showExportSheetPicker('results');
+  const sheet = _getSheetOrThrow(CONFIG.RESULTS_SHEET_NAME);
+  const rows = _sheetToObjects(sheet);
+
+  // Keep all fields; reorder to canonical order for readability
+  const out = rows
+    .map(r => _sanitizeRecordStrings(r))
+    .map(r => _reorderRecord(r, RESULTS_PREFERRED_KEYS));
+
+  const json = JSON.stringify(out, null, 2);
+  _showJsonCopyDialog('Results JSON', json);
 }
 
 /* ========== Import: JSON (paste) → Sheet ========== */
 
 function importPartiesJsonPaste() {
-  _showPasteJsonDialogWithDropdown('parties', CONFIG.PARTIES_IMPORT_SHEET_NAME);
+  _showPasteJsonDialog('parties', CONFIG.PARTIES_IMPORT_SHEET_NAME);
 }
 
 function importResultsJsonPaste() {
-  _showPasteJsonDialogWithDropdown('results', CONFIG.RESULTS_IMPORT_SHEET_NAME);
+  _showPasteJsonDialog('results', CONFIG.RESULTS_IMPORT_SHEET_NAME);
 }
 
 function importPartiesJsonFromText(jsonText, newSheetName) {
@@ -450,8 +581,7 @@ function importPartiesJsonFromText(jsonText, newSheetName) {
 
   let header, rows;
   if (hasPerYear) {
-    // Include flat 'alliance' and 'alliance_colour_code' as convenience columns
-    header = ['code','name','color','alliance_2010','alliance_2015','alliance_2020','alliance_2025','alliance','alliance_colour_code'];
+    header = ['code','name','color','alliance_2010','alliance_2015','alliance_2020','alliance_2025'];
     rows = data.map(r => {
       const alliances = r.alliances || {};
       const val = (yr) =>
@@ -459,18 +589,13 @@ function importPartiesJsonFromText(jsonText, newSheetName) {
       return [
         _sanitizeText(r.code || ''), _sanitizeText(r.name || ''), _sanitizeText(r.color || ''),
         val(2010), val(2015), val(2020), val(2025),
-        // Flat columns
-        _sanitizeText((r.alliance != null ? r.alliance : (alliances['2025'] || alliances[2025] || r.alliance_2025 || r.alliance || ''))),
-        _sanitizeText(r.alliance_colour_code || '')
       ];
     });
   } else {
-    // Also include alliance_colour_code when no per-year map
-    header = ['code','name','color','alliance','alliance_colour_code'];
+    header = ['code','name','color','alliance'];
     rows = data.map(r => [
       _sanitizeText(r.code || ''), _sanitizeText(r.name || ''), _sanitizeText(r.color || ''),
-      _sanitizeText(r.alliance || r.alliance_2020 || ''),
-      _sanitizeText(r.alliance_colour_code || '')
+      _sanitizeText(r.alliance || r.alliance_2020 || '')
     ]);
   }
 
@@ -512,154 +637,3 @@ function importResultsJsonFromText(jsonText, newSheetName) {
 }
 
 // Note: Web endpoint removed to keep interactions clipboard/paste-only.
-
-/* ========== Sheet selection helpers (dropdowns) ========== */
-
-function _listSheetNames() {
-  const ss = _getSpreadsheet();
-  return ss.getSheets().map(s => s.getName());
-}
-
-function _showExportSheetPicker(kind) {
-  const title = kind === 'parties' ? 'Export Parties JSON: choose sheet' : 'Export Results JSON: choose sheet';
-  const names = _listSheetNames();
-  const html = HtmlService.createHtmlOutput(
-    `<!doctype html>
-    <html><head><meta charset="utf-8">
-    <style>
-      body{font:14px system-ui,Segoe UI,Arial,sans-serif;margin:16px;}
-      label{display:block;margin:6px 0}
-      select{width:100%;box-sizing:border-box}
-      .row{display:flex;gap:8px;margin-top:8px}
-      button{padding:6px 10px}
-    </style></head>
-    <body>
-      <h3>${title}</h3>
-      <label>Source sheet
-        <select id="sheet"></select>
-      </label>
-      <div class="row">
-        <button id="go">Export</button>
-        <button id="cancel">Cancel</button>
-      </div>
-      <script>
-        const names = ${JSON.stringify(names)};
-        const select = document.getElementById('sheet');
-        names.forEach(n => { const o = document.createElement('option'); o.value = o.textContent = n; select.appendChild(o); });
-        const go = document.getElementById('go');
-        go.onclick = ()=>{
-          go.disabled = true; go.textContent = 'Working...';
-          const name = select.value;
-          google.script.run.withSuccessHandler(()=>{ google.script.host.close(); })
-            .withFailureHandler((e)=>{ alert('Error: ' + e.message); go.disabled=false; go.textContent='Export'; })
-            .exportJsonForSheet(${JSON.stringify(kind)}, name);
-        };
-        document.getElementById('cancel').onclick = ()=> google.script.host.close();
-      </script>
-    </body></html>`
-  ).setWidth(520).setHeight(260);
-  SpreadsheetApp.getUi().showModalDialog(html, title);
-}
-
-function exportJsonForSheet(kind, sheetName) {
-  const sheet = _getSheetOrThrow(sheetName);
-  const rows = _sheetToObjects(sheet);
-  if (kind === 'parties') {
-    const out = rows.map(r => {
-      const a = (yr) => String(
-        r['alliance_' + yr] || r['alliance_2020'] || r['alliance'] || ''
-      ).trim();
-      return {
-        code: _sanitizeText(String(r.code || '').trim()),
-        name: _sanitizeText(String(r.name || '').trim()),
-        color: _sanitizeText(String(r.color || '').trim()),
-        // Flat columns added to JSON schema
-        alliance: _sanitizeText(String((r.alliance != null ? r.alliance : a(2025)) || '').trim()),
-        alliance_colour_code: _sanitizeText(String(r.alliance_colour_code || '').trim()),
-        alliances: {
-          '2010': _sanitizeText(a(2010)),
-          '2015': _sanitizeText(a(2015)),
-          '2020': _sanitizeText(a(2020)),
-          '2025': _sanitizeText(a(2025)),
-        },
-      };
-    });
-    _showJsonCopyDialog('Parties JSON', JSON.stringify(out, null, 2));
-  } else if (kind === 'results') {
-    const out = rows
-      .map(r => _sanitizeRecordStrings(r))
-      .map(r => _reorderRecord(r, RESULTS_PREFERRED_KEYS));
-    _showJsonCopyDialog('Results JSON', JSON.stringify(out, null, 2));
-  } else {
-    throw new Error('Unknown kind: ' + kind);
-  }
-  return 'OK';
-}
-
-function _showPasteJsonDialogWithDropdown(kind, suggestedSheetName) {
-  const title = kind === 'parties' ? 'Paste Parties JSON → Sheet' : 'Paste Results JSON → Sheet';
-  const serverFn = kind === 'parties' ? 'importPartiesJsonFromText' : 'importResultsJsonFromText';
-  const names = _listSheetNames();
-  const selected = (names.indexOf(suggestedSheetName) >= 0) ? suggestedSheetName : (names[0] || '');
-  const html = HtmlService.createHtmlOutput(
-    `<!doctype html>
-    <html><head><meta charset="utf-8">
-    <style>
-      body{font:14px system-ui,Segoe UI,Arial,sans-serif;margin:16px;}
-      label{display:block;margin:6px 0}
-      input,select,textarea{width:100%;box-sizing:border-box}
-      textarea{height:320px;font:12px ui-monospace,Consolas,monospace}
-      .row{display:flex;gap:8px;margin-top:8px}
-      button{padding:6px 10px}
-      #newNameWrap{display:none}
-    </style></head>
-    <body>
-      <h3>${title}</h3>
-      <label>Target sheet
-        <select id="sheetSelect"></select>
-      </label>
-      <div id="newNameWrap">
-        <label>New sheet name <input id="sheet" value="${suggestedSheetName||''}" placeholder="${suggestedSheetName||''}"></label>
-      </div>
-      <label>Paste JSON array below</label>
-      <textarea id="txt" placeholder="[ { ... }, { ... } ]"></textarea>
-      <div class="row">
-        <button id="go">Convert to Sheet</button>
-        <button id="cancel">Cancel</button>
-      </div>
-      <script>
-        const names = ${JSON.stringify(names)};
-        const select = document.getElementById('sheetSelect');
-        const NEW = '__NEW__';
-        const optNew = document.createElement('option');
-        optNew.value = NEW; optNew.textContent = '➕ New sheet…';
-        select.appendChild(optNew);
-        names.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; select.appendChild(o); });
-        select.value = names.includes(${JSON.stringify(selected)}) ? ${JSON.stringify(selected)} : NEW;
-        const wrap = document.getElementById('newNameWrap');
-        const sheetInput = document.getElementById('sheet');
-        const updateVis = ()=>{ wrap.style.display = (select.value === NEW) ? 'block' : 'none'; };
-        select.addEventListener('change', updateVis); updateVis();
-
-        const go = document.getElementById('go');
-        go.onclick = ()=>{
-          go.disabled = true; go.textContent = 'Converting...';
-          const chosen = (select.value === NEW) ? sheetInput.value : select.value;
-          const payload = { text: document.getElementById('txt').value, sheet: chosen };
-          google.script.run.withSuccessHandler((msg)=>{ alert(msg||'Done'); google.script.host.close(); })
-            .withFailureHandler((e)=>{ alert('Error: ' + e.message); go.disabled=false; go.textContent='Convert to Sheet'; })
-            ['${serverFn}'](payload.text, payload.sheet);
-        };
-        document.getElementById('cancel').onclick = ()=> google.script.host.close();
-      </script>
-    </body></html>`
-  ).setWidth(640).setHeight(560);
-  SpreadsheetApp.getUi().showModalDialog(html, title);
-}
-
-
-
-
-
-
-
