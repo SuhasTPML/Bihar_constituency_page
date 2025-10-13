@@ -470,6 +470,7 @@
     let electionData = new Map();
     let partyColors = new Map();
     let allianceColors = new Map();
+    let allianceOriginalColors = new Map();
     let partyToAlliance = new Map();
     let partyData = new Map(); // Store complete party information
     let colorCache = new Map(); // Pre-computed color combinations
@@ -556,32 +557,87 @@
       }
     }
 
+    function isValidHexColor(hex){
+      if(!hex || typeof hex !== 'string') return false;
+      const h = hex.trim();
+      return /^#?[0-9a-fA-F]{6}$/.test(h);
+    }
+
+    function to6Hex(hex){
+      const h = hex.replace('#','').trim();
+      return '#' + h.toLowerCase();
+    }
+
+    function deterministicColorFor(key){
+      // Hash string to an H value, generate stable pleasant color
+      let h = 0; const s = 55, l = 52;
+      for (let i=0;i<key.length;i++){ h = ((h<<5)-h) + key.charCodeAt(i); h|=0; }
+      const hue = Math.abs(h) % 360;
+      // Convert HSL to hex
+      const a = s/100 * Math.min(l/100, 1 - l/100);
+      const f = n => {
+        const k = (n + hue/30) % 12;
+        const col = l/100 - a * Math.max(Math.min(k-3, 9-k, 1), -1);
+        return Math.round(255 * col).toString(16).padStart(2,'0');
+      };
+      return '#' + f(0) + f(8) + f(4);
+    }
+
     function normalizeAllianceKey(a) {
       return (a == null) ? null : String(a).trim().toUpperCase();
     }
 
+    function resolveAllianceForYear(partyCode, year){
+      const info = partyData.get(partyCode);
+      if(!info) return 'NA';
+      const alliances = info.alliances || null;
+      const a = (alliances && (alliances[String(year)] || alliances[year]))
+        || info[`alliance_${year}`]
+        || info.alliance_2020
+        || info.alliance
+        || 'NA';
+      return normalizeAllianceKey(a) || 'NA';
+    }
+
+    function ensureAllianceColor(a, hex){
+      const key = normalizeAllianceKey(a);
+      if(!key) return;
+      if (!allianceOriginalColors.has(key)){
+        const chosen = isValidHexColor(hex) ? to6Hex(hex) : deterministicColorFor(key);
+        allianceOriginalColors.set(key, chosen);
+        allianceColors.set(key, pastelizeColor(chosen));
+      }
+    }
+
+    function buildAllianceColors(parties){
+      allianceColors = new Map();
+      allianceOriginalColors = new Map();
+      // Always have NA
+      allianceOriginalColors.set('NA', '#999999');
+      allianceColors.set('NA', '#e5e7eb');
+      // Scan parties for alliances and their provided colors
+      for(const p of parties){
+        const ac = p.alliance_colour_code || p.alliance_color_code || p.alliance_colour || p.alliance_color || '';
+        // Top-level alliance (if any)
+        if (p.alliance && String(p.alliance).trim()){
+          ensureAllianceColor(p.alliance, ac);
+        }
+        // Year-wise alliances
+        const almap = p.alliances || {};
+        for (const y of Object.keys(almap)){
+          ensureAllianceColor(almap[y], ac);
+        }
+      }
+      // Seed classics if missing
+      ensureAllianceColor('NDA', '#0066cc');
+      ensureAllianceColor('MGB', '#cc3300');
+      ensureAllianceColor('OTH', '#8A2BE2');
+    }
+
     function getHistoricalAllianceColor(party, year) {
       if (!party) return '#f3f4f6';
-
-      const party_info = partyData.get(party);
-      if (!party_info) return '#f3f4f6';
-
-      // Prefer nested `alliances` mapping, then legacy flat keys
-      const alliances = party_info.alliances || null;
-      let alliance = (alliances && (alliances[String(year)] || alliances[year]))
-        || party_info[`alliance_${year}`]
-        || party_info.alliance_2020
-        || party_info.alliance
-        || 'NA';
-
-      // Map special alliance codes to our main color categories
-      if (alliance === 'RJD+') alliance = 'MGB'; // RJD+ mapped to MGB colors
-      if (alliance === 'UPA') alliance = 'OTH';  // UPA mapped to Others
-      if (alliance === 'LF') alliance = 'OTH';   // Left Front mapped to Others
-      if (alliance === 'SSM') alliance = 'OTH';  // Socialist Secular Morcha mapped to Others
-      if (alliance === 'NA') return '#e5e7eb';   // Independent - return directly
-
-      const key = normalizeAllianceKey(alliance);
+      const key = resolveAllianceForYear(party, year);
+      if (key === 'NA') return '#e5e7eb';
       return allianceColors.get(key) || '#f3f4f6';
     }
 
@@ -625,11 +681,8 @@
 
       switch(mode) {
         case 'alliance-2020':
-          const alliance2020 = row.current_mla_alliance;
-          if (alliance2020 === 'NDA') return '#0066cc';
-          if (alliance2020 === 'MGB') return '#cc3300';
-          if (alliance2020 === 'OTH') return '#8A2BE2';
-          return '#1f77b4';
+          const a2020 = normalizeAllianceKey(row.current_mla_alliance) || resolveAllianceForYear(row.current_mla_party, '2020');
+          return allianceOriginalColors.get(a2020) || '#1f77b4';
         case 'party-2020':
           const party2020 = row.current_mla_party;
           const partyInfo2020 = partyData.get(party2020);
@@ -657,30 +710,9 @@
 
     function getHistoricalOriginalColor(party, year) {
       if (!party) return '#1f77b4';
-
-      const party_info = partyData.get(party);
-      if (!party_info) return '#1f77b4';
-
-      // Resolve alliance for a given year from new or legacy fields
-      const alliances = party_info.alliances || null;
-      let alliance = (alliances && (alliances[String(year)] || alliances[year]))
-        || party_info[`alliance_${year}`]
-        || party_info.alliance_2020
-        || party_info.alliance;
-
-      // Map to original alliance colors
-      if (alliance === 'RJD+') return '#cc3300'; // RJD+ mapped to original red
-      if (alliance === 'UPA') return '#8A2BE2';  // UPA mapped to original purple
-      if (alliance === 'LF') return '#8A2BE2';   // Left Front mapped to original purple
-      if (alliance === 'SSM') return '#8A2BE2';  // Socialist Secular Morcha mapped to original purple
-      if (alliance === 'NA') return '#999999';   // Independent original gray
-
-      // Main alliances
-      if (alliance === 'NDA') return '#0066cc';
-      if (alliance === 'MGB') return '#cc3300';
-      if (alliance === 'OTH') return '#8A2BE2';
-
-      return '#1f77b4';
+      const key = resolveAllianceForYear(party, year);
+      if (key === 'NA') return '#999999';
+      return allianceOriginalColors.get(key) || '#1f77b4';
     }
 
     // Pre-compute all color combinations for performance
@@ -1251,11 +1283,8 @@
         );
         const partiesData = await partiesResponse.json();
 
-        // Set up alliance colors with more distinct colors
-        allianceColors.set('NDA', pastelizeColor('#0066cc'));  // Blue
-        allianceColors.set('MGB', pastelizeColor('#cc3300'));  // Red
-        allianceColors.set('OTH', pastelizeColor('#8A2BE2'));  // Purple
-        allianceColors.set('NA', '#e5e7eb');  // Light gray
+        // Build alliance color palettes dynamically from parties JSON
+        buildAllianceColors(partiesData);
 
         // Process parties JSON data
         for (const party of partiesData) {
