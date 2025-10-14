@@ -3,25 +3,179 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bihar Map Embed (Option A)</title>
-  <meta name="description" content="Responsive iframe embed for the hosted Bihar map with a mobile-friendly minimum height." />
+  <title>Bihar Map + Results Embed</title>
+  <meta name="description" content="Responsive two-iframe embed: Bihar map and results chart. Two columns on desktop, stacked on mobile." />
+  <style>
+    /* Responsive two-column layout for desktop, stacked on mobile */
+    .embed-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    @media (min-width: 900px) {
+      .embed-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .embed-tile {
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      aspect-ratio: 16 / 9; /* Keeps a nice ratio while responsive */
+      min-height: 340px;     /* Ensures usable height on small screens */
+      overflow: hidden;
+      border-radius: 12px;            /* Rounded edges */
+      background: #f8fafc;            /* Subtle light background */
+      border: 1px solid #d1d5db;      /* Visible soft boundary */
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .embed-tile iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    /* Wrapper to allow scaling the results iframe to fit row height */
+    .scaled-iframe-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    .scaled-iframe-wrapper iframe {
+      position: absolute;
+      top: 0; left: 0;
+      transform-origin: top left;
+    }
+
+    /* Mobile: allow results tile to grow to full content height */
+    @media (max-width: 899px) {
+      #resultsTile { aspect-ratio: auto; min-height: 0; }
+    }
+  </style>
 </head>
 <body style="margin:0;">
-  <!-- Option A: Min-height to improve mobile height -->
-  <div style="position:relative;width:100%;max-width:100%;aspect-ratio:16/9;min-height:60vh;overflow:hidden;border-radius:8px;background:#f5f5f7">
-    <iframe
-      src="https://suhastpml.github.io/Bihar_constituency_page/map.html"
-      style="position:absolute;inset:0;width:100%;height:100%;border:0"
-      loading="lazy"
-      allowfullscreen
-      referrerpolicy="no-referrer-when-downgrade">
-    </iframe>
+  <div class="embed-grid">
+    <!-- Map iframe -->
+    <div class="embed-tile" id="mapTile">
+      <iframe
+        src="https://suhastpml.github.io/Bihar_constituency_page/map.html"
+        loading="lazy"
+        allowfullscreen
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
+    </div>
+
+    <!-- Results iframe -->
+    <div class="embed-tile" id="resultsTile">
+      <div class="scaled-iframe-wrapper" id="resultsWrapper">
+        <iframe
+          id="resultsFrame"
+          src="embed-results.html"
+          loading="lazy"
+          allowfullscreen
+          referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+      </div>
+    </div>
   </div>
-  <!--
-    Notes:
-    - 60vh ensures better height on small screens; adjust to 50vh/65vh or a fixed px value to taste.
-    - The embedded page is hosted on GitHub Pages and loads its own data.
-  -->
+
+  <script>
+    (function(){
+      const DESKTOP_MQ = window.matchMedia('(min-width: 900px)');
+      const mapTile = document.getElementById('mapTile');
+      const resultsWrapper = document.getElementById('resultsWrapper');
+      const resultsFrame = document.getElementById('resultsFrame');
+
+      let lastContentHeight = null;
+
+      function getTargetHeight(){
+        return mapTile ? mapTile.offsetHeight : null;
+      }
+
+      function tryMeasureIframe(){
+        try {
+          const doc = resultsFrame.contentDocument || resultsFrame.contentWindow.document;
+          if (!doc) return null;
+          const h = Math.max(
+            doc.documentElement.scrollHeight,
+            doc.body ? doc.body.scrollHeight : 0
+          );
+          return h || null;
+        } catch (e) {
+          return null; // cross-origin or not ready
+        }
+      }
+
+      function applyScale(contentHeight){
+        const isDesktop = DESKTOP_MQ.matches;
+        if (!isDesktop) {
+          // Mobile/stacked: expand results tile to full content height
+          if (contentHeight) {
+            resultsWrapper.style.height = contentHeight + 'px';
+            resultsFrame.style.height = contentHeight + 'px';
+          } else {
+            resultsWrapper.style.height = '';
+            resultsFrame.style.height = '';
+          }
+          resultsFrame.style.transform = '';
+          resultsFrame.style.width = '100%';
+          resultsFrame.style.position = 'relative';
+          return;
+        }
+
+        const targetHeight = getTargetHeight();
+        if (!targetHeight || !contentHeight) return;
+
+        const scale = Math.min(1, targetHeight / contentHeight);
+        // Desktop: set wrapper to row height, scale iframe down to fit
+        resultsWrapper.style.height = targetHeight + 'px';
+        resultsFrame.style.transform = 'scale(' + scale + ')';
+        resultsFrame.style.width = (100 / scale) + '%';
+        resultsFrame.style.height = contentHeight + 'px';
+        resultsFrame.style.position = 'absolute';
+      }
+
+      function fitNow(){
+        const measured = tryMeasureIframe();
+        if (measured) {
+          lastContentHeight = measured;
+          applyScale(measured);
+        } else if (lastContentHeight) {
+          applyScale(lastContentHeight);
+        }
+      }
+
+      // Listen for height from iframe via postMessage (fallback for cross-origin)
+      window.addEventListener('message', (ev) => {
+        try {
+          const d = ev.data || {};
+          if (d && d.type === 'RESULTS_IFRAME_SIZE' && typeof d.height === 'number') {
+            lastContentHeight = d.height;
+            applyScale(d.height);
+          }
+        } catch(_){}
+      });
+
+      // Refit on load, resize, and when media query flips
+      resultsFrame.addEventListener('load', () => {
+        setTimeout(fitNow, 50);
+        setTimeout(fitNow, 200);
+      });
+      window.addEventListener('resize', () => setTimeout(fitNow, 50));
+      DESKTOP_MQ.addEventListener('change', () => setTimeout(fitNow, 50));
+
+      // Initial attempt
+      document.addEventListener('DOMContentLoaded', () => setTimeout(fitNow, 50));
+    })();
+  </script>
 </body>
 </html>
 

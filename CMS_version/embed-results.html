@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parliament Chart</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        /* Self-contained styles - using a unique prefix to avoid conflicts */
+        .parliament-chart-wrapper { 
+            width: 100%; 
+            max-width: 900px; 
+            margin: 0 auto; 
+            padding: 10px; 
+            box-sizing: border-box; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .parliament-chart-wrapper h1 { 
+            text-align: center; 
+            margin: 0 0 10px 0;
+            font-size: 1.5em;
+            color: #333;
+        }
+        .parliament-chart-wrapper .parliament-controls { 
+            width: 100%; 
+            max-width: 900px; 
+            text-align: left; 
+            margin-bottom: 10px;
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 4px;
+        }
+        .parliament-chart-wrapper .parliament-controls button { 
+            padding: 8px 16px; 
+            margin: 0; 
+            font-size: 16px; 
+            border: 1px solid #ccc; 
+            background-color: #f0f0f0; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            transition: background-color 0.2s, color 0.2s; 
+            flex: 0 0 auto; 
+        }
+        .parliament-chart-wrapper .parliament-controls button.active { 
+            background-color: #333; 
+            color: #fff; 
+            border-color: #333; 
+        }
+        .parliament-chart-wrapper .parliament-svg-container { 
+            width: 100%; 
+            max-width: 900px; 
+        }
+        .parliament-chart-wrapper .parliament-svg-container svg {
+            width: 100%;
+            height: auto;
+        }
+        .parliament-chart-wrapper .parliament-table-container { 
+            width: 100%; 
+            max-width: 900px; 
+            margin-top: 10px; 
+        }
+        .parliament-chart-wrapper table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            background-color: #fff; 
+            border: 1px solid #e0e0e0; 
+        }
+        .parliament-chart-wrapper th, 
+        .parliament-chart-wrapper td { 
+            padding: 10px 12px; 
+            text-align: left; 
+            border-bottom: 1px solid #e0e0e0; 
+            font-size: 0.9em;
+        }
+        .parliament-chart-wrapper th { 
+            background-color: #f8f8f8; 
+            font-weight: 600; 
+        }
+        .parliament-chart-wrapper .party-name { 
+            display: flex; 
+            align-items: center; 
+        }
+        .parliament-chart-wrapper .color-swatch { 
+            width: 15px; 
+            height: 15px; 
+            border-radius: 3px; 
+            margin-right: 10px; 
+            display: inline-block; 
+            flex-shrink: 0; 
+        }
+        .parliament-chart-wrapper .seat-change { 
+            font-size: 0.9em; 
+            margin-left: 8px; 
+            font-weight: bold;
+        }
+        .parliament-chart-wrapper .parliament-legend { 
+            display: flex; 
+            gap: 15px; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            font-size: 0.8em; 
+            margin-top: 10px;
+        }
+        .parliament-chart-wrapper .legend-item { 
+            display: flex; 
+            align-items: center; 
+        }
+        .parliament-chart-wrapper .legend-swatch { 
+            width: 15px; 
+            height: 15px; 
+            border-radius: 3px; 
+            margin-right: 5px; 
+            flex-shrink: 0; 
+        }
+        .parliament-chart-wrapper .parliament-seat { 
+            stroke: #fff; 
+            stroke-width: 1px; 
+            transition: opacity 0.3s ease, stroke 0.2s ease, stroke-width 0.2s ease; 
+        }
+        .parliament-chart-wrapper .parliament-seat.dimmed { 
+            opacity: 0.2; 
+        }
+    </style>
+</head>
+<body>
+<div class="parliament-chart-wrapper">
+    <h1 id="chart-title">Fictional Election Results</h1>
+    <div id="controls" class="parliament-controls"></div>
+    <div id="parliament-svg-container" class="parliament-svg-container"><svg id="parliament-chart"></svg></div>
+    <div id="legend-container" class="parliament-legend"></div>
+    <div id="table-container" class="parliament-table-container"></div>
+</div>
+<script>
+    const CHART_TITLE = "Fictional Election Results";
+    let ELECTION_DATA = {"years":["2020","2024"],"parties":[{"party":"New Party 1","seats":["65","125"]},{"party":"New Party 2","seats":["25","85"]}]};
+    let PARTY_COLORS = {"New Party 1":"#e7a406","New Party 2":"#610f70"};
+    let state = {"current_election_index":0,"arc_degrees":180,"inner_radius_ratio":0.3,"seat_size_mode":"auto","fixed_seat_radius":8,"first_column_label":"Party","majority_line":{"enabled":false,"label":"Majority","position":50,"color":"#000000","width":1.5},"legend":{"enabled":true,"orientation":"horizontal","font_size":14,"color":"#333333"},"total_text":{"size":28,"color":"#333333"},"animation_duration":800};
+    state.animation_duration = 0; // Disable animations for faster loading in embed
+    const svg = d3.select("#parliament-chart");
+    const chartGroup = svg.append("g");
+    const majorityLineGroup = svg.append("g").attr("class", "majority-line-group");
+    const labelsGroup = svg.append("g").attr("class", "labels-group");
+    function getMobileScale(containerWidth) {
+        if (!containerWidth || containerWidth <= 0) return 1;
+        const base = 600;
+        return Math.max(0.6, Math.min(1, containerWidth / base));
+    }
+function getLayoutCapacity(seatRadius, chartHeight, innerRadiusRatio, arcDegrees) {
+        if (seatRadius < 0.5) return 0;
+        const spacing = seatRadius * 0.15;
+        const footprint = (seatRadius * 2) + spacing;
+        const arcRadians = arcDegrees * Math.PI / 180;
+        let capacity = 0;
+        let rowRadius = chartHeight - seatRadius;
+        while (rowRadius > chartHeight * innerRadiusRatio) {
+            const circumference = rowRadius * arcRadians;
+            capacity += Math.floor(circumference / footprint);
+            rowRadius -= footprint;
+        }
+        return capacity;
+    }
+function calculateLayout(totalSeats, chartHeight, config) {
+        if (totalSeats === 0) return { positions: [], seatRadius: 0 };
+        let seatRadius = config.fixed_seat_radius;
+        if (config.seat_size_mode === 'auto') {
+            let lowerBound = 0.1, upperBound = 50, bestRadius = 1;
+            for (let i = 0; i < 30; i++) {
+                let mid = (lowerBound + upperBound) / 2;
+                if (getLayoutCapacity(mid, chartHeight, config.inner_radius_ratio, config.arc_degrees) >= totalSeats) {
+                    bestRadius = mid;
+                    lowerBound = mid;
+                } else { upperBound = mid; }
+            }
+            seatRadius = bestRadius;
+        }
+        const spacing = seatRadius * 0.15;
+        const footprint = (seatRadius * 2) + spacing;
+        const arcRadians = config.arc_degrees * Math.PI / 180;
+        let rows = [];
+        let rowRadius = chartHeight - seatRadius;
+        while (rowRadius > chartHeight * config.inner_radius_ratio) {
+            const circumference = rowRadius * arcRadians;
+            const capacity = Math.floor(circumference / footprint);
+            if (capacity <=0) break;
+            rows.push({ radius: rowRadius, capacity: capacity });
+            rowRadius -= footprint;
+        }
+        let totalArcLength = 0;
+        rows.forEach(r => { totalArcLength += r.radius * arcRadians; });
+        const seatsPerRow = [];
+        let seatsAssigned = 0;
+        for (let i = 0; i < rows.length; i++) {
+            let seatsInRow = (i < rows.length -1) ? (totalArcLength > 0 ? Math.round((arcRadians * rows[i].radius * totalSeats) / totalArcLength) : 0) : (totalSeats - seatsAssigned);
+            seatsPerRow.push(Math.min(rows[i].capacity, seatsInRow));
+            seatsAssigned += seatsInRow;
+        }
+        let seatDifference = totalSeats - seatsPerRow.reduce((a,b) => a+b, 0);
+        for(let i=0; i < Math.abs(seatDifference); i++) { seatsPerRow[i % seatsPerRow.length] += Math.sign(seatDifference); }
+        const positions = [];
+        const startAngle = (Math.PI - arcRadians) / 2;
+        for(let i=0; i<rows.length; i++) {
+            const radius = rows[i].radius;
+            const numSeatsInRow = seatsPerRow[i];
+            const angleStep = numSeatsInRow > 1 ? arcRadians / (numSeatsInRow - 1 || 1) : 0;
+            for (let j = 0; j < numSeatsInRow; j++) {
+                const angle = Math.PI - startAngle - (j * angleStep);
+                positions.push({ x: Math.cos(angle) * radius, y: Math.sin(angle) * -radius, angle, radius });
+            }
+        }
+        positions.sort((a, b) => b.angle - a.angle);
+        return { positions: positions.slice(0, totalSeats), seatRadius };
+    }
+function drawMajorityLine(positions, totalSeats, config) {
+        majorityLineGroup.html("");
+        if (!config.majority_line.enabled || totalSeats < 2) return;
+        const positionRatio = config.majority_line.position / 100;
+        const targetIndex = Math.max(0, Math.min(totalSeats - 1, Math.floor(totalSeats * positionRatio)));
+        let targetAngle;
+        if (targetIndex === 0) {
+            targetAngle = positions[0].angle;
+        } else if (targetIndex >= positions.length - 1) {
+            targetAngle = positions[positions.length - 1].angle;
+        } else {
+            const lowerIndex = Math.floor(totalSeats * positionRatio);
+            const upperIndex = Math.min(lowerIndex + 1, positions.length - 1);
+            const ratio = (totalSeats * positionRatio) - lowerIndex;
+            targetAngle = positions[lowerIndex].angle * (1 - ratio) + positions[upperIndex].angle * ratio;
+        }
+        const outerRadius = Math.max(...positions.map(p => p.radius));
+        const innerRadius = Math.min(...positions.map(p => p.radius));
+        const extension = 35; 
+        const innerExtension = 25;
+        const x1 = Math.cos(targetAngle) * (innerRadius - innerExtension);
+        const y1 = Math.sin(targetAngle) * -(innerRadius - innerExtension);
+        const x2 = Math.cos(targetAngle) * (outerRadius + extension);
+        const y2 = Math.sin(targetAngle) * -(outerRadius + extension);
+        majorityLineGroup.append("line").attr("x1", x1).attr("y1", y1).attr("x2", x2).attr("y2", y2).attr("stroke", config.majority_line.color).attr("stroke-width", config.majority_line.width + 2).attr("stroke-dasharray", "6,6");
+        const textX = Math.cos(targetAngle) * (outerRadius + 55);
+        const textY = Math.sin(targetAngle) * -(outerRadius + 55);
+        majorityLineGroup.append("text").attr("x", textX).attr("y", textY).attr("dy", "0.35em").attr("text-anchor", "middle").style("font-size", "14px").style("font-weight", "bold").style("fill", config.majority_line.color).text(config.majority_line.label);
+    }
+    // Override helper functions for embedded version (uses different CSS classes)
+    function highlightParty(partyName, partyColor) {
+        // Calculate a darker shade of the party's color
+        const darkerColor = d3.color(partyColor).darker(0.7);
+        // Dim all seats first (using .parliament-seat for embedded version)
+        chartGroup.selectAll(".parliament-seat").classed("dimmed", true);
+        // Select all seats of the hovered party
+        const partySeats = chartGroup.selectAll(".parliament-seat").filter(p => p && p.name === partyName);
+        // Un-dim them and apply the dynamic border style
+        partySeats
+            .classed("dimmed", false)
+            .style("stroke", darkerColor)
+            .style("stroke-width", "2px");
+        // Highlight the party in the legend (match by bound data)
+        d3.selectAll(".legend-item")
+            .style("opacity", 0.3);
+        d3.selectAll(".legend-item")
+            .filter(function(d) { return d && d.party === partyName; })
+            .style("opacity", 1)
+            .style("font-weight", "bold");
+        // Highlight the party in the table (match by bound data)
+        d3.selectAll("#table-container table tbody tr")
+            .style("opacity", 0.3)
+            .style("background-color", "transparent");
+        d3.selectAll("#table-container table tbody tr")
+            .filter(function(d) { return d && d.party === partyName; })
+            .style("opacity", 1)
+            .style("background-color", "#f0f8ff");
+    }
+    function resetHighlighting() {
+        // Reset all seats to their default state (using .parliament-seat for embedded version)
+        chartGroup.selectAll(".parliament-seat")
+            .classed("dimmed", false)
+            .style("stroke", "#fff") // Reset to default white border
+            .style("stroke-width", "1px"); // Reset to default border width
+        // Reset legend highlighting
+        d3.selectAll(".legend-item")
+            .style("opacity", 1)
+            .style("font-weight", "normal");
+        // Reset table highlighting
+        d3.selectAll("#table-container table tbody tr")
+            .style("opacity", 1)
+            .style("font-weight", "normal")
+            .style("background-color", "transparent");
+    }
+    // Modified update function for embedded version
+    function update(triggeringEvent = "manual") {
+        const processedData = ELECTION_DATA.parties.map(p => ({...p, color: PARTY_COLORS[p.party], seats: p.seats.map(s => parseInt(s, 10) || 0)}));
+        const partiesForYear = [...processedData].map(p => ({...p, seats: p.seats[state.current_election_index]})).filter(p => p.seats > 0);
+        const currentYearData = [];
+        partiesForYear.forEach(party => { for (let i = 0; i < party.seats; i++) { currentYearData.push({ name: party.party, color: party.color }); } });
+        const totalSeats = currentYearData.length;
+        const container = d3.select("#parliament-svg-container");
+        const width = container.node().getBoundingClientRect().width;
+        const mobileScale = getMobileScale(width);
+        const baseHeight = width / 2 * (state.arc_degrees > 180 ? 2 : 1);
+        const { positions, seatRadius } = calculateLayout(totalSeats, baseHeight, state);
+        svg.attr("width", "100%").attr("height", "100%");
+        const padding = 30;
+        const textPadding = 10;
+        let minX = 0, maxX = 0, minY = 0, maxY = 0;
+        if (positions.length > 0) {
+            const xPositions = positions.map(p => p.x);
+            const yPositions = positions.map(p => p.y);
+            minX = Math.min(...xPositions) - seatRadius - padding;
+            maxX = Math.max(...xPositions) + seatRadius + padding;
+            minY = Math.min(...yPositions) - seatRadius - padding - textPadding;
+            maxY = Math.max(...yPositions) + seatRadius + padding;
+        } else {
+            minX = -width/2; maxX = width/2; minY = -baseHeight/2 - textPadding; maxY = baseHeight/2;
+        }
+        // Include majority label bounds to avoid clipping in embedded version
+        try {
+            const ml = state.majority_line;
+            if (ml && ml.enabled && totalSeats >= 2 && positions && positions.length) {
+                const positionRatio = ml.position / 100;
+                const clampIndex = Math.max(0, Math.min(totalSeats - 1, Math.floor(totalSeats * positionRatio)));
+                let targetAngle;
+                if (clampIndex === 0) {
+                    targetAngle = positions[0].angle;
+                } else if (clampIndex >= positions.length - 1) {
+                    targetAngle = positions[positions.length - 1].angle;
+                } else {
+                    const lowerIndex = Math.floor(totalSeats * positionRatio);
+                    const upperIndex = Math.min(lowerIndex + 1, positions.length - 1);
+                    const ratio = (totalSeats * positionRatio) - lowerIndex;
+                    targetAngle = positions[lowerIndex].angle * (1 - ratio) + positions[upperIndex].angle * ratio;
+                }
+                const outerRadius = Math.max(...positions.map(p => p.radius));
+                const labelOffset = 55;
+                const labelX = Math.cos(targetAngle) * (outerRadius + labelOffset);
+                const labelY = Math.sin(targetAngle) * -(outerRadius + labelOffset);
+                const approxWidth = Math.max(40, (ml.label || 'Majority').length * 7);
+                const approxHeight = 18;
+                minX = Math.min(minX, labelX - approxWidth / 2);
+                maxX = Math.max(maxX, labelX + approxWidth / 2);
+                minY = Math.min(minY, labelY - approxHeight / 2);
+                maxY = Math.max(maxY, labelY + approxHeight / 2);
+            }
+        } catch (_) { /* ignore */ }
+        const viewBoxWidth = maxX - minX;
+        const viewBoxHeight = maxY - minY;
+        // Set the viewBox for proper scaling
+        svg.attr("viewBox", `${minX} ${minY} ${viewBoxWidth} ${viewBoxHeight}`).attr("preserveAspectRatio", "xMidYMid meet");
+        // Set explicit dimensions based on content, but cap at reasonable maximums
+        const maxWidth = Math.min(viewBoxWidth, 900); // Max width of 900px
+        const scale = maxWidth / viewBoxWidth;
+        const finalWidth = maxWidth;
+        const finalHeight = viewBoxHeight * scale;
+        svg.attr("width", finalWidth).attr("height", finalHeight);
+        chartGroup.attr("transform", "translate(0,0)");
+        majorityLineGroup.attr("transform", "translate(0,0)");
+        labelsGroup.attr("transform", "translate(0,0)");
+        // Draw/update only the total seats number centered in the graphic (embedded) with mobile scaling
+        labelsGroup.selectAll('.total-seats-number').remove();
+        if (totalSeats > 0) {
+            labelsGroup.append('text')
+                .attr('class', 'total-seats-number')
+                .attr('x', 0)
+                .attr('y', 0)
+                .attr('text-anchor', 'middle')
+                .style('font-size', ((state.total_text && state.total_text.size ? state.total_text.size : 28) * mobileScale) + 'px')
+                .style('font-weight', 'bold')
+                .style('fill', (state.total_text && state.total_text.color) ? state.total_text.color : '#333333')
+                .style('dominant-baseline', 'middle')
+                .text(totalSeats);
+        }
+        if (totalSeats === 0) { chartGroup.selectAll(".parliament-seat, .seat-hit-area").remove(); majorityLineGroup.html(""); }
+        // Invisible hit areas for better hover (embedded)
+        chartGroup.selectAll(".seat-hit-area").data(currentYearData, (d, i) => `${d.name}-${state.current_election_index}-hit-${i}`).join(
+            enter => enter.append("circle").attr("class", "seat-hit-area").attr("cx", (d, i) => positions[i]? positions[i].x : 0).attr("cy", (d, i) => positions[i]? positions[i].y : 0).attr("r", 0)
+                .call(enter => enter.transition().duration(triggeringEvent === "resize" ? 0 : state.animation_duration).attr("r", seatRadius + 3)),
+            update => update.transition().duration(state.animation_duration).attr("cx", (d, i) => positions[i].x).attr("cy", (d, i) => positions[i].y).attr("r", seatRadius + 3),
+            exit => exit.transition().duration(state.animation_duration).attr("r", 0).remove()
+        )
+        .attr("fill", "transparent")
+        .attr("stroke", "none")
+        .style("pointer-events", "all")
+        .style("cursor", "pointer")
+        .on("mouseover", (event, d) => highlightParty(d.name, d.color))
+        .on("mouseout", resetHighlighting);
+        // Visible seats on top
+        chartGroup.selectAll(".parliament-seat").data(currentYearData, (d, i) => `${d.name}-${state.current_election_index}-${i}`).join(
+            enter => enter.append("circle").attr("class", "parliament-seat").attr("fill", d => d.color).attr("cx", (d, i) => positions[i]? positions[i].x : 0).attr("cy", (d, i) => positions[i]? positions[i].y : 0).attr("r", 0)
+                .call(enter => enter.transition().duration(triggeringEvent === "resize" ? 0 : state.animation_duration).attr("r", seatRadius - 0.5)),
+            update => update.transition().duration(state.animation_duration).attr("cx", (d, i) => positions[i].x).attr("cy", (d, i) => positions[i].y).attr("r", seatRadius - 0.5).attr("fill", d => d.color),
+            exit => exit.transition().duration(state.animation_duration).attr("r", 0).remove()
+        )
+        .style("pointer-events", "none")
+        .style("cursor", "pointer");
+        drawMajorityLine(positions, totalSeats, state);
+        updateLegend(partiesForYear);
+        updateTable();
+        updateControls();
+    }
+    function updateLegend(parties) {
+        const legendContainer = d3.select("#legend-container");
+        legendContainer.html("").style("display", state.legend.enabled ? "flex" : "none");
+        // Apply legend text style in embed with mobile scaling
+        const container = d3.select("#parliament-svg-container");
+        const w = container.node() ? container.node().getBoundingClientRect().width : 900;
+        const mobileScale = getMobileScale(w);
+        legendContainer.style("font-size", (((state.legend && state.legend.font_size) ? state.legend.font_size : 14) * mobileScale) + "px")
+                        .style("color", (state.legend && state.legend.color) ? state.legend.color : "#333333");
+        if (!state.legend.enabled) return;
+        legendContainer.style("flex-direction", state.legend.orientation === 'vertical' ? 'column' : 'row');
+        parties.forEach(party => {
+            const item = legendContainer.append("div").datum(party).attr("class", "legend-item").style("cursor", "pointer");
+            item.append("div").attr("class", "legend-swatch").style("width", "15px").style("height", "15px").style("background-color", party.color).style("border-radius", "3px");
+            item.append("span").text(`${party.party} (${party.seats})`);
+            // Add hover listeners to legend items
+            item.on("mouseover", function() {
+                highlightParty(party.party, party.color);
+            })
+            .on("mouseout", function() {
+                resetHighlighting();
+            });
+        });
+    }
+    function updateTable() {
+        const tableContainer = d3.select("#table-container");
+        tableContainer.html("");
+        if (ELECTION_DATA.parties.length === 0) return;
+        const table = tableContainer.append("table");
+        const thead = table.append("thead");
+        const tbody = table.append("tbody");
+        const headerRow = thead.append("tr");
+        headerRow.append("th").text(state.first_column_label || "Party");
+        ELECTION_DATA.years.forEach(year => { headerRow.append("th").text(year); });
+        ELECTION_DATA.parties.forEach(party => {
+            const row = tbody.append("tr").datum(party).style("cursor", "pointer");
+            const nameCell = row.append("td").attr("class", "party-name");
+            nameCell.append("div").attr("class", "color-swatch").style("background-color", PARTY_COLORS[party.party]);
+            nameCell.append("span").text(party.party);
+            party.seats.forEach((seat, i) => {
+                const cell = row.append("td").text(seat);
+                if (i > 0) {
+                    const change = parseInt(seat, 10) - parseInt(party.seats[i-1], 10);
+                    if (change !== 0) {
+                        cell.append("span").attr("class", "seat-change").text(`(${change > 0 ? '+' : ''}${change})`).style("color", change > 0 ? "green" : "red");
+                    }
+                }
+            });
+            // Add hover listeners to table rows
+            row.on("mouseover", function() {
+                highlightParty(party.party, PARTY_COLORS[party.party]);
+            })
+            .on("mouseout", function() {
+                resetHighlighting();
+            });
+        });
+    }
+    function updateControls() {
+        const controls = d3.select("#controls");
+        controls.html("");
+        ELECTION_DATA.years.forEach((year, i) => {
+            const button = controls.append("button").text(year).classed("active", i === state.current_election_index);
+            button.on("click", () => { state.current_election_index = i; update(); });
+        });
+    }
+    function initializeChart() {
+        document.getElementById('chart-title').textContent = CHART_TITLE;
+        update("resize"); // Initial draw without animation
+        window.addEventListener('resize', () => update("resize"));
+    }
+    initializeChart();
+</script>
+<script>
+(function(){
+  function postSize(){
+    try {
+      const docEl = document.documentElement;
+      const body = document.body || {};
+      const h = Math.max(docEl.scrollHeight || 0, body.scrollHeight || 0, docEl.offsetHeight || 0, body.offsetHeight || 0);
+      const w = Math.max(docEl.scrollWidth || 0, body.scrollWidth || 0, docEl.offsetWidth || 0, body.offsetWidth || 0);
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'RESULTS_IFRAME_SIZE', height: h, width: w }, '*');
+      }
+    } catch (_) { }
+  }
+  window.addEventListener('load', function(){ setTimeout(postSize, 50); setTimeout(postSize, 250); });
+  window.addEventListener('resize', function(){ setTimeout(postSize, 50); });
+  try {
+    if (typeof update === 'function') {
+      const __orig = update;
+      update = function(triggeringEvent){
+        const r = __orig.call(this, triggeringEvent);
+        try { setTimeout(postSize, 10); } catch(_){}
+        return r;
+      };
+    }
+  } catch(_){}
+})();
+</script>
+</body>
+</html>
