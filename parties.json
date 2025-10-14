@@ -3,8 +3,6 @@
     "code": "BJP",
     "name": "Bharatiya Janata Party",
     "color": "#ff9933",
-    "alliance": "MGB",
-    "alliance_colour_code": "#cc3300",
     "alliances": {
       "2010": "NDA",
       "2015": "NDA",
@@ -16,8 +14,6 @@
     "code": "JD(U)",
     "name": "Janata Dal (United)",
     "color": "#006600",
-    "alliance": "NDA",
-    "alliance_colour_code": "#0066cc",
     "alliances": {
       "2010": "NDA",
       "2015": "MGB",
@@ -29,8 +25,6 @@
     "code": "RJD",
     "name": "Rashtriya Janata Dal",
     "color": "#990000",
-    "alliance": "RJD-LJP",
-    "alliance_colour_code": "#ffffff",
     "alliances": {
       "2010": "RJD-LJP",
       "2015": "MGB",
@@ -42,8 +36,6 @@
     "code": "INC",
     "name": "Indian National Congress",
     "color": "#3399ff",
-    "alliance": "Left bloc",
-    "alliance_colour_code": "#ffffff",
     "alliances": {
       "2010": "MGB",
       "2015": "MGB",
@@ -55,8 +47,6 @@
     "code": "LJP",
     "name": "Lok Janshakti Party",
     "color": "#ff6699",
-    "alliance": "OTH",
-    "alliance_colour_code": "#8A2BE2",
     "alliances": {
       "2010": "RJD-LJP",
       "2015": "NDA",
@@ -68,8 +58,6 @@
     "code": "HAM(S)",
     "name": "Hindustani Awam Morcha (Secular)",
     "color": "#003366",
-    "alliance": "NA",
-    "alliance_colour_code": "#999999",
     "alliances": {
       "2010": "NA",
       "2015": "NDA",
@@ -81,8 +69,6 @@
     "code": "RLSP",
     "name": "Rashtriya Lok Samta Party",
     "color": "#ff9966",
-    "alliance": "",
-    "alliance_colour_code": "",
     "alliances": {
       "2010": "NA",
       "2015": "NDA",
@@ -94,8 +80,6 @@
     "code": "VIP",
     "name": "Vikassheel Insaan Party",
     "color": "#9966cc",
-    "alliance": "",
-    "alliance_colour_code": "",
     "alliances": {
       "2010": "NA",
       "2015": "NA",
@@ -107,8 +91,6 @@
     "code": "AIMIM",
     "name": "All India Majlis-e-Ittehadul Muslimeen",
     "color": "#009933",
-    "alliance": "",
-    "alliance_colour_code": "",
     "alliances": {
       "2010": "NA",
       "2015": "OTH",
@@ -120,8 +102,6 @@
     "code": "CPI(ML)L",
     "name": "Communist Party of India (Marxist–Leninist) Liberation",
     "color": "#cc0000",
-    "alliance": "",
-    "alliance_colour_code": "",
     "alliances": {
       "2010": "Left bloc",
       "2015": "Left bloc",
@@ -133,8 +113,6 @@
     "code": "CPI",
     "name": "Communist Party of India",
     "color": "#ff3333",
-    "alliance": "",
-    "alliance_colour_code": "",
     "alliances": {
       "2010": "Left bloc",
       "2015": "Left bloc",
@@ -146,8 +124,6 @@
     "code": "CPI(M)",
     "name": "Communist Party of India (Marxist)",
     "color": "#cc3333",
-    "alliance": "",
-    "alliance_colour_code": "",
     "alliances": {
       "2010": "Left bloc",
       "2015": "Left bloc",
@@ -159,8 +135,6 @@
     "code": "BSP",
     "name": "Bahujan Samaj Party",
     "color": "#0066ff",
-    "alliance": "",
-    "alliance_colour_code": "",
     "alliances": {
       "2010": "OTH",
       "2015": "OTH",
@@ -172,8 +146,6 @@
     "code": "SP",
     "name": "Samajwadi Party",
     "color": "#ff0000",
-    "alliance": "",
-    "alliance_colour_code": "",
     "alliances": {
       "2010": "OTH",
       "2015": "SSM",
@@ -185,8 +157,6 @@
     "code": "NCP",
     "name": "Nationalist Congress Party",
     "color": "#00ccff",
-    "alliance": "",
-    "alliance_colour_code": "",
     "alliances": {
       "2010": "OTH",
       "2015": "SSM",
@@ -198,8 +168,6 @@
     "code": "AIFB",
     "name": "All India Forward Bloc",
     "color": "#ff6600",
-    "alliance": "",
-    "alliance_colour_code": "",
     "alliances": {
       "2010": "OTH",
       "2015": "Left bloc",
@@ -211,8 +179,6 @@
     "code": "SUCI",
     "name": "Socialist Unity Centre of India (Communist)",
     "color": "#cc6600",
-    "alliance": "",
-    "alliance_colour_code": "",
     "alliances": {
       "2010": "OTH",
       "2015": "Left bloc",
@@ -224,8 +190,6 @@
     "code": "RSP",
     "name": "Revolutionary Socialist Party",
     "color": "#ff3366",
-    "alliance": "",
-    "alliance_colour_code": "",
     "alliances": {
       "2010": "OTH",
       "2015": "Left bloc",
@@ -237,8 +201,6 @@
     "code": "IND",
     "name": "Independent",
     "color": "#999999",
-    "alliance": "",
-    "alliance_colour_code": "",
     "alliances": {
       "2010": "NA",
       "2015": "NA",
