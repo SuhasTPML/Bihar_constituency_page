@@ -618,20 +618,30 @@
       // Scan parties for alliances and their provided colors
       for(const p of parties){
         const ac = p.alliance_colour_code || p.alliance_color_code || p.alliance_colour || p.alliance_color || '';
-        // Top-level alliance (if any)
-        if (p.alliance && String(p.alliance).trim()){
-          ensureAllianceColor(p.alliance, ac);
+        const topAlliance = normalizeAllianceKey(p.alliance);
+        // Top-level alliance (if any) gets the party-provided alliance colour
+        if (topAlliance){
+          ensureAllianceColor(topAlliance, ac);
         }
-        // Year-wise alliances
+        // Year-wise alliances: only reuse the party-provided colour if the
+        // per-year alliance equals the party's top-level alliance; otherwise
+        // derive a deterministic color per alliance label.
         const almap = p.alliances || {};
         for (const y of Object.keys(almap)){
-          ensureAllianceColor(almap[y], ac);
+          const ay = normalizeAllianceKey(almap[y]);
+          ensureAllianceColor(ay, (ay === topAlliance ? ac : ''));
         }
       }
-      // Seed classics if missing
-      ensureAllianceColor('NDA', '#0066cc');
-      ensureAllianceColor('MGB', '#cc3300');
-      ensureAllianceColor('OTH', '#8A2BE2');
+      // Force canonical colors for common alliances (override any prior seeds)
+      const canonical = new Map([
+        ['NDA', '#0066cc'],
+        ['MGB', '#cc3300'],
+        ['OTH', '#8A2BE2']
+      ]);
+      for (const [k, hex] of canonical){
+        allianceOriginalColors.set(k, hex);
+        allianceColors.set(k, pastelizeColor(hex));
+      }
     }
 
     function getHistoricalAllianceColor(party, year) {
@@ -738,10 +748,10 @@
               color = partyInfo2025?.color || getHistoricalOriginalColor(row.y2025_winner_party, '2025');
               break;
             case 'alliance-2020':
-              color = allianceColors.get(row.current_mla_alliance) || '#f3f4f6';
+              color = allianceColors.get(normalizeAllianceKey(row.current_mla_alliance)) || '#f3f4f6';
               break;
             case 'party-2020':
-              color = partyColors.get(row.current_mla_party) || allianceColors.get(row.current_mla_alliance) || '#f3f4f6';
+              color = partyColors.get(row.current_mla_party) || allianceColors.get(normalizeAllianceKey(row.current_mla_alliance)) || '#f3f4f6';
               break;
             case 'alliance-2015':
               color = getHistoricalAllianceColor(row.y2015_winner_party, '2015');
