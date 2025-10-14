@@ -762,6 +762,29 @@
         </div>`;
 
       out.innerHTML = headerHTML;
+      // Update timeline scroll hint visibility based on overflow
+      try {
+        const updateHint = (root)=>{
+          const scroller = root.querySelector('.timeline-scroll');
+          const hint = root.querySelector('.timeline-hint');
+          if (!scroller || !hint) return;
+          const hasOverflow = (scroller.scrollWidth - scroller.clientWidth) > 1;
+          hint.style.display = hasOverflow ? 'block' : 'none';
+        };
+        document.querySelectorAll('.trends-container').forEach(tc=> updateHint(tc));
+        if (!window.__timelineHintResizeBound) {
+          window.__timelineHintResizeBound = true;
+          window.addEventListener('resize', () => {
+            document.querySelectorAll('.trends-container').forEach(tc=> {
+              const scroller = tc.querySelector('.timeline-scroll');
+              const hint = tc.querySelector('.timeline-hint');
+              if (!scroller || !hint) return;
+              const hasOverflow = (scroller.scrollWidth - scroller.clientWidth) > 1;
+              hint.style.display = hasOverflow ? 'block' : 'none';
+            });
+          });
+        }
+      } catch (_) {}
       // Mount map iframe: sandbox → dh-sandbox route; otherwise → GitHub Pages (with local fallback)
       try {
         const mountMap = async (num)=>{
