@@ -316,15 +316,15 @@
         <input id="seatNo" type="number" min="1" max="243" placeholder="e.g. 21" />
         <button id="loadBtn" class="primary-btn">Load</button>
         <label style="margin-left:12px; display:flex; align-items:center; gap:6px;">
-          <input id="resultsToggle" type="checkbox" />
-          <span>Results announced</span>
+          <input id="resultsToggle" type="checkbox" disabled />
+          <span>Results announced (auto)</span>
         </label>
         <label style="margin-left:12px; display:flex; align-items:center; gap:6px;">
           <input id="sourceToggle" type="checkbox" />
           <span>Use local bundled data</span>
         </label>
       </div>
-      <div class="helper-text">Search constituency by number, name, or district.</div>
+      <div class="helper-text">Search constituency by number, name, or district. Page auto-detects 2025 results from data.</div>
       <span id="status" class="status-text"></span>
       <div class="note">Tip: Serve this file over a local web server to allow fetching local JSON (e.g., <span class="mono">python -m http.server</span> and open http://localhost:8000/constituency_viewer.html).</div>
     </div>
@@ -664,7 +664,21 @@
       const reserved = base.reserved ? base.reserved : 'General';
       const trend = computeTrend(r2010, r2015, r2020, r2025);
 
-      const announced = !!(document.getElementById('resultsToggle') && document.getElementById('resultsToggle').checked);
+      // Determine announced mode automatically based on presence of 2025 data,
+      // with optional override via URL param `announced=1|0`.
+      let announced = !!r2025;
+      try {
+        const qp = new URLSearchParams(location.search);
+        const force = (qp.get('announced') || '').trim();
+        if (force === '1' || force.toLowerCase() === 'true') announced = true;
+        if (force === '0' || force.toLowerCase() === 'false') announced = false;
+      } catch {}
+      const announcedToggle = document.getElementById('resultsToggle');
+      if (announcedToggle) {
+        announcedToggle.checked = announced;
+        announcedToggle.disabled = true;
+        announcedToggle.title = 'Auto-detected from data (override via ?announced=1|0)';
+      }
 
       const headerHTML = `
         <div class="card constituency-header">
@@ -794,6 +808,7 @@
         };
         btn.addEventListener('click', go);
         input.addEventListener('keydown', (e)=>{ if (e.key==='Enter') go(); });
+        // Toggle is auto-managed and disabled; retain handler if enabled via dev override.
         if (toggle) toggle.addEventListener('change', go);
         const sourceTNow = document.getElementById('sourceToggle');
         if (sourceTNow) sourceTNow.addEventListener('change', ()=>{
