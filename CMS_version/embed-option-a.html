@@ -6,7 +6,7 @@
   <title>Embed Option A</title>
   <style>
     /* Self-contained, CMS-friendly styles */
-    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+    html, body { height: 100%; margin: 0; padding: 0; overflow: visible; }
     .embedA-root { box-sizing: border-box; width: 100%; height: 100%; padding: 8px; }
     .embedA-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: stretch; }
     .embedA-cell { position: relative; min-width: 0; }
@@ -17,6 +17,18 @@
   <script>
     (function(){
       let resultsHeight = 0;
+      function postParentSize(total){
+        try {
+          var docEl = document.documentElement;
+          var body = document.body;
+          var h = total || Math.max(docEl.scrollHeight || 0, body.scrollHeight || 0, docEl.offsetHeight || 0, body.offsetHeight || 0, docEl.clientHeight || 0, body.clientHeight || 0);
+          var w = Math.max(docEl.scrollWidth || 0, body.scrollWidth || 0, docEl.offsetWidth || 0, body.offsetWidth || 0);
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'EMBED_OPTION_A_SIZE', height: h, width: w }, '*');
+          }
+        } catch(_){}
+      }
+
       function setHeights(h){
         if (!h || h < 100) return; // Ignore tiny values
         resultsHeight = h;
@@ -34,6 +46,8 @@
           // Expand the body to ensure parent if embedding via CMS auto-detects height
           body.style.height = total + 'px';
           docEl.style.height = total + 'px';
+          // Inform parent page if it listens for size messages
+          postParentSize(total);
         } catch(_){}
       }
 
@@ -55,6 +69,13 @@
         var defH = 420; // Default starting height
         setHeights(defH);
         window.addEventListener('message', onMessage, false);
+        // In case layout changes after load, observe and re-post
+        try {
+          var ro = new ResizeObserver(function(){ setTimeout(function(){ postParentSize(); }, 10); });
+          if (document.body) ro.observe(document.body);
+          var root = document.querySelector('.embedA-root');
+          if (root) ro.observe(root);
+        } catch(_){}
       }
       document.addEventListener('DOMContentLoaded', init);
     })();
