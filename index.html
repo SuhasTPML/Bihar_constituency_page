@@ -9,7 +9,7 @@
   <title>Bihar Assembly | Constituency Viewer</title>
   <style>
     :root {
-      --bg: #F7F7F9;
+      --bg: #FFFFFF;
       --card: #FFFFFF;
       --text: #000000;
       --muted: #5B6064;
@@ -761,26 +761,25 @@
         </div>`;
 
       out.innerHTML = headerHTML;
-      // Update timeline scroll hint visibility based on overflow
+      // Update timeline scroll hint visibility: mobile always show; desktop show only for 4 years
       try {
+        const isMobile = () => window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
         const updateHint = (root)=>{
           const scroller = root.querySelector('.timeline-scroll');
           const hint = root.querySelector('.timeline-hint');
           if (!scroller || !hint) return;
-          const hasOverflow = (scroller.scrollWidth - scroller.clientWidth) > 1;
-          hint.style.display = hasOverflow ? 'block' : 'none';
+          if (isMobile()) {
+            hint.style.display = 'block';
+            return;
+          }
+          const yearCount = scroller.querySelectorAll('.timeline-year').length;
+          hint.style.display = (yearCount >= 4) ? 'block' : 'none';
         };
         document.querySelectorAll('.trends-container').forEach(tc=> updateHint(tc));
         if (!window.__timelineHintResizeBound) {
           window.__timelineHintResizeBound = true;
           window.addEventListener('resize', () => {
-            document.querySelectorAll('.trends-container').forEach(tc=> {
-              const scroller = tc.querySelector('.timeline-scroll');
-              const hint = tc.querySelector('.timeline-hint');
-              if (!scroller || !hint) return;
-              const hasOverflow = (scroller.scrollWidth - scroller.clientWidth) > 1;
-              hint.style.display = hasOverflow ? 'block' : 'none';
-            });
+            document.querySelectorAll('.trends-container').forEach(tc=> updateHint(tc));
           });
         }
       } catch (_) {}
