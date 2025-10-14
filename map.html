@@ -610,37 +610,49 @@
     }
 
     function buildAllianceColors(parties){
+      // Build a universal color per alliance label from parties.json
       allianceColors = new Map();
       allianceOriginalColors = new Map();
-      // Always have NA
-      allianceOriginalColors.set('NA', '#999999');
-      allianceColors.set('NA', '#e5e7eb');
-      // Scan parties for alliances and their provided colors
-      for(const p of parties){
-        const ac = p.alliance_colour_code || p.alliance_color_code || p.alliance_colour || p.alliance_color || '';
-        const topAlliance = normalizeAllianceKey(p.alliance);
-        // Top-level alliance (if any) gets the party-provided alliance colour
-        if (topAlliance){
-          ensureAllianceColor(topAlliance, ac);
-        }
-        // Year-wise alliances: only reuse the party-provided colour if the
-        // per-year alliance equals the party's top-level alliance; otherwise
-        // derive a deterministic color per alliance label.
+      const candidates = new Map(); // alliance -> array of hex codes
+
+      // Helper: add candidate if valid and not placeholder
+      const pushCandidate = (label, hex) => {
+        const key = normalizeAllianceKey(label);
+        if (!key) return;
+        const h = (hex || '').trim();
+        if (!h) return;
+        const hex6 = to6Hex(h);
+        if (hex6 === '#ffffff' || !isValidHexColor(hex6)) return; // ignore white/invalid
+        if (!candidates.has(key)) candidates.set(key, []);
+        candidates.get(key).push(hex6);
+      };
+
+      for (const p of parties){
+        const partyAllianceHex = p.alliance_colour_code || p.alliance_color_code || p.alliance_colour || p.alliance_color || '';
+        // Top-level alliance
+        pushCandidate(p.alliance, partyAllianceHex);
+        // Year-wise alliances
         const almap = p.alliances || {};
         for (const y of Object.keys(almap)){
-          const ay = normalizeAllianceKey(almap[y]);
-          ensureAllianceColor(ay, (ay === topAlliance ? ac : ''));
+          pushCandidate(almap[y], partyAllianceHex);
         }
       }
-      // Force canonical colors for common alliances (override any prior seeds)
-      const canonical = new Map([
-        ['NDA', '#0066cc'],
-        ['MGB', '#cc3300'],
-        ['OTH', '#8A2BE2']
-      ]);
-      for (const [k, hex] of canonical){
-        allianceOriginalColors.set(k, hex);
-        allianceColors.set(k, pastelizeColor(hex));
+
+      // Choose a single hex per alliance: most frequent candidate; tie-break by lexical
+      for (const [ally, arr] of candidates){
+        if (arr.length){
+          const freq = new Map();
+          for (const h of arr){ freq.set(h, (freq.get(h)||0)+1); }
+          const chosen = Array.from(freq.entries()).sort((a,b)=> b[1]-a[1] || a[0].localeCompare(b[0]))[0][0];
+          allianceOriginalColors.set(ally, chosen);
+          allianceColors.set(ally, pastelizeColor(chosen));
+        }
+      }
+
+      // Always seed NA and ensure unknown alliances still get deterministic colors
+      if (!allianceOriginalColors.has('NA')){
+        allianceOriginalColors.set('NA', '#999999');
+        allianceColors.set('NA', '#e5e7eb');
       }
     }
 
