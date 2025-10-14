@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto+Slab:wght@400;500;700&display=swap" rel="stylesheet">
   <title>Bihar Election Map</title>
   <style>
     html, body { height: 100%; margin: 0; font-family: system-ui, Arial, sans-serif; }
@@ -16,6 +19,8 @@
       gap: 15px;
       margin-bottom: 4px;
     }
+    .map-section-title { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 600; line-height: 1.15; color: #000; margin: 0; }
+    .controls-description { font-family: 'Roboto Slab', serif; font-size: 16px; color: #000; margin-bottom: 6px; }
 
     .controls-search {
       position: relative;
@@ -396,12 +401,10 @@
 <body>
   <div id="controls">
     <div class="controls-header">
-      <strong>Bihar Election Constituency Map</strong>
+      <h3 class="map-section-title">Bihar Election Map</h3>
       <span id="status"></span>
     </div>
-    <div class="controls-description">
-      <small>Tap on a constituency to view details, or search by number/name/district.</small>
-    </div>
+    <div class="controls-description">Tap on a constituency to view details, or search by number/name/district.</div>
     <div class="controls-main">
       <div class="controls-search">
         <input id="acSearch" type="search" placeholder="Search constituency by number, name, or district..." />
@@ -428,6 +431,22 @@
   <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
   <script>
     const width = 1200, height = 900;
+    // Determine data source based on host or ?source= override
+    function getDataSource(){
+      try {
+        const qp = new URLSearchParams(location.search);
+        const forced = (qp.get('source') || '').toLowerCase();
+        if (forced === 'sandbox') return 'sandbox';
+        if (forced === 'gh' || forced === 'github') return 'github';
+      } catch {}
+      const host = (location.hostname || '').toLowerCase();
+      if (host.includes('quintype.io') || host.includes('sandbox')) return 'sandbox';
+      return 'github';
+    }
+    const DATA_SOURCE = getDataSource();
+    const REMOTE_BASE = DATA_SOURCE === 'sandbox'
+      ? 'https://dh-sandbox-web.quintype.io'
+      : 'https://suhastpml.github.io/Bihar_constituency_page';
     const ENABLE_2025_MODES = (() => {
       try {
         const p = new URLSearchParams(location.search).get('enable2025');
@@ -451,6 +470,7 @@
     let electionData = new Map();
     let partyColors = new Map();
     let allianceColors = new Map();
+    let allianceOriginalColors = new Map();
     let partyToAlliance = new Map();
     let partyData = new Map(); // Store complete party information
     let colorCache = new Map(); // Pre-computed color combinations
@@ -517,7 +537,7 @@
         case 'party-2025':
           return partyColors.get(row.y2025_winner_party) || getHistoricalAllianceColor(row.y2025_winner_party, '2025');
         case 'alliance-2020':
-          return allianceColors.get(row.current_mla_alliance) || '#f3f4f6';
+          return allianceColors.get(normalizeAllianceKey(row.current_mla_alliance)) || '#f3f4f6';
         case 'party-2020':
           return partyColors.get(row.current_mla_party) || allianceColors.get(row.current_mla_alliance) || '#f3f4f6';
         case 'reserved':
@@ -537,31 +557,88 @@
       }
     }
 
+    function isValidHexColor(hex){
+      if(!hex || typeof hex !== 'string') return false;
+      const h = hex.trim();
+      return /^#?[0-9a-fA-F]{6}$/.test(h);
+    }
+
+    function to6Hex(hex){
+      const h = hex.replace('#','').trim();
+      return '#' + h.toLowerCase();
+    }
+
+    function deterministicColorFor(key){
+      // Hash string to an H value, generate stable pleasant color
+      let h = 0; const s = 55, l = 52;
+      for (let i=0;i<key.length;i++){ h = ((h<<5)-h) + key.charCodeAt(i); h|=0; }
+      const hue = Math.abs(h) % 360;
+      // Convert HSL to hex
+      const a = s/100 * Math.min(l/100, 1 - l/100);
+      const f = n => {
+        const k = (n + hue/30) % 12;
+        const col = l/100 - a * Math.max(Math.min(k-3, 9-k, 1), -1);
+        return Math.round(255 * col).toString(16).padStart(2,'0');
+      };
+      return '#' + f(0) + f(8) + f(4);
+    }
+
+    function normalizeAllianceKey(a) {
+      return (a == null) ? null : String(a).trim().toUpperCase();
+    }
+
+    function resolveAllianceForYear(partyCode, year){
+      const info = partyData.get(partyCode);
+      if(!info) return 'NA';
+      const alliances = info.alliances || null;
+      const a = (alliances && (alliances[String(year)] || alliances[year]))
+        || info[`alliance_${year}`]
+        || info.alliance_2020
+        || info.alliance
+        || 'NA';
+      return normalizeAllianceKey(a) || 'NA';
+    }
+
+    function ensureAllianceColor(a, hex){
+      const key = normalizeAllianceKey(a);
+      if(!key) return;
+      if (!allianceOriginalColors.has(key)){
+        const chosen = isValidHexColor(hex) ? to6Hex(hex) : deterministicColorFor(key);
+        allianceOriginalColors.set(key, chosen);
+        allianceColors.set(key, pastelizeColor(chosen));
+      }
+    }
+
+    function buildAllianceColors(parties){
+      allianceColors = new Map();
+      allianceOriginalColors = new Map();
+      // Always have NA
+      allianceOriginalColors.set('NA', '#999999');
+      allianceColors.set('NA', '#e5e7eb');
+      // Scan parties for alliances and their provided colors
+      for(const p of parties){
+        const ac = p.alliance_colour_code || p.alliance_color_code || p.alliance_colour || p.alliance_color || '';
+        // Top-level alliance (if any)
+        if (p.alliance && String(p.alliance).trim()){
+          ensureAllianceColor(p.alliance, ac);
+        }
+        // Year-wise alliances
+        const almap = p.alliances || {};
+        for (const y of Object.keys(almap)){
+          ensureAllianceColor(almap[y], ac);
+        }
+      }
+      // Seed classics if missing
+      ensureAllianceColor('NDA', '#0066cc');
+      ensureAllianceColor('MGB', '#cc3300');
+      ensureAllianceColor('OTH', '#8A2BE2');
+    }
+
     function getHistoricalAllianceColor(party, year) {
       if (!party) return '#f3f4f6';
-
-      const party_info = partyData.get(party);
-      if (!party_info) return '#f3f4f6';
-
-      let alliance;
-      if (year === '2025') {
-        alliance = party_info.alliance_2025 ?? party_info.alliance_2020;
-      } else if (year === '2015') {
-        alliance = party_info.alliance_2015;
-      } else if (year === '2010') {
-        alliance = party_info.alliance_2010;
-      } else {
-        alliance = party_info.alliance_2020;
-      }
-
-      // Map special alliance codes to our main color categories
-      if (alliance === 'RJD+') alliance = 'MGB'; // RJD+ mapped to MGB colors
-      if (alliance === 'UPA') alliance = 'OTH';  // UPA mapped to Others
-      if (alliance === 'LF') alliance = 'OTH';   // Left Front mapped to Others
-      if (alliance === 'SSM') alliance = 'OTH';  // Socialist Secular Morcha mapped to Others
-      if (alliance === 'NA') return '#e5e7eb';   // Independent - return directly
-
-      return allianceColors.get(alliance) || '#f3f4f6';
+      const key = resolveAllianceForYear(party, year);
+      if (key === 'NA') return '#e5e7eb';
+      return allianceColors.get(key) || '#f3f4f6';
     }
 
     function getPartyAlliance(party) {
@@ -604,11 +681,8 @@
 
       switch(mode) {
         case 'alliance-2020':
-          const alliance2020 = row.current_mla_alliance;
-          if (alliance2020 === 'NDA') return '#0066cc';
-          if (alliance2020 === 'MGB') return '#cc3300';
-          if (alliance2020 === 'OTH') return '#8A2BE2';
-          return '#1f77b4';
+          const a2020 = normalizeAllianceKey(row.current_mla_alliance) || resolveAllianceForYear(row.current_mla_party, '2020');
+          return allianceOriginalColors.get(a2020) || '#1f77b4';
         case 'party-2020':
           const party2020 = row.current_mla_party;
           const partyInfo2020 = partyData.get(party2020);
@@ -636,30 +710,9 @@
 
     function getHistoricalOriginalColor(party, year) {
       if (!party) return '#1f77b4';
-
-      const party_info = partyData.get(party);
-      if (!party_info) return '#1f77b4';
-
-      // Resolve alliance for a given year from new or legacy fields
-      const alliances = party_info.alliances || null;
-      let alliance = (alliances && (alliances[String(year)] || alliances[year]))
-        || party_info[`alliance_${year}`]
-        || party_info.alliance_2020
-        || party_info.alliance;
-
-      // Map to original alliance colors
-      if (alliance === 'RJD+') return '#cc3300'; // RJD+ mapped to original red
-      if (alliance === 'UPA') return '#8A2BE2';  // UPA mapped to original purple
-      if (alliance === 'LF') return '#8A2BE2';   // Left Front mapped to original purple
-      if (alliance === 'SSM') return '#8A2BE2';  // Socialist Secular Morcha mapped to original purple
-      if (alliance === 'NA') return '#999999';   // Independent original gray
-
-      // Main alliances
-      if (alliance === 'NDA') return '#0066cc';
-      if (alliance === 'MGB') return '#cc3300';
-      if (alliance === 'OTH') return '#8A2BE2';
-
-      return '#1f77b4';
+      const key = resolveAllianceForYear(party, year);
+      if (key === 'NA') return '#999999';
+      return allianceOriginalColors.get(key) || '#1f77b4';
     }
 
     // Pre-compute all color combinations for performance
@@ -678,7 +731,7 @@
 
           switch(mode) {
             case 'alliance-2025':
-              color = getHistoricalOriginalColor(row.y2025_winner_party, '2025');
+              color = getHistoricalAllianceColor(row.y2025_winner_party, '2025');
               break;
             case 'party-2025':
               const partyInfo2025 = partyData.get(row.y2025_winner_party);
@@ -691,14 +744,14 @@
               color = partyColors.get(row.current_mla_party) || allianceColors.get(row.current_mla_alliance) || '#f3f4f6';
               break;
             case 'alliance-2015':
-              color = getHistoricalOriginalColor(row.y2015_winner_party, '2015');
+              color = getHistoricalAllianceColor(row.y2015_winner_party, '2015');
               break;
             case 'party-2015':
               const partyInfo2015 = partyData.get(row.y2015_winner_party);
               color = partyInfo2015?.color || getHistoricalOriginalColor(row.y2015_winner_party, '2015');
               break;
             case 'alliance-2010':
-              color = getHistoricalOriginalColor(row.y2010_winner_party, '2010');
+              color = getHistoricalAllianceColor(row.y2010_winner_party, '2010');
               break;
             case 'party-2010':
               const partyInfo2010 = partyData.get(row.y2010_winner_party);
@@ -799,7 +852,7 @@
 
         // Get colors for party and alliance
         const partyColor = partyColors.get(party) || '#f3f4f6';
-        const allianceColor = allianceColors.get(alliance) || '#f3f4f6';
+        const allianceColor = allianceColors.get(normalizeAllianceKey(alliance)) || '#f3f4f6';
 
         // MLA information row
         content += `<div class="info-row">${mlaLabel}: <strong>${mlaName}</strong></div>`;
@@ -1131,7 +1184,7 @@
 
       if (mode.includes('alliance')) {
         // Build alliance legend with counts for the selected year
-        const yearStr = mode.split('-')[1] || '2020';
+          const yearStr = mode.split('-')[1] || '2020';
         const year = parseInt(yearStr, 10);
         const allianceCount = new Map();
         for (const [key, row] of electionData) {
@@ -1158,7 +1211,7 @@
         // Sort by frequency and map to legend items
         const order = Array.from(allianceCount.entries()).sort((a,b)=> b[1]-a[1]);
         legendItems = order.map(([a, count])=> ({
-          color: (a === 'NA') ? '#e5e7eb' : (allianceColors.get(a) || '#e5e7eb'),
+          color: (a === 'NA') ? '#e5e7eb' : (allianceColors.get(normalizeAllianceKey(a)) || '#e5e7eb'),
           label: `${a} (${count})`
         }));
       } else if (mode.includes('party')) {
@@ -1222,19 +1275,16 @@
 
     async function loadElectionData() {
       try {
-        // Load parties.json with GitHub Pages CDN + local fallback
+        // Load parties.json from selected remote with local fallback
         const partiesResponse = await loadWithFallback(
-          'https://suhastpml.github.io/Bihar_constituency_page/parties.json',
+          `${REMOTE_BASE}/parties.json`,
           './parties.json',
           'parties data'
         );
         const partiesData = await partiesResponse.json();
 
-        // Set up alliance colors with more distinct colors
-        allianceColors.set('NDA', pastelizeColor('#0066cc'));  // Blue
-        allianceColors.set('MGB', pastelizeColor('#cc3300'));  // Red
-        allianceColors.set('OTH', pastelizeColor('#8A2BE2'));  // Purple
-        allianceColors.set('NA', '#e5e7eb');  // Light gray
+        // Build alliance color palettes dynamically from parties JSON
+        buildAllianceColors(partiesData);
 
         // Process parties JSON data
         for (const party of partiesData) {
@@ -1246,9 +1296,11 @@
           partyData.set(party.code, party); // Full party data for historical lookups
         }
 
-        // Load election results JSON with GitHub Pages CDN + local fallback
+        // Load election results JSON from selected remote with local fallback
         const resultsResponse = await loadWithFallback(
-          'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json',
+          DATA_SOURCE === 'sandbox'
+            ? `${REMOTE_BASE}/bihar_election_results_consolidated`
+            : `${REMOTE_BASE}/bihar_election_results_consolidated.json`,
           './bihar_election_results_consolidated.json',
           'election results data'
         );
@@ -1275,14 +1327,14 @@
 
     async function init(){
       try{
-        statusEl.textContent = 'Loading Bihar data from GitHub Pages...';
+        statusEl.textContent = `Loading Bihar data from ${DATA_SOURCE}...`;
 
         // Load election data first
         const dataLoaded = await loadElectionData();
 
-        // Load GeoJSON from this repo's GitHub Pages (with local fallback)
+        // Load GeoJSON from selected remote (with local fallback)
         const geoResponse = await loadWithFallback(
-          'https://suhastpml.github.io/Bihar_constituency_page/bihar_ac_all.geojson',
+          `${REMOTE_BASE}/bihar_ac_all.geojson`,
           './bihar_ac_all.geojson',
           'constituency map data'
         );
