@@ -6,181 +6,122 @@
   <title>Bihar Map + Results Embed</title>
   <meta name="description" content="Responsive two-iframe embed: Bihar map and results chart. Two columns on desktop, stacked on mobile." />
   <style>
-    /* Responsive two-column layout for desktop, stacked on mobile */
-    .embed-grid {
+    /* Responsive grid: one column on mobile, two on desktop */
+    .bihar-embed-grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 16px;
-      width: 100%;
       max-width: 1400px;
       margin: 0 auto;
-      padding: 0;
+      padding: 0 0;
       box-sizing: border-box;
     }
     @media (min-width: 900px) {
-      .embed-grid { grid-template-columns: 1fr 1fr; }
+      .bihar-embed-grid { grid-template-columns: 1fr 1fr; }
     }
 
-    .embed-tile {
+    .bihar-embed-tile {
       position: relative;
       width: 100%;
-      max-width: 100%;
-      aspect-ratio: 16 / 9; /* Keeps a nice ratio while responsive */
-      min-height: 340px;     /* Ensures usable height on small screens */
       overflow: hidden;
-      border-radius: 12px;            /* Rounded edges */
-      background: #f8fafc;            /* Subtle light background */
-      border: 1px solid #d1d5db;      /* Visible soft boundary */
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1px solid #d1d5db;
       box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
+      min-height: 340px;
+    }
+    /* Map: keep aspect on mobile; let JS set height on desktop */
+    #bihar-map-tile { aspect-ratio: 16 / 9; }
+    @media (min-width: 900px) {
+      #bihar-map-tile { aspect-ratio: auto; min-height: 0; }
     }
 
-    .embed-tile iframe {
-      position: absolute;
-      inset: 0;
+    /* Results: always allow to grow to full content height */
+    #bihar-results-tile { aspect-ratio: auto; min-height: 0; }
+
+    .bihar-embed-tile iframe {
+      display: block;
       width: 100%;
       height: 100%;
       border: 0;
     }
-
-    /* Wrapper to allow scaling the results iframe to fit row height */
-    .scaled-iframe-wrapper {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
-    .scaled-iframe-wrapper iframe {
-      position: absolute;
-      top: 0; left: 0;
-      transform-origin: top left;
-    }
-
-    /* Mobile: allow results tile to grow to full content height */
-    @media (max-width: 899px) {
-      #resultsTile { aspect-ratio: auto; min-height: 0; }
-    }
-
-    /* Desktop: allow results tile to grow to full content height */
-    @media (min-width: 900px) {
-      #resultsTile, #mapTile { aspect-ratio: auto; min-height: 0; }
-    }
   </style>
 </head>
 <body style="margin:0;">
-  <div class="embed-grid">
+  <div class="bihar-embed-grid" id="bihar-embed">
     <!-- Map iframe -->
-    <div class="embed-tile" id="mapTile">
+    <div class="bihar-embed-tile" id="bihar-map-tile">
       <iframe
+        id="bihar-map-frame"
         src="https://suhastpml.github.io/Bihar_constituency_page/map.html"
+        title="Bihar Map"
         loading="lazy"
-        allowfullscreen
-        referrerpolicy="no-referrer-when-downgrade">
+        referrerpolicy="no-referrer-when-downgrade"
+        allowfullscreen>
       </iframe>
     </div>
 
-    <!-- Results iframe -->
-    <div class="embed-tile" id="resultsTile">
-      <div class="scaled-iframe-wrapper" id="resultsWrapper">
-        <iframe
-          id="resultsFrame"
-          src="https://suhastpml.github.io/Bihar_constituency_page/CMS_version/embed-results.html"
-          loading="lazy"
-          allowfullscreen
-          referrerpolicy="no-referrer-when-downgrade">
-        </iframe>
-      </div>
+    <!-- Results iframe (posts its height via postMessage) -->
+    <div class="bihar-embed-tile" id="bihar-results-tile">
+      <iframe
+        id="bihar-results-frame"
+        src="https://suhastpml.github.io/Bihar_constituency_page/CMS_version/embed-results.html"
+        title="Bihar Results"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        allowfullscreen>
+      </iframe>
     </div>
   </div>
 
   <script>
-    (function(){
-      const DESKTOP_MQ = window.matchMedia('(min-width: 900px)');
-      const mapTile = document.getElementById('mapTile');
-      const resultsWrapper = document.getElementById('resultsWrapper');
-      const resultsFrame = document.getElementById('resultsFrame');
+    (function () {
+      var DESKTOP_MQ = window.matchMedia('(min-width: 900px)');
+      var mapTile = document.getElementById('bihar-map-tile');
+      var mapFrame = document.getElementById('bihar-map-frame');
+      var resultsTile = document.getElementById('bihar-results-tile');
+      var resultsFrame = document.getElementById('bihar-results-frame');
 
-      let lastContentHeight = null;
+      var lastResultsHeight = null;
 
-      function getTargetHeight(){
-        return mapTile ? mapTile.offsetHeight : null;
-      }
-
-      function tryMeasureIframe(){
-        try {
-          const doc = resultsFrame.contentDocument || resultsFrame.contentWindow.document;
-          if (!doc) return null;
-          const h = Math.max(
-            doc.documentElement.scrollHeight,
-            doc.body ? doc.body.scrollHeight : 0
-          );
-          return h || null;
-        } catch (e) {
-          return null; // cross-origin or not ready
-        }
-      }
-
-      function applyScale(contentHeight){
-        const isDesktop = DESKTOP_MQ.matches;
-        if (!isDesktop) {
-          // Mobile/stacked: expand results tile to full content height
-          if (contentHeight) {
-            resultsWrapper.style.height = contentHeight + 'px';
-            resultsFrame.style.height = contentHeight + 'px';
-          } else {
-            resultsWrapper.style.height = '';
-            resultsFrame.style.height = '';
-          }
-          resultsFrame.style.transform = '';
-          resultsFrame.style.width = '100%';
-          resultsFrame.style.position = 'relative';
-          // Reset map tile to automatic (16:9 default via CSS on mobile)
+      function applyHeights() {
+        if (!lastResultsHeight) return;
+        var isDesktop = DESKTOP_MQ.matches;
+        // Size results to its content height
+        resultsTile.style.height = lastResultsHeight + 'px';
+        resultsFrame.style.height = lastResultsHeight + 'px';
+        if (isDesktop) {
+          // Match map tile height to results on desktop
+          mapTile.style.height = lastResultsHeight + 'px';
+          mapFrame.style.height = '100%';
+        } else {
+          // Mobile: let map keep aspect ratio
           mapTile.style.height = '';
-          return;
-        }
-
-        // Desktop: show full content height (no scaling)
-        if (contentHeight) {
-          resultsWrapper.style.height = contentHeight + 'px';
-          resultsFrame.style.height = contentHeight + 'px';
-          // Match map tile height to results height
-          mapTile.style.height = contentHeight + 'px';
-        }
-        resultsFrame.style.transform = '';
-        resultsFrame.style.width = '100%';
-        resultsFrame.style.position = 'relative';
-      }
-
-      function fitNow(){
-        const measured = tryMeasureIframe();
-        if (measured) {
-          lastContentHeight = measured;
-          applyScale(measured);
-        } else if (lastContentHeight) {
-          applyScale(lastContentHeight);
+          mapFrame.style.height = '100%';
         }
       }
 
-      // Listen for height from iframe via postMessage (fallback for cross-origin)
-      window.addEventListener('message', (ev) => {
-        try {
-          const d = ev.data || {};
-          if (d && d.type === 'RESULTS_IFRAME_SIZE' && typeof d.height === 'number') {
-            lastContentHeight = d.height;
-            applyScale(d.height);
-          }
-        } catch(_){}
+      // Listen to height messages from the results iframe
+      window.addEventListener('message', function (ev) {
+        var d = ev.data || {};
+        if (d && d.type === 'RESULTS_IFRAME_SIZE' && typeof d.height === 'number') {
+          lastResultsHeight = Math.max(300, d.height);
+          applyHeights();
+        }
       });
 
-      // Refit on load, resize, and when media query flips
-      resultsFrame.addEventListener('load', () => {
-        setTimeout(fitNow, 50);
-        setTimeout(fitNow, 200);
-      });
-      window.addEventListener('resize', () => setTimeout(fitNow, 50));
-      DESKTOP_MQ.addEventListener('change', () => setTimeout(fitNow, 50));
+      // Re-apply on resize or breakpoint change
+      window.addEventListener('resize', function () { setTimeout(applyHeights, 50); });
+      DESKTOP_MQ.addEventListener('change', function () { setTimeout(applyHeights, 50); });
 
-      // Initial attempt
-      document.addEventListener('DOMContentLoaded', () => setTimeout(fitNow, 50));
+      // Fallback heuristic if no message arrives (caching delays)
+      setTimeout(function () {
+        if (!lastResultsHeight) {
+          var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+          lastResultsHeight = (w >= 1200 ? 1000 : w >= 900 ? 1200 : 1600);
+          applyHeights();
+        }
+      }, 1200);
     })();
   </script>
 </body>
