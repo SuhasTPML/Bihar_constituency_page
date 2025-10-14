@@ -1,129 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bihar Map + Results Embed</title>
-  <meta name="description" content="Responsive two-iframe embed: Bihar map and results chart. Two columns on desktop, stacked on mobile." />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Embed Option A</title>
   <style>
-    /* Responsive grid: one column on mobile, two on desktop */
-    .bihar-embed-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 0;
-      box-sizing: border-box;
-    }
-    @media (min-width: 900px) {
-      .bihar-embed-grid { grid-template-columns: 1fr 1fr; }
-    }
-
-    .bihar-embed-tile {
-      position: relative;
-      width: 100%;
-      overflow: hidden;
-      border-radius: 12px;
-      background: #f8fafc;
-      border: 1px solid #d1d5db;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
-      min-height: 340px;
-    }
-    /* Map: keep aspect on mobile; let JS set height on desktop */
-    #bihar-map-tile { aspect-ratio: 16 / 9; }
-    @media (min-width: 900px) {
-      #bihar-map-tile { aspect-ratio: auto; min-height: 0; }
-    }
-
-    /* Results: always allow to grow to full content height */
-    #bihar-results-tile { aspect-ratio: auto; min-height: 0; }
-
-    .bihar-embed-tile iframe {
-      display: block;
-      width: 100%;
-      height: 100%;
-      border: 0;
-    }
+    /* Self-contained, CMS-friendly styles */
+    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+    .embedA-root { box-sizing: border-box; width: 100%; height: 100%; padding: 8px; }
+    .embedA-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: stretch; }
+    .embedA-cell { position: relative; min-width: 0; }
+    .embedA-iframe { width: 100%; height: 400px; border: 0; display: block; background: #fff; }
+    /* Optional: keep two columns even on small widths to honor "row" concept */
+    /* If needed later, we can stack with a media query. */
   </style>
-</head>
-<body style="margin:0;">
-  <div class="bihar-embed-grid" id="bihar-embed">
-    <!-- Map iframe -->
-    <div class="bihar-embed-tile" id="bihar-map-tile">
-      <iframe
-        id="bihar-map-frame"
-        src="https://suhastpml.github.io/Bihar_constituency_page/map.html"
-        title="Bihar Map"
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade"
-        allowfullscreen>
-      </iframe>
-    </div>
-
-    <!-- Results iframe (posts its height via postMessage) -->
-    <div class="bihar-embed-tile" id="bihar-results-tile">
-      <iframe
-        id="bihar-results-frame"
-        src="https://suhastpml.github.io/Bihar_constituency_page/CMS_version/embed-results.html"
-        title="Bihar Results"
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade"
-        allowfullscreen>
-      </iframe>
-    </div>
-  </div>
-
   <script>
-    (function () {
-      var DESKTOP_MQ = window.matchMedia('(min-width: 900px)');
-      var mapTile = document.getElementById('bihar-map-tile');
-      var mapFrame = document.getElementById('bihar-map-frame');
-      var resultsTile = document.getElementById('bihar-results-tile');
-      var resultsFrame = document.getElementById('bihar-results-frame');
-
-      var lastResultsHeight = null;
-
-      function applyHeights() {
-        if (!lastResultsHeight) return;
-        var isDesktop = DESKTOP_MQ.matches;
-        // Size results to its content height
-        resultsTile.style.height = lastResultsHeight + 'px';
-        resultsFrame.style.height = lastResultsHeight + 'px';
-        if (isDesktop) {
-          // Match map tile height to results on desktop
-          mapTile.style.height = lastResultsHeight + 'px';
-          mapFrame.style.height = '100%';
-        } else {
-          // Mobile: let map keep aspect ratio
-          mapTile.style.height = '';
-          mapFrame.style.height = '100%';
-        }
+    (function(){
+      let resultsHeight = 0;
+      function setHeights(h){
+        if (!h || h < 100) return; // Ignore tiny values
+        resultsHeight = h;
+        var mapEl = document.getElementById('mapFrame');
+        var resEl = document.getElementById('resultsFrame');
+        if (mapEl) mapEl.style.height = h + 'px';
+        if (resEl) resEl.style.height = h + 'px';
+        // Optionally resize our own document to fit content if we are embedded
+        try {
+          var docEl = document.documentElement;
+          var body = document.body;
+          // Our total height is padding + iframe height (since both cells are same height)
+          var verticalPadding = 16; // 8px top + 8px bottom from .embedA-root
+          var total = h + verticalPadding;
+          // Expand the body to ensure parent if embedding via CMS auto-detects height
+          body.style.height = total + 'px';
+          docEl.style.height = total + 'px';
+        } catch(_){}
       }
 
-      // Listen to height messages from the results iframe
-      window.addEventListener('message', function (ev) {
-        var d = ev.data || {};
-        if (d && d.type === 'RESULTS_IFRAME_SIZE' && typeof d.height === 'number') {
-          lastResultsHeight = Math.max(300, d.height);
-          applyHeights();
-        }
-      });
+      function onMessage(ev){
+        try {
+          var data = ev.data || {};
+          if (!data || data.type !== 'RESULTS_IFRAME_SIZE') return;
+          var resFrame = document.getElementById('resultsFrame');
+          if (!resFrame || !resFrame.contentWindow) return;
+          // Ensure message is from our results iframe (safe across origins)
+          if (ev.source !== resFrame.contentWindow) return;
+          var h = parseInt(data.height, 10) || 0;
+          if (h > 0) setHeights(h);
+        } catch(_){}
+      }
 
-      // Re-apply on resize or breakpoint change
-      window.addEventListener('resize', function () { setTimeout(applyHeights, 50); });
-      DESKTOP_MQ.addEventListener('change', function () { setTimeout(applyHeights, 50); });
-
-      // Fallback heuristic if no message arrives (caching delays)
-      setTimeout(function () {
-        if (!lastResultsHeight) {
-          var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-          lastResultsHeight = (w >= 1200 ? 1000 : w >= 900 ? 1200 : 1600);
-          applyHeights();
-        }
-      }, 1200);
+      function init(){
+        // If results doesn't post a size for some reason, keep a sensible default
+        var defH = 420; // Default starting height
+        setHeights(defH);
+        window.addEventListener('message', onMessage, false);
+      }
+      document.addEventListener('DOMContentLoaded', init);
     })();
   </script>
+  </head>
+<body>
+  <div class="embedA-root">
+    <div class="embedA-grid">
+      <div class="embedA-cell">
+        <iframe
+          id="mapFrame"
+          class="embedA-iframe"
+          src="https://suhastpml.github.io/Bihar_constituency_page/map.html"
+          title="Bihar Election Map"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+      </div>
+      <div class="embedA-cell">
+        <iframe
+          id="resultsFrame"
+          class="embedA-iframe"
+          src="https://suhastpml.github.io/Bihar_constituency_page/CMS_version/embed-results.html"
+          title="Election Results"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
-
