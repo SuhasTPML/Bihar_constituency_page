@@ -609,16 +609,29 @@
       }
     }
 
-    function buildAllianceColors(parties){
-      // Build a universal color per alliance label from parties.json
+    function buildAllianceColors(parties, override){
+      // Build a universal color per alliance label, preferring alliances.json
       allianceColors = new Map();
       allianceOriginalColors = new Map();
-      const candidates = new Map(); // alliance -> array of hex codes
 
-      // Helper: add candidate if valid and not placeholder
+      // 1) Apply overrides from alliances.json if provided
+      if (override && typeof override === 'object'){
+        for (const key in override){
+          if (!Object.prototype.hasOwnProperty.call(override, key)) continue;
+          const a = normalizeAllianceKey(key);
+          const hex = to6Hex(String(override[key]||''));
+          if (!a || !isValidHexColor(hex)) continue;
+          allianceOriginalColors.set(a, hex);
+          allianceColors.set(a, pastelizeColor(hex));
+        }
+      }
+
+      // 2) Derive remaining from parties.json
+      const candidates = new Map(); // alliance -> array of hex codes
       const pushCandidate = (label, hex) => {
         const key = normalizeAllianceKey(label);
         if (!key) return;
+        if (allianceOriginalColors.has(key)) return; // already set by override
         const h = (hex || '').trim();
         if (!h) return;
         const hex6 = to6Hex(h);
@@ -626,30 +639,22 @@
         if (!candidates.has(key)) candidates.set(key, []);
         candidates.get(key).push(hex6);
       };
-
       for (const p of parties){
         const partyAllianceHex = p.alliance_colour_code || p.alliance_color_code || p.alliance_colour || p.alliance_color || '';
-        // Top-level alliance
         pushCandidate(p.alliance, partyAllianceHex);
-        // Year-wise alliances
         const almap = p.alliances || {};
-        for (const y of Object.keys(almap)){
-          pushCandidate(almap[y], partyAllianceHex);
-        }
+        for (const y of Object.keys(almap)) pushCandidate(almap[y], partyAllianceHex);
       }
-
-      // Choose a single hex per alliance: most frequent candidate; tie-break by lexical
       for (const [ally, arr] of candidates){
-        if (arr.length){
-          const freq = new Map();
-          for (const h of arr){ freq.set(h, (freq.get(h)||0)+1); }
-          const chosen = Array.from(freq.entries()).sort((a,b)=> b[1]-a[1] || a[0].localeCompare(b[0]))[0][0];
-          allianceOriginalColors.set(ally, chosen);
-          allianceColors.set(ally, pastelizeColor(chosen));
-        }
+        if (!arr.length) continue;
+        const freq = new Map();
+        for (const h of arr) freq.set(h, (freq.get(h)||0)+1);
+        const chosen = Array.from(freq.entries()).sort((a,b)=> b[1]-a[1] || a[0].localeCompare(b[0]))[0][0];
+        allianceOriginalColors.set(ally, chosen);
+        allianceColors.set(ally, pastelizeColor(chosen));
       }
 
-      // Always seed NA and ensure unknown alliances still get deterministic colors
+      // 3) Always ensure NA exists
       if (!allianceOriginalColors.has('NA')){
         allianceOriginalColors.set('NA', '#999999');
         allianceColors.set('NA', '#e5e7eb');
@@ -1305,8 +1310,21 @@
         );
         const partiesData = await partiesResponse.json();
 
-        // Build alliance color palettes dynamically from parties JSON
-        buildAllianceColors(partiesData);
+        // Try loading explicit alliances.json override
+        let alliancesOverride = null;
+        try {
+          const alliancesResponse = await loadWithFallback(
+            `${REMOTE_BASE}/alliances.json`,
+            './alliances.json',
+            'alliances colors'
+          );
+          if (alliancesResponse && alliancesResponse.ok) {
+            alliancesOverride = await alliancesResponse.json();
+          }
+        } catch (_) {}
+
+        // Build alliance color palettes preferring alliances.json
+        buildAllianceColors(partiesData, alliancesOverride);
 
         // Process parties JSON data
         for (const party of partiesData) {

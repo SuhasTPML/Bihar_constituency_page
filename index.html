@@ -362,6 +362,7 @@
         return {
           parties: './parties.json',
           resultsConsolidated: './bihar_election_results_consolidated.json',
+          alliances: './alliances.json',
         };
       }
       const src = detectDataSource();
@@ -369,11 +370,13 @@
         return {
           parties: 'https://dh-sandbox-web.quintype.io/parties.json',
           resultsConsolidated: 'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated',
+          alliances: 'https://dh-sandbox-web.quintype.io/alliances.json',
         };
       }
       return {
         parties: 'https://suhastpml.github.io/Bihar_constituency_page/parties.json',
         resultsConsolidated: 'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json',
+        alliances: 'https://suhastpml.github.io/Bihar_constituency_page/alliances.json',
       };
     }
 
@@ -413,28 +416,48 @@
         || 'NA';
       return normalizeAllianceKey(a) || 'NA';
     }
-    function buildAllianceColorsFromParties(parties){
+    function buildAllianceColorsFromParties(parties, override){
       const pastel = new Map();
       const original = new Map();
-      // Always seed NA
-      original.set('NA', '#999999'); pastel.set('NA', '#e5e7eb');
-      for(const p of (parties||[])){
-        const ac = p.alliance_colour_code || p.alliance_color_code || p.alliance_colour || p.alliance_color || '';
-        const apply = (a)=>{
-          const key = normalizeAllianceKey(a);
-          if(!key || original.has(key)) return;
-          const chosen = isValidHexColor(ac) ? to6Hex(ac) : deterministicColorFor(key);
-          original.set(key, chosen);
-          pastel.set(key, pastelizeColor(chosen));
-        };
-        if (p.alliance) apply(p.alliance);
-        const almap = p.alliances || {};
-        for (const y of Object.keys(almap)) apply(almap[y]);
+      // 1) Apply explicit overrides from alliances.json
+      if (override && typeof override === 'object'){
+        for (const k in override){
+          if (!Object.prototype.hasOwnProperty.call(override, k)) continue;
+          const key = normalizeAllianceKey(k);
+          const hex = to6Hex(String(override[k]||''));
+          if (!key || !isValidHexColor(hex)) continue;
+          original.set(key, hex);
+          pastel.set(key, pastelizeColor(hex));
+        }
       }
-      // Seed common ones if missing
-      if (!original.has('NDA')) { original.set('NDA','#0066cc'); pastel.set('NDA', pastelizeColor('#0066cc')); }
-      if (!original.has('MGB')) { original.set('MGB','#cc3300'); pastel.set('MGB', pastelizeColor('#cc3300')); }
-      if (!original.has('OTH')) { original.set('OTH','#8A2BE2'); pastel.set('OTH', pastelizeColor('#8A2BE2')); }
+      // 2) Fill remaining labels from parties.json
+      const candidates = new Map();
+      const pushCandidate = (label, hex) => {
+        const key = normalizeAllianceKey(label);
+        if (!key || original.has(key)) return;
+        const h = (hex || '').trim();
+        if (!h) return;
+        const hex6 = to6Hex(h);
+        if (hex6 === '#ffffff' || !isValidHexColor(hex6)) return;
+        if (!candidates.has(key)) candidates.set(key, []);
+        candidates.get(key).push(hex6);
+      };
+      for (const p of (parties||[])){
+        const ac = p.alliance_colour_code || p.alliance_color_code || p.alliance_colour || p.alliance_color || '';
+        pushCandidate(p.alliance, ac);
+        const almap = p.alliances || {};
+        for (const y of Object.keys(almap)) pushCandidate(almap[y], ac);
+      }
+      for (const [ally, arr] of candidates){
+        if (!arr.length) continue;
+        const freq = new Map();
+        for (const h of arr) freq.set(h, (freq.get(h)||0)+1);
+        const chosen = Array.from(freq.entries()).sort((a,b)=> b[1]-a[1] || a[0].localeCompare(b[0]))[0][0];
+        original.set(ally, chosen);
+        pastel.set(ally, pastelizeColor(chosen));
+      }
+      // 3) Seed NA if missing
+      if (!original.has('NA')) { original.set('NA','#999999'); pastel.set('NA', pastelizeColor('#999999')); }
       return { allianceColors: pastel, allianceOriginalColors: original };
     }
 
@@ -478,12 +501,18 @@
       const [parties, consolidated] = await Promise.all([
         partiesRes.json(), consolidatedRes.json()
       ]);
+      // Try to load alliances.json (optional)
+      let alliancesOverride = null;
+      try {
+        const aRes = await fetch(FILES.alliances);
+        if (aRes && aRes.ok) alliancesOverride = await aRes.json();
+      } catch(_){}
       status.textContent = 'Data loaded';
 
       // Indexes
       const partiesIdx = {}; (parties||[]).forEach(p=> partiesIdx[p.code]=p);
       // Build dynamic alliance palettes (for consistency with map.html)
-      const { allianceColors, allianceOriginalColors } = buildAllianceColorsFromParties(parties||[]);
+      const { allianceColors, allianceOriginalColors } = buildAllianceColorsFromParties(parties||[], alliancesOverride || null);
       // Index consolidated by seat number
       const consolidatedByNo = new Map();
       if (Array.isArray(consolidated)){

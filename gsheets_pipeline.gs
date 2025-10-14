@@ -11,9 +11,11 @@ const CONFIG = {
   // Sheet names for CSV-uploaded data
   PARTIES_SHEET_NAME: 'parties',
   RESULTS_SHEET_NAME: 'bihar_election_results_consolidated',
+  ALLIANCES_SHEET_NAME: 'alliances',
   // Default sheet names for pasted JSON imports
   PARTIES_IMPORT_SHEET_NAME: 'Parties (from JSON)',
   RESULTS_IMPORT_SHEET_NAME: 'Results (from JSON)',
+  ALLIANCES_IMPORT_SHEET_NAME: 'Alliances (from JSON)',
 };
 
 // Canonical results key order (as per Python scripts)
@@ -48,11 +50,13 @@ function onOpen() {
       ui.createMenu('Export (Copy JSON)')
         .addItem('Parties → JSON (copy)', 'exportPartiesJsonCopy')
         .addItem('Results → JSON (copy)', 'exportResultsJsonCopy')
+        .addItem('Alliances → JSON (copy)', 'exportAlliancesJsonCopy')
     )
     .addSubMenu(
       ui.createMenu('Import (Paste JSON)')
         .addItem('Paste Parties JSON → Sheet', 'importPartiesJsonPaste')
         .addItem('Paste Results JSON → Sheet', 'importResultsJsonPaste')
+        .addItem('Paste Alliances JSON → Sheet', 'importAlliancesJsonPaste')
     )
     .addSubMenu(
       ui.createMenu('2025 Placeholders')
@@ -634,6 +638,66 @@ function importResultsJsonFromText(jsonText, newSheetName) {
   }));
   _writeTableToSheet(sh, header, rows);
   return 'Imported Results JSON into sheet: ' + (newSheetName || CONFIG.RESULTS_IMPORT_SHEET_NAME);
+}
+
+/* ========== Alliances JSON (copy/paste) ========== */
+
+function _sanitizeHex(hex) {
+  const s = String(hex || '').trim();
+  if (!s) return '';
+  const h = s.startsWith('#') ? s.slice(1) : s;
+  const six = h.length === 3
+    ? h.split('').map(c => c + c).join('')
+    : h;
+  const ok = /^[0-9a-fA-F]{6}$/.test(six);
+  return ok ? ('#' + six.toLowerCase()) : '';
+}
+
+function exportAlliancesJsonCopy() {
+  const sheet = _getSheetOrThrow(CONFIG.ALLIANCES_SHEET_NAME);
+  const rows = _sheetToObjects(sheet);
+  const map = {};
+  rows.forEach(r => {
+    const key = String(r.alliance || r.label || '').trim().toUpperCase();
+    const hex = _sanitizeHex(r.color || r.hex || '');
+    if (!key) return;
+    if (!hex) return;
+    map[key] = hex;
+  });
+  // Always keep NA if present
+  const json = JSON.stringify(map, null, 2);
+  _showJsonCopyDialog('Alliances JSON', json);
+}
+
+function importAlliancesJsonPaste() {
+  _showPasteJsonDialog('alliances', CONFIG.ALLIANCES_IMPORT_SHEET_NAME);
+}
+
+function importAlliancesJsonFromText(jsonText, newSheetName) {
+  let data;
+  try {
+    data = JSON.parse(String(jsonText || ''));
+  } catch (e) {
+    throw new Error('Invalid JSON: ' + e);
+  }
+  let header = ['alliance','color'];
+  let rows = [];
+  if (Array.isArray(data)) {
+    rows = data.map(r => [
+      _sanitizeText((r && (r.alliance || r.label)) || ''),
+      _sanitizeHex(r && r.color)
+    ]);
+  } else if (data && typeof data === 'object') {
+    rows = Object.keys(data).map(k => [
+      _sanitizeText(k || ''),
+      _sanitizeHex(data[k])
+    ]);
+  } else {
+    throw new Error('Expected JSON object mapping alliance->hex or array of {alliance,color}');
+  }
+  const sh = _ensureSheet(newSheetName || CONFIG.ALLIANCES_IMPORT_SHEET_NAME);
+  _writeTableToSheet(sh, header, rows);
+  return 'Imported Alliances JSON into sheet: ' + (newSheetName || CONFIG.ALLIANCES_IMPORT_SHEET_NAME);
 }
 
 // Note: Web endpoint removed to keep interactions clipboard/paste-only.
