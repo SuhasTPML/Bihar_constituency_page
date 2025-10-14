@@ -59,6 +59,11 @@
     @media (max-width: 899px) {
       #resultsTile { aspect-ratio: auto; min-height: 0; }
     }
+
+    /* Desktop: allow results tile to grow to full content height */
+    @media (min-width: 900px) {
+      #resultsTile { aspect-ratio: auto; min-height: 0; }
+    }
   </style>
 </head>
 <body style="margin:0;">
@@ -131,16 +136,14 @@
           return;
         }
 
-        const targetHeight = getTargetHeight();
-        if (!targetHeight || !contentHeight) return;
-
-        const scale = Math.min(1, targetHeight / contentHeight);
-        // Desktop: set wrapper to row height, scale iframe down to fit
-        resultsWrapper.style.height = targetHeight + 'px';
-        resultsFrame.style.transform = 'scale(' + scale + ')';
-        resultsFrame.style.width = (100 / scale) + '%';
-        resultsFrame.style.height = contentHeight + 'px';
-        resultsFrame.style.position = 'absolute';
+        // Desktop: show full content height (no scaling)
+        if (contentHeight) {
+          resultsWrapper.style.height = contentHeight + 'px';
+          resultsFrame.style.height = contentHeight + 'px';
+        }
+        resultsFrame.style.transform = '';
+        resultsFrame.style.width = '100%';
+        resultsFrame.style.position = 'relative';
       }
 
       function fitNow(){
