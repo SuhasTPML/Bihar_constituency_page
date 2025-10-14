@@ -62,7 +62,7 @@
 
     /* Desktop: allow results tile to grow to full content height */
     @media (min-width: 900px) {
-      #resultsTile { aspect-ratio: auto; min-height: 0; }
+      #resultsTile, #mapTile { aspect-ratio: auto; min-height: 0; }
     }
   </style>
 </head>
@@ -133,6 +133,8 @@
           resultsFrame.style.transform = '';
           resultsFrame.style.width = '100%';
           resultsFrame.style.position = 'relative';
+          // Reset map tile to automatic (16:9 default via CSS on mobile)
+          mapTile.style.height = '';
           return;
         }
 
@@ -140,6 +142,8 @@
         if (contentHeight) {
           resultsWrapper.style.height = contentHeight + 'px';
           resultsFrame.style.height = contentHeight + 'px';
+          // Match map tile height to results height
+          mapTile.style.height = contentHeight + 'px';
         }
         resultsFrame.style.transform = '';
         resultsFrame.style.width = '100%';
