@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bihar | Constituency Static Page Generator</title>
+  <style>
+    :root { --bg:#f7f7f9; --card:#fff; --border:#e5e7eb; --text:#111; --muted:#666; --primary:#0ea5e9; }
+    body { margin:0; font:15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
+    .wrap { max-width: 900px; margin: 24px auto; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+    .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    input[type=number] { width: 120px; padding: 8px 10px; border:1px solid var(--border); border-radius:8px; }
+    button { padding: 10px 14px; border:0; border-radius:8px; background:var(--primary); color:#fff; font-weight:600; cursor:pointer; }
+    .note { color:var(--muted); font-size:13px; margin-top:6px; }
+    .status { margin-top:8px; color:#b00; }
+    .output { margin-top:16px; border-top:1px solid var(--border); padding-top:16px; }
+    textarea { width:100%; height:220px; font:12px ui-monospace,Consolas,monospace; }
+    .card { background:#fff; border:1px solid var(--border); border-radius:10px; padding:12px; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media (max-width:700px){ .grid{ grid-template-columns:1fr; } }
+    .ok { color:#0a7a2f; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h2>Constituency Static Page Generator (pre-results)</h2>
+    <div class="row">
+      <label for="seat">Constituency No:</label>
+      <input id="seat" type="number" min="1" max="243" placeholder="e.g. 13" />
+      <button id="gen">Generate static HTML</button>
+      <label style="display:flex; align-items:center; gap:6px; margin-left:8px;">
+        <input id="useLocal" type="checkbox" /> <span>Use local bundled data</span>
+      </label>
+    </div>
+    <div class="note">This creates a single-file, pre-results constituency page with the live map embedded via iframe and all other data hardcoded.</div>
+    <div id="status" class="status"></div>
+
+    <div class="output" id="out" style="display:none;">
+      <div class="grid">
+        <div class="card">
+          <strong>Preview (static page)</strong>
+          <div id="preview" style="margin-top:8px; border:1px solid var(--border); height:520px; overflow:auto;"></div>
+        </div>
+        <div class="card">
+          <strong>Download</strong>
+          <div style="margin-top:8px;">
+            <button id="downloadBtn">Download constituency.html</button>
+          </div>
+          <div class="note">You can also copy the HTML below.</div>
+          <textarea id="code"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function files(useLocal){
+      if (useLocal) {
+        return {
+          parties: './parties.json',
+          consolidated: './bihar_election_results_consolidated.json'
+        };
+      }
+      return {
+        parties: 'https://suhastpml.github.io/Bihar_constituency_page/parties.json',
+        consolidated: 'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json'
+      };
+    }
+
+    function byNoMap(consolidated){
+      const m = new Map();
+      (consolidated||[]).forEach(r=>{
+        const n = parseInt(String(r.no||''),10);
+        if (Number.isFinite(n)) m.set(n, r);
+      });
+      return m;
+    }
+
+    function fmt(n){ return (n==null || n==='') ? '-' : Number(n).toLocaleString('en-IN'); }
+
+    function rowBlock(year, r){
+      if (!r) return '';
+      const y = String(year);
+      const wn = r['y'+y+'_winner_name'];
+      const wp = r['y'+y+'_winner_party'];
+      const wv = r['y'+y+'_winner_votes'];
+      const rn = r['y'+y+'_runner_name'];
+      const rp = r['y'+y+'_runner_party'];
+      const rv = r['y'+y+'_runner_votes'];
+      const mg = r['y'+y+'_margin'];
+      if (!wn && !wp && !wv && !mg) return '';
+      return `
+        <div style="border:1px solid #e5e7eb; border-radius:8px; padding:10px; margin-bottom:10px;">
+          <div style="font-weight:700; margin-bottom:6px;">${year} Election</div>
+          <div style="display:flex; justify-content:space-between;">
+            <div><div style="font-weight:600">Winner</div><div>${wn||'-'} <span style="color:#666">(${wp||'-'})</span></div></div>
+            <div style="text-align:right;">Votes<br><span style="font-variant-numeric:tabular-nums;">${fmt(wv)}</span></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:6px;">
+            <div><div style="font-weight:600">Runner up</div><div>${rn||'-'} <span style="color:#666">(${rp||'-'})</span></div></div>
+            <div style="text-align:right;">Votes<br><span style="font-variant-numeric:tabular-nums;">${fmt(rv)}</span></div>
+          </div>
+          <div style="margin-top:8px; font-weight:600;">Margin: <span style="font-variant-numeric:tabular-nums;">${fmt(mg)}</span></div>
+        </div>`;
+    }
+
+    function buildStaticHTML(acNo, row){
+      const ac3 = String(acNo).padStart(3,'0');
+      const name = row.constituency_name || '';
+      const district = row.district || '';
+      const reserved = row.reserved || 'General';
+      const mla = row.current_mla_name || '-';
+      const mlaParty = row.current_mla_party || '-';
+      const mlaAlliance = row.current_mla_alliance || '-';
+      const mapSrc = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac3}&enable2025=0`;
+      return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${name} Assembly (Pre-results)</title>
+  <style>
+    :root{ --bg:#F7F7F9; --card:#fff; --border:#e5e7eb; --text:#000; }
+    body{ margin:0; font:15px/1.6 'Roboto Slab', Georgia, serif; background:var(--bg); color:var(--text); }
+    .container{ max-width: 1000px; margin: 16px auto; padding: 0 16px; }
+    .card{ background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; }
+    .title{ font: 700 28px/1.2 Playfair Display, Georgia, serif; margin:0 0 6px; }
+    .label{ color:#666; }
+    .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media(max-width:760px){ .grid{ grid-template-columns:1fr; } }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto+Slab:wght@400;500;700&display=swap" rel="stylesheet">
+  <meta name="generator" content="static constituency builder (pre-results)">
+  <meta name="ac" content="${ac3}">
+  <meta name="source" content="bihar_election_results_consolidated.json">
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="title">${name} Assembly Election 2025</div>
+      <div><strong>District:</strong> ${district}</div>
+      <div><strong>Seat Type:</strong> ${reserved}</div>
+    </div>
+    <div class="card">
+      <div style="font-weight:700; margin-bottom:6px;">${name} Current MLA</div>
+      <div>${mla} <span class="label">(${mlaParty}${mlaAlliance? ', '+mlaAlliance: ''})</span></div>
+    </div>
+    <div class="card">
+      <div style="font-weight:700; margin-bottom:8px;">Constituency Map</div>
+      <iframe src="${mapSrc}" style="width:100%; height:600px; border:0; border-radius:8px;" loading="lazy" referrerpolicy="no-referrer"></iframe>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div style="font-weight:700; margin-bottom:8px;">Past Results</div>
+        ${rowBlock(2020, row)}
+        ${rowBlock(2015, row)}
+        ${rowBlock(2010, row)}
+      </div>
+      <div class="card">
+        <div style="font-weight:700; margin-bottom:8px;">About</div>
+        <div class="label">Pre-results snapshot. This page incorporates information from public records and ECI data.</div>
+      </div>
+    </div>
+    <div class="card" style="font-size:13px; color:#444;">This page incorporates information from Wikipedia (CC BY-SA 4.0) and Election Commission of India (ECI) sources.</div>
+  </div>
+</body>
+</html>`;
+    }
+
+    async function generate(){
+      const status = document.getElementById('status');
+      const seat = parseInt(document.getElementById('seat').value, 10);
+      const useLocal = !!document.getElementById('useLocal').checked;
+      if (!Number.isFinite(seat) || seat < 1 || seat > 243){ status.textContent = 'Enter a valid constituency number (1–243)'; return; }
+      status.textContent = 'Loading data…';
+      try {
+        const F = files(useLocal);
+        const [conRes] = await Promise.all([
+          fetch(F.consolidated)
+        ]);
+        const consolidated = await conRes.json();
+        const mapByNo = byNoMap(consolidated);
+        const row = mapByNo.get(seat);
+        if (!row){ status.textContent = 'Seat not found in consolidated data'; return; }
+        const html = buildStaticHTML(seat, row);
+        const codeEl = document.getElementById('code');
+        const preview = document.getElementById('preview');
+        codeEl.value = html;
+        preview.innerHTML = html;
+        document.getElementById('out').style.display = 'block';
+        status.innerHTML = '<span class="ok">Generated. Review preview and download.</span>';
+
+        const btn = document.getElementById('downloadBtn');
+        btn.onclick = () => {
+          const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          const ac3 = String(seat).padStart(3,'0');
+          a.download = `constituency-${ac3}-pre.html`;
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+        };
+      } catch (e){
+        console.error(e);
+        status.textContent = 'Failed to load or generate. If using file://, serve over http:// with a local server.';
+      }
+    }
+
+    document.getElementById('gen').addEventListener('click', generate);
+    document.getElementById('seat').addEventListener('keydown', (e)=>{ if (e.key==='Enter') generate(); });
+  </script>
+</body>
+</html>
+
