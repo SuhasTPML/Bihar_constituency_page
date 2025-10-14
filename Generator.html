@@ -315,6 +315,7 @@
         <label for="seatNo">Constituency No:</label>
         <input id="seatNo" type="number" min="1" max="243" placeholder="e.g. 21" />
         <button id="loadBtn" class="primary-btn">Load</button>
+        <button id="exportBtn" class="primary-btn" style="background:#10b981" disabled>Export Embed</button>
         <label style="margin-left:12px; display:flex; align-items:center; gap:6px;">
           <input id="resultsToggle" type="checkbox" disabled />
           <span>Results announced (auto)</span>
@@ -807,7 +808,226 @@
         };
         if (!announced) injectCms('cms-pre', CMS_PRE_HTML);
         if (announced) injectCms('cms-post', CMS_POST_HTML);
+        window.__lastRender = { seatNo, announced };
+        const exportBtn = document.getElementById('exportBtn');
+        if (exportBtn) exportBtn.disabled = false;
       } catch (_) {}
+    }
+
+    function buildEmbedHTML(state){
+      const seatNo = state && state.seatNo;
+      const announced = !!(state && state.announced);
+      const ac = String(seatNo).padStart(3,'0');
+      const enable2025 = announced ? '1' : '0';
+      const output = document.getElementById('output');
+      const clone = output ? output.cloneNode(true) : document.createElement('div');
+      const map = clone.querySelector('#mapEmbed');
+      if (map){
+        const iframe = document.createElement('iframe');
+        iframe.className = 'embed-map';
+        iframe.loading = 'lazy';
+        iframe.referrerPolicy = 'no-referrer';
+        iframe.style.width = '100%';
+        iframe.style.height = '600px';
+        iframe.style.border = '0';
+        iframe.style.borderRadius = '8px';
+        iframe.src = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac}&enable2025=${enable2025}`;
+        map.innerHTML = '';
+        map.appendChild(iframe);
+      }
+      let titleText = 'Bihar Constituency';
+      try {
+        const t = clone.querySelector('.constituency-title');
+        if (t && t.textContent) titleText = t.textContent.trim();
+      } catch {}
+      let styles = '';
+      try { document.querySelectorAll('style').forEach(s=>{ styles += (s.textContent||'') + '\n'; }); } catch {}
+      const headFonts = `
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto+Serif:wght@400;500;600&family=Roboto+Slab:wght@400;500;600;700&display=swap" rel="stylesheet">`;
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  ${headFonts}
+  <title>${titleText}</title>
+  <style>${styles}</style>
+</head>
+<body>
+  <div class="container">
+    ${clone.innerHTML}
+  </div>
+</body>
+</html>`;
+      return html;
+    }
+
+    function buildScopedStylesForId(id){
+      const ID = '#' + id;
+      function scopeSelector(sel){
+        let t = sel.trim();
+        // Replace global roots with container id
+        t = t.replace(/:root/g, ID);
+        t = t.replace(/(^|\s)html(\b|\s|:)/g, `$1${ID}$2`);
+        t = t.replace(/(^|\s)body(\b|\s|:)/g, `$1${ID}$2`);
+        // Prefix if not already targeting the container
+        if (!t.startsWith(ID)) t = ID + ' ' + t;
+        return t;
+      }
+      function scopeRule(rule){
+        try {
+          const CSSRuleObj = window.CSSRule || {};
+          const STYLE = CSSRuleObj.STYLE_RULE || 1;
+          const MEDIA = CSSRuleObj.MEDIA_RULE || 4;
+          const FONT = CSSRuleObj.FONT_FACE_RULE || 5;
+          const SUPPORTS = CSSRuleObj.SUPPORTS_RULE || 12;
+          const KEYFRAMES = CSSRuleObj.KEYFRAMES_RULE || 7;
+          const KEYFRAME = CSSRuleObj.KEYFRAME_RULE || 8;
+          switch (rule.type) {
+            case STYLE: {
+              const parts = (rule.selectorText || '').split(',');
+              const scoped = parts.map(scopeSelector).join(', ');
+              return scoped + ' {' + rule.style.cssText + '}';
+            }
+            case MEDIA: {
+              let inner = '';
+              for (let i=0; i<rule.cssRules.length; i++) inner += scopeRule(rule.cssRules[i]);
+              return '@media ' + (rule.media && rule.media.mediaText || '') + '{' + inner + '}';
+            }
+            case FONT: {
+              return rule.cssText;
+            }
+            case SUPPORTS: {
+              let inner = '';
+              for (let i=0; i<rule.cssRules.length; i++) inner += scopeRule(rule.cssRules[i]);
+              return '@supports ' + (rule.conditionText || '') + '{' + inner + '}';
+            }
+            case KEYFRAMES: {
+              // Keep keyframes as-is; names unlikely to collide
+              return rule.cssText;
+            }
+            case KEYFRAME: {
+              return rule.cssText;
+            }
+            default:
+              return rule.cssText || '';
+          }
+        } catch(_) { return ''; }
+      }
+      let out = '';
+      try {
+        for (const sheet of Array.from(document.styleSheets)){
+          if (!sheet.ownerNode || sheet.ownerNode.tagName !== 'STYLE') continue;
+          const rules = sheet.cssRules || [];
+          for (let i=0; i<rules.length; i++) out += scopeRule(rules[i]);
+        }
+      } catch(_) {}
+      return out;
+    }
+
+    function buildDivOnlySnippet(state){
+      const seatNo = state && state.seatNo;
+      const announced = !!(state && state.announced);
+      const ac = String(seatNo).padStart(3,'0');
+      const enable2025 = announced ? '1' : '0';
+      const output = document.getElementById('output');
+      const clone = output ? output.cloneNode(true) : document.createElement('div');
+      const map = clone.querySelector('#mapEmbed');
+      if (map){
+        const iframe = document.createElement('iframe');
+        iframe.className = 'embed-map';
+        iframe.loading = 'lazy';
+        iframe.referrerPolicy = 'no-referrer';
+        iframe.style.width = '100%';
+        iframe.style.height = '600px';
+        iframe.style.border = '0';
+        iframe.style.borderRadius = '8px';
+        iframe.src = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac}&enable2025=${enable2025}`;
+        map.innerHTML = '';
+        map.appendChild(iframe);
+      }
+      const hostId = `bihar-embed-${ac}`;
+      const scopedStyles = buildScopedStylesForId(hostId);
+      const snippet = `<div id="${hostId}">\n  <style>${scopedStyles}</style>\n  ${clone.innerHTML}\n</div>`;
+      return snippet;
+    }
+    function buildInlineEmbedSnippet(state){
+      const seatNo = state && state.seatNo;
+      const announced = !!(state && state.announced);
+      const ac = String(seatNo).padStart(3,'0');
+      const enable2025 = announced ? '1' : '0';
+      const output = document.getElementById('output');
+      const clone = output ? output.cloneNode(true) : document.createElement('div');
+      const map = clone.querySelector('#mapEmbed');
+      if (map){
+        const iframe = document.createElement('iframe');
+        iframe.className = 'embed-map';
+        iframe.loading = 'lazy';
+        iframe.referrerPolicy = 'no-referrer';
+        iframe.style.width = '100%';
+        iframe.style.height = '600px';
+        iframe.style.border = '0';
+        iframe.style.borderRadius = '8px';
+        iframe.src = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac}&enable2025=${enable2025}`;
+        map.innerHTML = '';
+        map.appendChild(iframe);
+      }
+      // Inline styles, but scope CSS vars to shadow host
+      let styles = '';
+      try {
+        document.querySelectorAll('style').forEach(s=>{ styles += (s.textContent||'') + '\n'; });
+        styles = styles.replace(/:root/g, ':host');
+        styles = styles.replace(/\bhtml\b/g, ':host');
+        styles = styles.replace(/\bbody\b/g, ':host');
+      } catch {}
+      const hostId = `bihar-embed-${ac}`;
+      const snippet = `<div id="${hostId}"></div>\n<script>(function(){\n  try {\n    var host = document.getElementById('${hostId}'); if (!host) return;\n    var shadow = host.attachShadow({ mode: 'open' });\n    var styleEl = document.createElement('style');\n    styleEl.textContent = ${JSON.stringify(styles)};\n    shadow.appendChild(styleEl);\n    var wrap = document.createElement('div');\n    wrap.className = 'container';\n    wrap.innerHTML = ${JSON.stringify(clone.innerHTML)};\n    shadow.appendChild(wrap);\n  } catch(e) { console && console.error && console.error(e); }\n})();<\/script>`;
+      return snippet;
+    }
+
+    function escapeForAttr(str){
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('"', '&quot;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;');
+    }
+
+    function buildIframeSrcdocSnippet(state){
+      const html = buildEmbedHTML(state);
+      const srcdoc = escapeForAttr(html);
+      // Fixed height is safer without postMessage auto-resize; adjust as needed
+      const snippet = `<iframe 
+  title="Bihar Constituency"
+  loading="lazy"
+  referrerpolicy="no-referrer"
+  style="width:100%; max-width:1120px; height:1100px; border:0; border-radius:8px;"
+  srcdoc="${srcdoc}"></iframe>`;
+      return snippet;
+    }
+
+    async function exportEmbed(){
+      try {
+        const state = window.__lastRender;
+        if (!state || !state.seatNo){
+          alert('Load a constituency first.');
+          return;
+        }
+        const html = buildEmbedHTML(state);
+        const ac = String(state.seatNo).padStart(3,'0');
+        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `embed-${ac}.html`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        // Copy DIV-only snippet (scoped CSS under unique id) for no-iframe use
+        try { const snippet = buildDivOnlySnippet(state); await navigator.clipboard.writeText(snippet); } catch {}
+        const status = document.getElementById('status');
+        if (status) status.textContent = `Exported embed-${ac}.html and copied DIV-only snippet with scoped CSS`;
+      } catch (e){ console.error(e); alert('Failed to export embed'); }
     }
 
     (async function init(){
@@ -827,6 +1047,7 @@
         const input = document.getElementById('seatNo');
         const btn = document.getElementById('loadBtn');
         const toggle = document.getElementById('resultsToggle');
+        const exportBtn = document.getElementById('exportBtn');
         const go = ()=>{
           const val = parseInt(input.value,10);
           if (!Number.isFinite(val) || val < 1 || val > 243){
@@ -839,6 +1060,7 @@
         input.addEventListener('keydown', (e)=>{ if (e.key==='Enter') go(); });
         // Toggle is auto-managed and disabled; retain handler if enabled via dev override.
         if (toggle) toggle.addEventListener('change', go);
+        if (exportBtn) exportBtn.addEventListener('click', exportEmbed);
         const sourceTNow = document.getElementById('sourceToggle');
         if (sourceTNow) sourceTNow.addEventListener('change', ()=>{
           const sp = new URLSearchParams(location.search);
