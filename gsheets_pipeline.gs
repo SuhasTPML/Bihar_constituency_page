@@ -50,7 +50,7 @@ function onOpen() {
       ui.createMenu('Export (Copy JSON)')
         .addItem('Parties → JSON (copy)', 'exportPartiesJsonCopy')
         .addItem('Results → JSON (copy)', 'exportResultsJsonCopy')
-        .addItem('Alliances → JSON (copy)', 'exportAlliancesJsonCopy')
+        .addItem('Alliances → JSON (copy)', 'exportAlliancesJsonCopyPrompt')
     )
     .addSubMenu(
       ui.createMenu('Import (Paste JSON)')
@@ -459,8 +459,21 @@ function _showJsonCopyDialog(title, jsonString) {
 }
 
 function _showPasteJsonDialog(kind, suggestedSheetName) {
-  const title = kind === 'parties' ? 'Paste Parties JSON → Sheet' : 'Paste Results JSON → Sheet';
-  const serverFn = kind === 'parties' ? 'importPartiesJsonFromText' : 'importResultsJsonFromText';
+  // Support parties, results, alliances
+  let title, serverFn, placeholder;
+  if (kind === 'parties') {
+    title = 'Paste Parties JSON → Sheet';
+    serverFn = 'importPartiesJsonFromText';
+    placeholder = '[ { code, name, color, alliances: {"2020":"NDA"...} }, ... ]';
+  } else if (kind === 'alliances') {
+    title = 'Paste Alliances JSON → Sheet';
+    serverFn = 'importAlliancesJsonFromText';
+    placeholder = '{ "NDA": "#0066cc", "MGB": "#cc3300" }\n// or\n[ { "alliance": "NDA", "color": "#0066cc" }, ... ]';
+  } else {
+    title = 'Paste Results JSON → Sheet';
+    serverFn = 'importResultsJsonFromText';
+    placeholder = '[ { no, constituency_name, ... }, ... ]';
+  }
   const html = HtmlService.createHtmlOutput(
     `<!doctype html>
     <html><head><meta charset="utf-8">
@@ -475,8 +488,8 @@ function _showPasteJsonDialog(kind, suggestedSheetName) {
     <body>
       <h3>${title}</h3>
       <label>Target sheet name <input id="sheet" value="${suggestedSheetName}"></label>
-      <label>Paste JSON array below</label>
-      <textarea id="txt" placeholder="[ { ... }, { ... } ]"></textarea>
+      <label>Paste JSON below</label>
+      <textarea id="txt" placeholder="${placeholder}"></textarea>
       <div class="row">
         <button id="go">Convert to Sheet</button>
         <button id="cancel">Cancel</button>
@@ -654,19 +667,52 @@ function _sanitizeHex(hex) {
 }
 
 function exportAlliancesJsonCopy() {
-  const sheet = _getSheetOrThrow(CONFIG.ALLIANCES_SHEET_NAME);
+  return exportAlliancesJsonFromSheet(CONFIG.ALLIANCES_SHEET_NAME);
+}
+
+function exportAlliancesJsonFromSheet(sheetName) {
+  const sheet = _getSheetOrThrow(sheetName || CONFIG.ALLIANCES_SHEET_NAME);
   const rows = _sheetToObjects(sheet);
   const map = {};
   rows.forEach(r => {
-    const key = String(r.alliance || r.label || '').trim().toUpperCase();
-    const hex = _sanitizeHex(r.color || r.hex || '');
+    const key = String(r.alliance || r.label || r.Alliance || '').trim().toUpperCase();
+    // Accept multiple possible column names for hex
+    const rawHex = r.alliance_colour_code || r.alliance_color_code || r.color || r.colour || r.hex || '';
+    const hex = _sanitizeHex(rawHex);
     if (!key) return;
     if (!hex) return;
     map[key] = hex;
   });
-  // Always keep NA if present
   const json = JSON.stringify(map, null, 2);
   _showJsonCopyDialog('Alliances JSON', json);
+}
+
+function exportAlliancesJsonCopyPrompt() {
+  const ss = _getSpreadsheet();
+  const sheets = ss.getSheets().map(s => s.getName());
+  const html = HtmlService.createHtmlOutput(
+    `<!doctype html><html><head><meta charset="utf-8">
+     <style>body{font:14px system-ui,Segoe UI,Arial;margin:16px} select,button{font:14px;padding:6px 8px}</style>
+     </head><body>
+       <h3>Choose sheet to export alliances from</h3>
+       <label>Sheet: <select id="sheet"></select></label>
+       <div style="margin-top:8px"><button id="go">Export</button> <button id="cancel">Cancel</button></div>
+       <script>
+         const opts = ${JSON.stringify(sheets)};
+         const sel = document.getElementById('sheet');
+         for(const n of opts){ const o=document.createElement('option'); o.value=o.textContent=n; sel.appendChild(o); }
+         sel.value = ${JSON.stringify(CONFIG.ALLIANCES_SHEET_NAME)};
+         document.getElementById('go').onclick = ()=>{
+           const name = sel.value;
+           google.script.run.withSuccessHandler(()=>google.script.host.close())
+             .withFailureHandler(e=>alert('Error: '+e.message))
+             .exportAlliancesJsonFromSheet(name);
+         };
+         document.getElementById('cancel').onclick = ()=>google.script.host.close();
+       </script>
+     </body></html>`
+  ).setWidth(420).setHeight(220);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Export Alliances (choose sheet)');
 }
 
 function importAlliancesJsonPaste() {
