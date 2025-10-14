@@ -91,6 +91,9 @@ def convert_file(csv_path: pathlib.Path) -> None:
                     "code": (row.get("code", "").strip()),
                     "name": (row.get("name", "").strip()),
                     "color": (row.get("color", "").strip()),
+                    # Preserve flat fields if present
+                    "alliance": (row.get("alliance", "").strip()),
+                    "alliance_colour_code": (row.get("alliance_colour_code", "").strip()),
                     "alliances": alliances,
                 }
             )

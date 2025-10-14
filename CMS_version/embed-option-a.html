@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Embed Option A</title>
+  <style>
+    /* Self-contained, CMS-friendly styles */
+    html, body { height: 100%; margin: 0; padding: 0; overflow: visible; }
+    .embedA-root { box-sizing: border-box; width: 100%; height: 100%; padding: 8px; }
+    .embedA-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: stretch; }
+    .embedA-cell { position: relative; min-width: 0; }
+    .embedA-iframe { width: 100%; height: 400px; border: 0; display: block; background: #fff; }
+    /* Optional: keep two columns even on small widths to honor "row" concept */
+    /* If needed later, we can stack with a media query. */
+  </style>
+  <script>
+    (function(){
+      let resultsHeight = 0;
+      function postParentSize(total){
+        try {
+          var docEl = document.documentElement;
+          var body = document.body;
+          var h = total || Math.max(docEl.scrollHeight || 0, body.scrollHeight || 0, docEl.offsetHeight || 0, body.offsetHeight || 0, docEl.clientHeight || 0, body.clientHeight || 0);
+          var w = Math.max(docEl.scrollWidth || 0, body.scrollWidth || 0, docEl.offsetWidth || 0, body.offsetWidth || 0);
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'EMBED_OPTION_A_SIZE', height: h, width: w }, '*');
+          }
+        } catch(_){}
+      }
+
+      function setHeights(h){
+        if (!h || h < 100) return; // Ignore tiny values
+        resultsHeight = h;
+        var mapEl = document.getElementById('mapFrame');
+        var resEl = document.getElementById('resultsFrame');
+        if (mapEl) mapEl.style.height = h + 'px';
+        if (resEl) resEl.style.height = h + 'px';
+        // Optionally resize our own document to fit content if we are embedded
+        try {
+          var docEl = document.documentElement;
+          var body = document.body;
+          // Our total height is padding + iframe height (since both cells are same height)
+          var verticalPadding = 16; // 8px top + 8px bottom from .embedA-root
+          var total = h + verticalPadding;
+          // Expand the body to ensure parent if embedding via CMS auto-detects height
+          body.style.height = total + 'px';
+          docEl.style.height = total + 'px';
+          // Inform parent page if it listens for size messages
+          postParentSize(total);
+        } catch(_){}
+      }
+
+      function onMessage(ev){
+        try {
+          var data = ev.data || {};
+          if (!data || data.type !== 'RESULTS_IFRAME_SIZE') return;
+          var resFrame = document.getElementById('resultsFrame');
+          if (!resFrame || !resFrame.contentWindow) return;
+          // Ensure message is from our results iframe (safe across origins)
+          if (ev.source !== resFrame.contentWindow) return;
+          var h = parseInt(data.height, 10) || 0;
+          if (h > 0) setHeights(h);
+        } catch(_){}
+      }
+
+      function init(){
+        // If results doesn't post a size for some reason, keep a sensible default
+        var defH = 420; // Default starting height
+        setHeights(defH);
+        window.addEventListener('message', onMessage, false);
+        // In case layout changes after load, observe and re-post
+        try {
+          var ro = new ResizeObserver(function(){ setTimeout(function(){ postParentSize(); }, 10); });
+          if (document.body) ro.observe(document.body);
+          var root = document.querySelector('.embedA-root');
+          if (root) ro.observe(root);
+        } catch(_){}
+      }
+      document.addEventListener('DOMContentLoaded', init);
+    })();
+  </script>
+  </head>
+<body>
+  <div class="embedA-root">
+    <div class="embedA-grid">
+      <div class="embedA-cell">
+        <iframe
+          id="mapFrame"
+          class="embedA-iframe"
+          src="https://suhastpml.github.io/Bihar_constituency_page/map.html"
+          title="Bihar Election Map"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+      </div>
+      <div class="embedA-cell">
+        <iframe
+          id="resultsFrame"
+          class="embedA-iframe"
+          src="https://suhastpml.github.io/Bihar_constituency_page/CMS_version/embed-results.html"
+          title="Election Results"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

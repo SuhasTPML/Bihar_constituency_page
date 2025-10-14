@@ -1,0 +1,1381 @@
+﻿<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto+Slab:wght@400;500;700&display=swap" rel="stylesheet">
+  <title>Bihar Election Map</title>
+  <style>
+    html, body { height: 100%; margin: 0; font-family: system-ui, Arial, sans-serif; }
+    body { display: flex; flex-direction: column; }
+    #controls { padding: 8px 12px; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+
+    /* Compact Controls Layout Classes */
+    .controls-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 4px;
+    }
+    .map-section-title { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 600; line-height: 1.15; color: #000; margin: 0; }
+    .controls-description { font-family: 'Roboto Slab', serif; font-size: 16px; color: #000; margin-bottom: 6px; }
+
+    .controls-search {
+      position: relative;
+      margin-bottom: 4px;
+    }
+
+    .controls-search input {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .controls-search .dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #ccc;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      max-height: 300px;
+      overflow-y: auto;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .controls-options {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .controls-options label {
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .controls-options select {
+      padding: 5px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .controls-legend {
+      margin-top: 3px;
+      font-size: 13px;
+    }
+
+    /* Desktop layout optimization */
+    @media (min-width: 1024px) {
+      .controls-main {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: start;
+      }
+
+      .controls-options {
+        margin-bottom: 0;
+        justify-self: end;
+      }
+    }
+    #mapwrap { flex: 1; min-height: 0; }
+    #status { color: #b00; margin-left: 8px; }
+    svg { width: 100%; height: 100%; background: #f9fafb; display:block; }
+    .ac {
+      stroke-width: 0.5;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+      shape-rendering: geometricPrecision;
+    }
+    .ac:not(.no-hover):hover { fill: #a9d0ff; cursor: pointer; }
+    .selected { stroke-width: 1.5; }
+    .dimmed { opacity: 0.3; transition: opacity 0.3s ease; }
+    #info { font-size: 0.95rem; }
+    
+    .label { font: 12px/1.1 sans-serif; fill: #111; }
+
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+      #controls { padding: 6px 12px; gap: 5px; }
+      .controls-header { margin-bottom: 3px; }
+      .controls-search { margin-bottom: 3px; }
+      .controls-options { margin-bottom: 3px; }
+      svg circle[r="30"] { r: 35; } /* Larger touch targets for tablet */
+      svg circle { stroke-width: 2.5; } /* Thicker button borders on mobile */
+    }
+
+    @media (max-width: 480px) {
+      #controls { padding: 5px 10px; gap: 4px; }
+      .controls-search input { font-size: 16px; } /* Prevents zoom on iOS */
+      .controls-options { flex-wrap: wrap; }
+      svg circle[r="30"] { r: 40; } /* Extra large touch targets for phones */
+      svg circle { stroke-width: 3; } /* Even thicker borders for visibility */
+      svg text { font-size: 36px !important; } /* Larger icons on phones */
+    }
+
+    /* Bottom Sheet Structured Layout */
+    #bottomSheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #ccc;
+      padding: 15px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      z-index: 1000;
+      font-size: 14px;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+
+    .sheet-header {
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .sheet-header .ac-number {
+      font-size: 14px;
+      font-weight: 500;
+      color: #6b7280;
+      margin-right: 8px;
+    }
+
+    .sheet-header .ac-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1f2937;
+      margin-right: 12px;
+    }
+
+    .sheet-header .district-name {
+      font-size: 13px;
+      font-weight: 400;
+      color: #9ca3af;
+      margin-left: auto;
+    }
+
+    .info-row {
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: #374151;
+    }
+
+    .info-row strong {
+      color: #1f2937;
+    }
+
+    .card-grid {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #374151;
+    }
+
+    .color-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .action-button {
+      padding: 8px 16px;
+      background: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background-color 0.2s ease;
+      align-self: flex-end;
+      margin-left: auto;
+    }
+
+    .action-button:hover {
+      background: #0052a3;
+    }
+
+    /* Dynamic map padding when bottom sheet is active */
+    body.bottom-sheet-active #mapwrap {
+      padding-bottom: 160px;
+      transition: padding-bottom 0.3s ease;
+    }
+
+    /* Responsive bottom sheet height and layout */
+    @media (max-width: 768px) {
+      #bottomSheet {
+        max-height: 120px;
+      }
+      body.bottom-sheet-active #mapwrap {
+        padding-bottom: 140px;
+      }
+
+      /* Stack cards vertically on mobile */
+      .card-grid {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+
+      .card {
+        justify-content: flex-start;
+        padding: 8px 12px;
+      }
+
+      .action-button {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 4px;
+        padding: 10px 16px;
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      #bottomSheet {
+        max-height: 30vh; /* 30% of viewport height */
+        padding: 12px;
+      }
+      body.bottom-sheet-active #mapwrap {
+        padding-bottom: 35vh;
+      }
+
+      /* Enhanced mobile layout for phones */
+      .sheet-header {
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .sheet-header .ac-number {
+        font-size: 13px;
+      }
+
+      .sheet-header .ac-name {
+        font-size: 16px;
+        margin-right: 8px;
+      }
+
+      .sheet-header .district-name {
+        font-size: 12px;
+        margin-left: 0;
+        flex-basis: 100%;
+        margin-top: 2px;
+      }
+
+      .info-row {
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+
+      .card {
+        padding: 10px 12px;
+        font-size: 12px;
+      }
+
+      .color-swatch {
+        width: 16px;
+        height: 16px;
+      }
+
+      .action-button {
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+    }
+
+    /* Map controls styling */
+    #mapwrap {
+      position: relative;
+    }
+
+    #mapControls {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 100;
+    }
+
+    #crossBtn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+
+    .map-control-btn {
+      width: 60px;
+      height: 60px;
+      border: 2px solid #666;
+      border-radius: 50%;
+      background: white;
+      color: #333;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .map-control-btn:hover {
+      background: #f0f0f0;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .map-control-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    /* Responsive map controls */
+    @media (max-width: 768px) {
+      #mapControls {
+        top: 15px;
+        left: 15px;
+        gap: 8px;
+      }
+      #crossBtn {
+        top: 15px;
+        right: 15px;
+      }
+      .map-control-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      #mapControls {
+        top: 10px;
+        left: 10px;
+        gap: 6px;
+      }
+      #crossBtn {
+        top: 10px;
+        right: 10px;
+      }
+      .map-control-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 20px;
+        border-width: 1.5px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <div class="controls-header">
+      <h3 class="map-section-title">Bihar Election Map</h3>
+      <span id="status"></span>
+    </div>
+    <div class="controls-description">Tap on a constituency to view details, or search by number/name/district.</div>
+    <div class="controls-main">
+      <div class="controls-search">
+        <input id="acSearch" type="search" placeholder="Search constituency by number, name, or district..." />
+        <div id="dropdown" class="dropdown"></div>
+      </div>
+      <div class="controls-options">
+        <label for="colorMode">Color by:</label>
+        <select id="colorMode"></select>
+      </div>
+    </div>
+    <div id="legend" class="controls-legend" style="display: none;"></div>
+  </div>
+  <div id="mapwrap" class="loading">
+    <svg id="svg" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMin meet">
+      <g id="zoomlayer"></g>
+    </svg>
+    <button id="crossBtn" class="map-control-btn" style="display: none;" title="Clear selection and reset view">×</button>
+    <div id="mapControls">
+      <button id="zoomInBtn" class="map-control-btn" title="Zoom in">+</button>
+      <button id="zoomOutBtn" class="map-control-btn" title="Zoom out">−</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script>
+    const width = 1200, height = 900;
+    // Determine data source based on host or ?source= override
+    function getDataSource(){
+      try {
+        const qp = new URLSearchParams(location.search);
+        const forced = (qp.get('source') || '').toLowerCase();
+        if (forced === 'sandbox') return 'sandbox';
+        if (forced === 'gh' || forced === 'github') return 'github';
+      } catch {}
+      const host = (location.hostname || '').toLowerCase();
+      if (host.includes('quintype.io') || host.includes('sandbox')) return 'sandbox';
+      return 'github';
+    }
+    const DATA_SOURCE = getDataSource();
+    const REMOTE_BASE = DATA_SOURCE === 'sandbox'
+      ? 'https://dh-sandbox-web.quintype.io'
+      : 'https://suhastpml.github.io/Bihar_constituency_page';
+    const ENABLE_2025_MODES = (() => {
+      try {
+        const p = new URLSearchParams(location.search).get('enable2025');
+        if (p === '1' || (p||'').toLowerCase() === 'true') return true;
+        if (p === '0' || (p||'').toLowerCase() === 'false') return false;
+      } catch {}
+      return false; // default disabled when no param
+    })();
+    const svg = d3.select('#svg');
+    const g = d3.select('#zoomlayer');
+    const labelLayer = g.append('g').attr('id','labelLayer');
+    const statusEl = document.getElementById('status');
+    const infoEl = document.getElementById('info');
+    const searchEl = document.getElementById('acSearch');
+    const dropdownEl = document.getElementById('dropdown');
+    const wrapEl = document.getElementById('mapwrap');
+    const colorModeEl = document.getElementById('colorMode');
+    const legendEl = document.getElementById('legend');
+    let searchData = [];
+    let labelToKey = new Map();
+    let electionData = new Map();
+    let partyColors = new Map();
+    let allianceColors = new Map();
+    let allianceOriginalColors = new Map();
+    let partyToAlliance = new Map();
+    let partyData = new Map(); // Store complete party information
+    let colorCache = new Map(); // Pre-computed color combinations
+    let featureByAc = new Map(); // Cached feature lookup by AC key
+    let centroidCache = new Map(); // Pre-computed centroids for each AC
+    let currentColorMode = ENABLE_2025_MODES ? 'alliance-2025' : 'alliance-2020';
+
+    let biharData = null;
+    let projection, path;
+    let selectedId = null;
+
+    // Debug flag for detailed console logging
+    const DEBUG = false;
+
+    // URL parameter utilities
+    function getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+
+    function setQueryParam(name, value) {
+      const url = new URL(window.location);
+      url.searchParams.set(name, value);
+      history.replaceState(null, '', url);
+    }
+
+    function removeQueryParam(name) {
+      const url = new URL(window.location);
+      url.searchParams.delete(name);
+      history.replaceState(null, '', url);
+    }
+
+    // Color utilities
+    function pastelizeColor(hex, mix = 0.25) {
+      if (!hex || typeof hex !== 'string') return '#e5e7eb';
+      const normalized = hex.replace('#', '').trim();
+      if (!normalized || normalized.length !== 6 || /[^0-9a-f]/i.test(normalized)) return '#e5e7eb';
+
+      const r = parseInt(normalized.slice(0, 2), 16);
+      const g = parseInt(normalized.slice(2, 4), 16);
+      const b = parseInt(normalized.slice(4, 6), 16);
+
+      const blend = (component) => Math.round(component + (255 - component) * mix);
+      const toHex = (value) => value.toString(16).padStart(2, '0');
+
+      return '#' + toHex(blend(r)) + toHex(blend(g)) + toHex(blend(b));
+    }
+
+    function getColorForMode(acNo, mode) {
+      // Try cache first for performance
+      const cacheKey = `${mode}_${acNo}`;
+      const cachedColor = colorCache.get(cacheKey);
+      if (cachedColor) {
+        return cachedColor;
+      }
+
+      // Fallback to original logic (for edge cases or missing cache)
+      const row = electionData.get(acNo);
+      if (!row) return '#f3f4f6'; // Light gray for missing data
+
+      switch(mode) {
+        case 'alliance-2025':
+          return getHistoricalAllianceColor(row.y2025_winner_party, '2025');
+        case 'party-2025':
+          return partyColors.get(row.y2025_winner_party) || getHistoricalAllianceColor(row.y2025_winner_party, '2025');
+        case 'alliance-2020':
+          return allianceColors.get(normalizeAllianceKey(row.current_mla_alliance)) || '#f3f4f6';
+        case 'party-2020':
+          return partyColors.get(row.current_mla_party) || allianceColors.get(row.current_mla_alliance) || '#f3f4f6';
+        case 'reserved':
+          const status = row.reserved || 'GEN';
+          const reservedColors = { 'GEN': '#f9fafb', 'SC': '#dbeafe', 'ST': '#dcfce7', 'NA': '#f3f4f6' };
+          return reservedColors[status] || reservedColors['GEN'];
+        case 'alliance-2015':
+          return getHistoricalAllianceColor(row.y2015_winner_party, '2015');
+        case 'party-2015':
+          return partyColors.get(row.y2015_winner_party) || getHistoricalAllianceColor(row.y2015_winner_party, '2015');
+        case 'alliance-2010':
+          return getHistoricalAllianceColor(row.y2010_winner_party, '2010');
+        case 'party-2010':
+          return partyColors.get(row.y2010_winner_party) || getHistoricalAllianceColor(row.y2010_winner_party, '2010');
+        default:
+          return '#f3f4f6';
+      }
+    }
+
+    function isValidHexColor(hex){
+      if(!hex || typeof hex !== 'string') return false;
+      const h = hex.trim();
+      return /^#?[0-9a-fA-F]{6}$/.test(h);
+    }
+
+    function to6Hex(hex){
+      const h = hex.replace('#','').trim();
+      return '#' + h.toLowerCase();
+    }
+
+    function deterministicColorFor(key){
+      // Hash string to an H value, generate stable pleasant color
+      let h = 0; const s = 55, l = 52;
+      for (let i=0;i<key.length;i++){ h = ((h<<5)-h) + key.charCodeAt(i); h|=0; }
+      const hue = Math.abs(h) % 360;
+      // Convert HSL to hex
+      const a = s/100 * Math.min(l/100, 1 - l/100);
+      const f = n => {
+        const k = (n + hue/30) % 12;
+        const col = l/100 - a * Math.max(Math.min(k-3, 9-k, 1), -1);
+        return Math.round(255 * col).toString(16).padStart(2,'0');
+      };
+      return '#' + f(0) + f(8) + f(4);
+    }
+
+    function normalizeAllianceKey(a) {
+      return (a == null) ? null : String(a).trim().toUpperCase();
+    }
+
+    function resolveAllianceForYear(partyCode, year){
+      const info = partyData.get(partyCode);
+      if(!info) return 'NA';
+      const alliances = info.alliances || null;
+      const a = (alliances && (alliances[String(year)] || alliances[year]))
+        || info[`alliance_${year}`]
+        || info.alliance_2020
+        || info.alliance
+        || 'NA';
+      return normalizeAllianceKey(a) || 'NA';
+    }
+
+    function ensureAllianceColor(a, hex){
+      const key = normalizeAllianceKey(a);
+      if(!key) return;
+      if (!allianceOriginalColors.has(key)){
+        const chosen = isValidHexColor(hex) ? to6Hex(hex) : deterministicColorFor(key);
+        allianceOriginalColors.set(key, chosen);
+        allianceColors.set(key, pastelizeColor(chosen));
+      }
+    }
+
+    function buildAllianceColors(parties){
+      allianceColors = new Map();
+      allianceOriginalColors = new Map();
+      // Always have NA
+      allianceOriginalColors.set('NA', '#999999');
+      allianceColors.set('NA', '#e5e7eb');
+      // Scan parties for alliances and their provided colors
+      for(const p of parties){
+        const ac = p.alliance_colour_code || p.alliance_color_code || p.alliance_colour || p.alliance_color || '';
+        // Top-level alliance (if any)
+        if (p.alliance && String(p.alliance).trim()){
+          ensureAllianceColor(p.alliance, ac);
+        }
+        // Year-wise alliances
+        const almap = p.alliances || {};
+        for (const y of Object.keys(almap)){
+          ensureAllianceColor(almap[y], ac);
+        }
+      }
+      // Seed classics if missing
+      ensureAllianceColor('NDA', '#0066cc');
+      ensureAllianceColor('MGB', '#cc3300');
+      ensureAllianceColor('OTH', '#8A2BE2');
+    }
+
+    function getHistoricalAllianceColor(party, year) {
+      if (!party) return '#f3f4f6';
+      const key = resolveAllianceForYear(party, year);
+      if (key === 'NA') return '#e5e7eb';
+      return allianceColors.get(key) || '#f3f4f6';
+    }
+
+    function getPartyAlliance(party) {
+      return partyToAlliance.get(party) || 'NA';
+    }
+
+    // Utility function to darken a color for stroke
+    function darkenColor(color, factor = 0.7) {
+      if (!color || typeof color !== 'string') return color;
+
+      // Handle rgb() format
+      if (color.startsWith('rgb')) {
+        const match = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        if (match) {
+          const r = Math.round(parseInt(match[1]) * factor);
+          const g = Math.round(parseInt(match[2]) * factor);
+          const b = Math.round(parseInt(match[3]) * factor);
+          return `rgb(${r}, ${g}, ${b})`;
+        }
+      }
+
+      // Handle hex format
+      if (color.startsWith('#')) {
+        const hex = color.replace('#', '');
+        if (hex.length === 6) {
+          const r = Math.round(parseInt(hex.slice(0, 2), 16) * factor);
+          const g = Math.round(parseInt(hex.slice(2, 4), 16) * factor);
+          const b = Math.round(parseInt(hex.slice(4, 6), 16) * factor);
+          return `rgb(${r}, ${g}, ${b})`;
+        }
+      }
+
+      return color; // Return original if can't parse
+    }
+
+    // Get original (non-pastelized) color for stroke
+    function getOriginalColorForMode(acNo, mode) {
+      const row = electionData.get(acNo);
+      if (!row) return '#1f77b4'; // Default stroke color
+
+      switch(mode) {
+        case 'alliance-2020':
+          const a2020 = normalizeAllianceKey(row.current_mla_alliance) || resolveAllianceForYear(row.current_mla_party, '2020');
+          return allianceOriginalColors.get(a2020) || '#1f77b4';
+        case 'party-2020':
+          const party2020 = row.current_mla_party;
+          const partyInfo2020 = partyData.get(party2020);
+          return partyInfo2020?.color || '#1f77b4';
+        case 'reserved':
+          const status = row.reserved || 'GEN';
+          const reservedOrigColors = { 'GEN': '#999999', 'SC': '#0066ff', 'ST': '#00aa00', 'NA': '#666666' };
+          return reservedOrigColors[status] || reservedOrigColors['GEN'];
+        case 'alliance-2015':
+          return getHistoricalOriginalColor(row.y2015_winner_party, '2015');
+        case 'party-2015':
+          const party2015 = row.y2015_winner_party;
+          const partyInfo2015 = partyData.get(party2015);
+          return partyInfo2015?.color || getHistoricalOriginalColor(party2015, '2015');
+        case 'alliance-2010':
+          return getHistoricalOriginalColor(row.y2010_winner_party, '2010');
+        case 'party-2010':
+          const party2010 = row.y2010_winner_party;
+          const partyInfo2010 = partyData.get(party2010);
+          return partyInfo2010?.color || getHistoricalOriginalColor(party2010, '2010');
+        default:
+          return '#1f77b4';
+      }
+    }
+
+    function getHistoricalOriginalColor(party, year) {
+      if (!party) return '#1f77b4';
+      const key = resolveAllianceForYear(party, year);
+      if (key === 'NA') return '#999999';
+      return allianceOriginalColors.get(key) || '#1f77b4';
+    }
+
+    // Pre-compute all color combinations for performance
+    function preComputeColors() {
+      if (DEBUG) console.log('Pre-computing color cache...');
+      const colorModes = [
+        ...(ENABLE_2025_MODES ? ['alliance-2025','party-2025'] : []),
+        'alliance-2020', 'party-2020', 'alliance-2015', 'party-2015', 'alliance-2010', 'party-2010'
+      ];
+      let cached = 0;
+
+      for (const [acNo, row] of electionData) {
+        for (const mode of colorModes) {
+          const cacheKey = `${mode}_${acNo}`;
+          let color;
+
+          switch(mode) {
+            case 'alliance-2025':
+              color = getHistoricalAllianceColor(row.y2025_winner_party, '2025');
+              break;
+            case 'party-2025':
+              const partyInfo2025 = partyData.get(row.y2025_winner_party);
+              color = partyInfo2025?.color || getHistoricalOriginalColor(row.y2025_winner_party, '2025');
+              break;
+            case 'alliance-2020':
+              color = allianceColors.get(row.current_mla_alliance) || '#f3f4f6';
+              break;
+            case 'party-2020':
+              color = partyColors.get(row.current_mla_party) || allianceColors.get(row.current_mla_alliance) || '#f3f4f6';
+              break;
+            case 'alliance-2015':
+              color = getHistoricalAllianceColor(row.y2015_winner_party, '2015');
+              break;
+            case 'party-2015':
+              const partyInfo2015 = partyData.get(row.y2015_winner_party);
+              color = partyInfo2015?.color || getHistoricalOriginalColor(row.y2015_winner_party, '2015');
+              break;
+            case 'alliance-2010':
+              color = getHistoricalAllianceColor(row.y2010_winner_party, '2010');
+              break;
+            case 'party-2010':
+              const partyInfo2010 = partyData.get(row.y2010_winner_party);
+              color = partyInfo2010?.color || getHistoricalOriginalColor(row.y2010_winner_party, '2010');
+              break;
+            default:
+              color = '#f3f4f6';
+          }
+
+          colorCache.set(cacheKey, color);
+          cached++;
+        }
+      }
+
+      if (DEBUG) console.log(`Color cache created: ${cached} combinations cached`);
+    }
+
+
+    const zoom = d3.zoom().scaleExtent([1, 20]).on('zoom', (ev) => {
+      g.attr('transform', ev.transform);
+      updateCrossButton();
+    });
+    svg.call(zoom);
+
+    function setInfo(html){ infoEl.innerHTML = html || ''; }
+
+    function createMapControls(){
+      // Get DOM elements for the new external controls
+      const crossBtn = document.getElementById('crossBtn');
+      const zoomInBtn = document.getElementById('zoomInBtn');
+      const zoomOutBtn = document.getElementById('zoomOutBtn');
+
+      // Build color mode options based on feature flag
+      if (colorModeEl) {
+        const opts = [];
+        if (ENABLE_2025_MODES) {
+          opts.push({v:'alliance-2025', t:'2025 Alliance'});
+          opts.push({v:'party-2025', t:'2025 Party'});
+        }
+        opts.push(
+          {v:'alliance-2020', t:'2020 Alliance'},
+          {v:'party-2020', t:'2020 Party'},
+          {v:'alliance-2015', t:'2015 Alliance'},
+          {v:'party-2015', t:'2015 Party'},
+          {v:'alliance-2010', t:'2010 Alliance'},
+          {v:'party-2010', t:'2010 Party'}
+        );
+        colorModeEl.innerHTML = opts.map(o=>`<option value="${o.v}">${o.t}</option>`).join('');
+        colorModeEl.value = ENABLE_2025_MODES ? 'alliance-2025' : 'alliance-2020';
+      }
+
+      // Wire up event handlers
+      crossBtn.addEventListener('click', clearAndReset);
+      zoomInBtn.addEventListener('click', () => svg.transition().duration(300).call(zoom.scaleBy, 1.3));
+      zoomOutBtn.addEventListener('click', () => svg.transition().duration(300).call(zoom.scaleBy, 1/1.3));
+    }
+
+    function updateCrossButton(){
+      const transform = d3.zoomTransform(svg.node());
+      const isZoomed = transform.k > 1.01;
+      const isSelected = selectedId !== null;
+
+      const crossBtn = document.getElementById('crossBtn');
+      crossBtn.style.display = (isZoomed || isSelected) ? 'block' : 'none';
+    }
+
+    function renderDetails({ featureProps, electionRow }) {
+      const acNo = featureKey(featureProps);
+      const acName = featureProps.AC_NAME || featureProps.ac_name || featureProps.Ac_Name || '';
+      const district = featureProps.DIST_NAME || featureProps.dist_name || '';
+
+      // Build structured content with hierarchical layout
+      let content = `<div class="sheet-header" style="display: flex; align-items: baseline;">`;
+      content += `<span class="ac-name">${acName}</span>`;
+      if (district) {
+        content += `<span class="district-name">${district}</span>`;
+      }
+      content += `</div>`;
+
+      if (electionRow) {
+        const cleanName = (n)=> String(n||'').replace(/\s*\((SC|ST|GEN|General)\)\s*$/i, '');
+        let mlaName, party, alliance;
+        if (ENABLE_2025_MODES) {
+          mlaName = electionRow.y2025_winner_name || 'Not available';
+          party = electionRow.y2025_winner_party || 'Unknown';
+          const info = partyData.get(party);
+          const alliances = info && (info.alliances || null);
+          alliance = (alliances && (alliances['2025'] || alliances[2025]))
+                  || (info && (info['alliance_2025'] || info.alliance_2020 || info.alliance))
+                  || 'Unknown';
+        } else {
+          mlaName = electionRow.current_mla_name || 'Not available';
+          party = electionRow.current_mla_party || 'Unknown';
+          alliance = electionRow.current_mla_alliance || 'Unknown';
+        }
+
+        const mlaLabel = ENABLE_2025_MODES ? 'Winner' : 'Current MLA';
+
+        // Get colors for party and alliance
+        const partyColor = partyColors.get(party) || '#f3f4f6';
+        const allianceColor = allianceColors.get(normalizeAllianceKey(alliance)) || '#f3f4f6';
+
+        // MLA information row
+        content += `<div class="info-row">${mlaLabel}: <strong>${mlaName}</strong></div>`;
+
+        // Party and alliance cards with professional layout
+        content += `<div class="card-grid">`;
+        content += `<div class="card">`;
+        content += `<div class="color-swatch" style="background: ${partyColor};"></div>`;
+        content += `<span><strong>Party:</strong> ${party}</span>`;
+        content += `</div>`;
+        content += `<div class="card">`;
+        content += `<div class="color-swatch" style="background: ${allianceColor};"></div>`;
+        content += `<span><strong>Alliance:</strong> ${alliance}</span>`;
+        content += `</div>`;
+        content += `<button id="moreDetailsBtn" class="action-button">More details →</button>`;
+        content += `</div>`;
+      } else {
+        content += `<div class="info-row" style="color: #9ca3af; font-style: italic;">No election data available for this constituency.</div>`;
+      }
+
+      document.getElementById('bottomSheet').innerHTML = content;
+
+      // Add click handler for more details button
+      const moreBtn = document.getElementById('moreDetailsBtn');
+      if (moreBtn) {
+        moreBtn.addEventListener('click', () => {
+          console.log(`More details requested for ${acNo} - ${acName}`);
+          // TODO: Implement detailed view (modal, sidebar, or new page)
+        });
+      }
+    }
+
+    function featureKey(p){
+      const n = p.AC_NO ?? p.ac_no ?? p.Ac_No;
+      try { return String(parseInt(+n)).padStart(3,'0'); } catch { return String(n||''); }
+    }
+
+    // Pre-compute feature lookups and centroids for O(1) access
+    function cacheFeatures(features) {
+      if (DEBUG) console.log('Caching features and centroids for performance...');
+      let cached = 0;
+
+      features.forEach(feature => {
+        const key = featureKey(feature.properties);
+        featureByAc.set(key, feature);
+        centroidCache.set(key, path.centroid(feature)); // compute once
+        cached++;
+      });
+
+      if (DEBUG) console.log(`Feature cache created: ${cached} features and centroids cached`);
+    }
+
+    function populateSearch(features){
+      const cleanName = (n)=> String(n||'').replace(/\s*\((SC|ST|GEN|General)\)\s*$/i, '');
+      searchData = features.map(f => ({
+        key: featureKey(f.properties),
+        name: cleanName(f.properties.AC_NAME || f.properties.ac_name || f.properties.Ac_Name || 'AC'),
+        dist: f.properties.DIST_NAME || f.properties.dist_name || ''
+      })).sort((a,b) => a.key.localeCompare(b.key));
+
+      // Create searchable labels (display name only; keep key in search text)
+      searchData.forEach(item => {
+        const label = `${item.name}${item.dist? ' ('+item.dist+')':''}`;
+        labelToKey.set(label, item.key);
+        item.label = label;
+        // Keep constituency number and reserved tokens in search space
+        item.searchText = `${item.key} ${item.name} ${item.dist}`.toLowerCase();
+      });
+    }
+
+    function showDropdown(matches) {
+      if (matches.length === 0) {
+        dropdownEl.style.display = 'none';
+        return;
+      }
+
+      dropdownEl.innerHTML = '';
+
+      // Show more results for full list, fewer for search results
+      const isFullList = matches.length === searchData.length;
+      const limit = isFullList ? 50 : 15;
+
+      matches.slice(0, limit).forEach((item, index) => {
+        const div = document.createElement('div');
+        div.textContent = item.label;
+        div.style.cssText = 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px;';
+        div.addEventListener('mouseenter', () => {
+          div.style.backgroundColor = '#f0f0f0';
+        });
+        div.addEventListener('mouseleave', () => {
+          div.style.backgroundColor = '';
+        });
+        div.addEventListener('click', () => {
+          searchEl.value = item.label;
+          selectByKey(item.key);
+          dropdownEl.style.display = 'none';
+        });
+        dropdownEl.appendChild(div);
+      });
+
+      // Add "showing X of Y" indicator if there are more results
+      if (matches.length > limit) {
+        const moreDiv = document.createElement('div');
+        moreDiv.textContent = `Showing ${limit} of ${matches.length} constituencies...`;
+        moreDiv.style.cssText = 'padding: 8px 12px; color: #666; font-style: italic; background: #f9f9f9; font-size: 12px;';
+        dropdownEl.appendChild(moreDiv);
+      }
+
+      dropdownEl.style.display = 'block';
+    }
+
+    function hideDropdown() {
+      setTimeout(() => dropdownEl.style.display = 'none', 150);
+    }
+
+    function draw(features){
+      g.selectAll('path').data(features)
+        .join('path')
+        .attr('class', 'ac')
+        .attr('data-key', d => featureKey(d.properties))
+        .attr('d', d => path(d))
+        .attr('fill', d => getColorForMode(featureKey(d.properties), currentColorMode))
+        .attr('stroke', '#1f77b4') // Set default stroke color
+        .on('click', (ev, d) => selectByKey(featureKey(d.properties)));
+    }
+
+    function fitToFeature(f){
+      const b = path.bounds(f);
+      const dx = b[1][0] - b[0][0];
+      const dy = b[1][1] - b[0][1];
+      const cx = (b[0][0] + b[1][0]) / 2;
+      const cy = (b[0][1] + b[1][1]) / 2;
+      const scale = Math.max(1, 0.9 / Math.max(dx / width, dy / height));
+      const transform = d3.zoomIdentity.translate(width/2, height/2).scale(scale).translate(-cx, -cy);
+      svg.transition().duration(750).call(zoom.transform, transform);
+    }
+
+    function clearAndReset(){
+      selectedId = null;
+      g.selectAll('path').classed('selected', false);
+
+      // Remove dimming effect (restore full opacity)
+      g.selectAll('path').classed('dimmed', false);
+
+      // Restore hover behavior for all constituencies
+      g.selectAll('path').classed('no-hover', false);
+
+      // Reset stroke colors to default
+      g.selectAll('path').attr('stroke', '#1f77b4');
+
+      searchEl.value = '';
+      labelLayer.selectAll('*').remove();
+      // Reset zoom
+      svg.transition().duration(400).call(zoom.transform, d3.zoomIdentity);
+      updateCrossButton();
+
+      // Hide bottom sheet when clearing selection
+      document.getElementById('bottomSheet').style.display = 'none';
+      document.body.classList.remove('bottom-sheet-active');
+
+      // Remove URL parameter
+      removeQueryParam('ac');
+    }
+
+    function selectByKey(key, suppressUrlUpdate = false){
+      selectedId = key;
+      g.selectAll('path').classed('selected', d => featureKey(d.properties) === key);
+
+      // Dim all other constituencies (spotlight effect)
+      g.selectAll('path').classed('dimmed', d => featureKey(d.properties) !== key);
+
+      // Suppress hover on selected constituency
+      g.selectAll('path').classed('no-hover', d => featureKey(d.properties) === key);
+
+      // Apply original (non-pastelized) color for stroke
+      const selectedPath = g.selectAll('path').filter(d => featureKey(d.properties) === key);
+      if (!selectedPath.empty()) {
+        const strokeColor = getOriginalColorForMode(key, currentColorMode);
+        if (DEBUG) console.log(`Selected AC ${key}: using original strokeColor = "${strokeColor}"`);
+        selectedPath.attr('stroke', strokeColor);
+      }
+
+      selectedPath.raise();
+      const f = featureByAc.get(key);
+      if(f){
+        fitToFeature(f);
+        const p = f.properties;
+        const acno = key;
+        const rawName = p.AC_NAME || p.ac_name || p.Ac_Name || '';
+        const acname = String(rawName).replace(/\s*\((SC|ST|GEN|General)\)\s*$/i, '');
+        const dist = p.DIST_NAME || p.dist_name || '';
+        const pcno = p.PC_NO || p.pc_no || '';
+        const pcname = p.PC_NAME || p.pc_name || '';
+
+        // Update search bar with selected constituency
+        const searchLabel = `${acname}${dist? ' ('+dist+')':''}`;
+        searchEl.value = searchLabel;
+
+        // Log selected constituency JSON row for debugging/inspection
+        const electionInfo = electionData.get(acno);
+        try { console.log('Selected constituency JSON:', { ac: acno, data: electionInfo }); } catch {}
+        if (DEBUG) {
+          console.log('=== CONSTITUENCY SELECTED ===');
+          console.log('AC Number:', acno);
+          console.log('AC Name:', acname);
+          console.log('District:', dist);
+          console.log('PC Number:', pcno);
+          console.log('PC Name:', pcname);
+
+          if (electionInfo) {
+            console.log('\n--- 2020 ELECTION DATA ---');
+            console.log('Current MLA:', electionInfo.current_mla_name);
+            console.log('Current Party:', electionInfo.current_mla_party);
+            console.log('Current Alliance:', electionInfo.current_mla_alliance);
+            console.log('Reserved Status:', electionInfo.reserved || 'GEN');
+
+            console.log('\n--- HISTORICAL WINNERS ---');
+            if (electionInfo.y2020_winner_name) {
+              console.log('2020 Winner:', electionInfo.y2020_winner_name, '(' + electionInfo.y2020_winner_party + ')');
+              console.log('2020 Votes:', electionInfo.y2020_winner_votes, 'Margin:', electionInfo.y2020_margin);
+            }
+            if (electionInfo.y2015_winner_name) {
+              console.log('2015 Winner:', electionInfo.y2015_winner_name, '(' + electionInfo.y2015_winner_party + ')');
+              console.log('2015 Votes:', electionInfo.y2015_winner_votes, 'Margin:', electionInfo.y2015_margin);
+            }
+            if (electionInfo.y2010_winner_name) {
+              console.log('2010 Winner:', electionInfo.y2010_winner_name, '(' + electionInfo.y2010_winner_party + ')');
+              console.log('2010 Votes:', electionInfo.y2010_winner_votes, 'Margin:', electionInfo.y2010_margin);
+            }
+
+            console.log('\n--- CHANGES FROM 2020 ---');
+            console.log('Different Party vs 2020:', electionInfo.diff_party_vs_2020 === 'True' ? 'Yes' : 'No');
+            console.log('Different Name vs 2020:', electionInfo.diff_name_vs_2020 === 'True' ? 'Yes' : 'No');
+
+            console.log('\n--- RAW DATA OBJECT ---');
+            console.log(electionInfo);
+          } else {
+            console.log('\n⚠️ No election data found for this constituency');
+          }
+          console.log('==============================\n');
+        }
+
+        // SVG labels removed for cleaner interface - info now shown only in bottom sheet
+
+        // Show bottom sheet with constituency details
+        renderDetails({ featureProps: f.properties, electionRow: electionInfo });
+        document.getElementById('bottomSheet').style.display = 'block';
+        document.body.classList.add('bottom-sheet-active');
+      }
+      updateCrossButton();
+
+      // Update URL parameter (unless suppressed for initial load)
+      if (!suppressUrlUpdate) {
+        setQueryParam('ac', key);
+      }
+    }
+
+    // Search input event handlers
+    searchEl.addEventListener('input', (e) => {
+      const query = e.target.value.trim().toLowerCase();
+
+      if (!query) {
+        hideDropdown();
+        return;
+      }
+
+      // Filter search data
+      const matches = searchData.filter(item =>
+        item.searchText.includes(query)
+      );
+
+      showDropdown(matches);
+    });
+
+    searchEl.addEventListener('change', () => {
+      const value = searchEl.value.trim();
+      const key = labelToKey.get(value);
+      if(key){
+        selectByKey(key);
+        dropdownEl.style.display = 'none';
+      } else if(!value) {
+        clearAndReset();
+        dropdownEl.style.display = 'none';
+      }
+    });
+
+    searchEl.addEventListener('blur', hideDropdown);
+    searchEl.addEventListener('focus', () => {
+      // Show all constituencies if no search query, or filtered results if there is a query
+      const query = searchEl.value.trim().toLowerCase();
+      if (query) {
+        const matches = searchData.filter(item => item.searchText.includes(query));
+        showDropdown(matches);
+      } else {
+        // Show all constituencies when clicked with no search text
+        showDropdown(searchData);
+      }
+    });
+
+    searchEl.addEventListener('click', () => {
+      // Also show full dropdown on click (in case focus doesn't trigger)
+      if (!searchEl.value.trim()) {
+        showDropdown(searchData);
+      }
+    });
+
+    // Handle browser's built-in search clear button (×)
+    searchEl.addEventListener('search', () => {
+      if (!searchEl.value.trim()) {
+        clearAndReset();
+      }
+    });
+
+    // Color mode change handler
+    colorModeEl.addEventListener('change', () => {
+      currentColorMode = colorModeEl.value;
+      g.selectAll('path').attr('fill', d => getColorForMode(featureKey(d.properties), currentColorMode));
+      updateLegend();
+    });
+
+    function updateLegend() {
+      if (!electionData.size) {
+        legendEl.style.display = 'none';
+        return;
+      }
+
+      const mode = currentColorMode;
+      let legendItems = [];
+
+      if (mode.includes('alliance')) {
+        // Build alliance legend with counts for the selected year
+          const yearStr = mode.split('-')[1] || '2020';
+        const year = parseInt(yearStr, 10);
+        const allianceCount = new Map();
+        for (const [key, row] of electionData) {
+          let alliance = null;
+          if (year === 2020) {
+            alliance = row.current_mla_alliance || null;
+          }
+          if (!alliance) {
+            // Resolve via party mapping as fallback
+            const party = (year === 2025) ? row.y2025_winner_party
+                        : (year === 2015) ? row.y2015_winner_party
+                        : (year === 2010) ? row.y2010_winner_party
+                        : row.current_mla_party;
+            const info = partyData.get(party);
+            const alliances = info && (info.alliances || null);
+            alliance = (alliances && (alliances[String(year)] || alliances[year]))
+                    || (info && (info[`alliance_${year}`] || info.alliance_2020 || info.alliance))
+                    || (row.current_mla_alliance || null);
+          }
+          alliance = alliance || 'NA';
+          allianceCount.set(alliance, (allianceCount.get(alliance) || 0) + 1);
+        }
+
+        // Sort by frequency and map to legend items
+        const order = Array.from(allianceCount.entries()).sort((a,b)=> b[1]-a[1]);
+        legendItems = order.map(([a, count])=> ({
+          color: (a === 'NA') ? '#e5e7eb' : (allianceColors.get(normalizeAllianceKey(a)) || '#e5e7eb'),
+          label: `${a} (${count})`
+        }));
+      } else if (mode.includes('party')) {
+        // Show top parties only for party mode
+        const partyCount = new Map();
+        for (const [key, row] of electionData) {
+          const party = mode === 'party-2025' ? row.y2025_winner_party :
+                       mode === 'party-2020' ? row.current_mla_party :
+                       mode === 'party-2015' ? row.y2015_winner_party :
+                       mode === 'party-2010' ? row.y2010_winner_party : null;
+          if (party) partyCount.set(party, (partyCount.get(party) || 0) + 1);
+        }
+
+        const topParties = Array.from(partyCount.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 6)
+          .map(([party, count]) => ({
+            color: partyColors.get(party) || '#f3f4f6',
+            label: `${party} (${count})`
+          }));
+
+        legendItems = topParties;
+      }
+
+      legendEl.innerHTML = legendItems
+        .map(item => `<span style="margin-right: 15px;"><span style="color: ${item.color}; font-size: 16px;">■</span> ${item.label}</span>`)
+        .join('');
+
+      legendEl.style.display = 'block';
+    }
+
+
+
+
+    // Robust data loading with GitHub Pages CDN + local fallback
+    async function loadWithFallback(githubUrl, localPath, description = 'data') {
+      try {
+        console.log(`🌐 Loading ${description} from GitHub Pages: ${githubUrl}`);
+        const response = await fetch(githubUrl, { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        console.log(`✅ Successfully loaded ${description} from GitHub Pages CDN`);
+        return response;
+      } catch (error) {
+        console.warn(`⚠️ GitHub Pages failed for ${description}:`, error.message);
+        console.log(`🔄 Falling back to local file: ${localPath}`);
+        try {
+          const fallbackResponse = await fetch(localPath, { cache: 'no-store' });
+          if (!fallbackResponse.ok) {
+            throw new Error(`Local fallback failed: HTTP ${fallbackResponse.status}`);
+          }
+          console.log(`✅ Successfully loaded ${description} from local fallback`);
+          return fallbackResponse;
+        } catch (fallbackError) {
+          console.error(`❌ Both GitHub Pages and local fallback failed for ${description}:`, fallbackError.message);
+          throw new Error(`Failed to load ${description} from both GitHub Pages and local sources`);
+        }
+      }
+    }
+
+    async function loadElectionData() {
+      try {
+        // Load parties.json from selected remote with local fallback
+        const partiesResponse = await loadWithFallback(
+          `${REMOTE_BASE}/parties.json`,
+          './parties.json',
+          'parties data'
+        );
+        const partiesData = await partiesResponse.json();
+
+        // Build alliance color palettes dynamically from parties JSON
+        buildAllianceColors(partiesData);
+
+        // Process parties JSON data
+        for (const party of partiesData) {
+          // Store in maps
+          partyColors.set(party.code, pastelizeColor(party.color));
+          const alliances = party.alliances || {};
+          const a2020 = alliances['2020'] || alliances[2020] || party.alliance_2020 || party.alliance;
+          partyToAlliance.set(party.code, a2020); // Current alliance for general use
+          partyData.set(party.code, party); // Full party data for historical lookups
+        }
+
+        // Load election results JSON from selected remote with local fallback
+        const resultsResponse = await loadWithFallback(
+          DATA_SOURCE === 'sandbox'
+            ? `${REMOTE_BASE}/bihar_election_results_consolidated`
+            : `${REMOTE_BASE}/bihar_election_results_consolidated.json`,
+          './bihar_election_results_consolidated.json',
+          'election results data'
+        );
+        const resultsData = await resultsResponse.json();
+
+        // Process election results JSON data
+        for (const row of resultsData) {
+          const acNo = String(parseInt(row.no || '0')).padStart(3, '0');
+          electionData.set(acNo, row);
+        }
+
+        console.log(`📊 Successfully loaded ${electionData.size} constituency records from remote/local sources`);
+
+        // Pre-compute color cache for performance
+        preComputeColors();
+
+        return true;
+      } catch (e) {
+        console.error('❌ Critical error loading election data:', e);
+        statusEl.textContent = 'Failed to load election data - check network connection';
+        return false;
+      }
+    }
+
+    async function init(){
+      try{
+        statusEl.textContent = `Loading Bihar data from ${DATA_SOURCE}...`;
+
+        // Load election data first
+        const dataLoaded = await loadElectionData();
+
+        // Load GeoJSON from selected remote (with local fallback)
+        const geoResponse = await loadWithFallback(
+          `${REMOTE_BASE}/bihar_ac_all.geojson`,
+          './bihar_ac_all.geojson',
+          'constituency map data'
+        );
+        const geoData = await geoResponse.json();
+        biharData = geoData;
+        projection = d3.geoMercator().fitSize([width, height], biharData);
+        path = d3.geoPath(projection);
+
+        draw(biharData.features);
+        cacheFeatures(biharData.features); // Pre-compute feature lookups and centroids
+        populateSearch(biharData.features);
+        createMapControls();
+
+        if (dataLoaded) {
+          // Update colors now that data is loaded
+          g.selectAll('path').attr('fill', d => getColorForMode(featureKey(d.properties), currentColorMode));
+          updateLegend();
+        }
+
+        // Handle initial URL parameter selection
+        const initialAc = getQueryParam('ac');
+        if (initialAc && electionData.has(initialAc)) {
+          // Suppress URL update on initial load to prevent double history entry
+          selectByKey(initialAc, true);
+        }
+
+        wrapEl.classList.remove('loading');
+        statusEl.textContent = '';
+      }catch(e){
+        console.error(e);
+        statusEl.textContent = 'Failed to load Bihar data';
+      }
+    }
+
+    init();
+  </script>
+
+  <div id="bottomSheet" style="display: none;">
+    Test Bottom Sheet - Selected constituency info will appear here
+  </div>
+</body>
+</html>
+
+
