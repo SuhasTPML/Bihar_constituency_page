@@ -1090,13 +1090,70 @@
       return snippet;
     }
 
-    // Build a dynamic, URL-driven embed snippet using external runtime (embed.js)
+    // Build a dynamic, URL-driven embed snippet with fully inline code (no external src)
     function buildDynamicScriptEmbedSnippet(state){
-      const seatNo = state && state.seatNo;
       const hostId = 'bihar-embed';
-      const snippet = `<div id="${hostId}" data-source="gh"></div>\n`+
-        `<script defer src="https://suhastpml.github.io/Bihar_constituency_page/embed.js"><\\/script>\n`+
-        `<script>window.BiharEmbed&&window.BiharEmbed.mount('#${hostId}');<\\/script>`;
+      const scopedStyles = buildScopedStylesForId(hostId);
+      const code = `(function(){\n`+
+`  var host = document.getElementById('${hostId}'); if(!host) return;\n`+
+`  host.innerHTML = '<div class="container"><div class="muted">Loading constituency widget...</div></div>';\n`+
+`  function slugifyName(t){ try { return String(t||'').replace(/\\([^)]*\\)/g,'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,''); } catch(e){ return ''; } }\n`+
+`  function extractPageSlug(u){ try { var url=new URL(u); var segs=url.pathname.split('/').filter(Boolean); if(!segs.length) return ''; var last=segs[segs.length-1].toLowerCase(); last=last.replace(/\\.(html|htm)$/,''); last=last.replace(/-(assembly|vidhan-sabha)-(election|polls)(-by)?(-20\\d{2})?(-\\d+)?$/,''); last=last.replace(/-\\d+$/,''); return last.replace(/[^a-z0-9-]+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,''); } catch(e){ return ''; } }\n`+
+`  function endpoints(source){ source=(source||'').toLowerCase(); if(source==='sandbox'){ return { parties:'https://dh-sandbox-web.quintype.io/parties.json', consolidated:'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated' }; } return { parties:'https://suhastpml.github.io/Bihar_constituency_page/parties.json', consolidated:'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json' }; }\n`+
+`  function fmt(n){ try{return Number(n).toLocaleString('en-IN');}catch(_){return String(n);} }\n`+
+`  function enrichParty(code, partiesIdx){ var c=(code||'').trim(); var meta=partiesIdx[c]||null; return { code: c||null, name: meta? meta.name:null, color: meta? meta.color:'#888' }; }\n`+
+`  function recFromRow(row, year){ if(!row) return null; var y=String(year); var wN=row['y'+y+'_winner_name']; var wP=row['y'+y+'_winner_party']; var wV=row['y'+y+'_winner_votes']; var rN=row['y'+y+'_runner_name']; var rP=row['y'+y+'_runner_party']; var rV=row['y'+y+'_runner_votes']; var m=row['y'+y+'_margin']; if(!wN && !wP && !wV && !m) return null; return { 'Winner': { Candidate: wN||'-', Party: wP||'-', Votes: wV||'0' }, 'Runner up': { Candidate: rN||'-', Party: rP||'-', Votes: rV||'0' }, 'Margin': m||'0' }; }\n`+
+`  function renderYearBlock(year, rec, partiesIdx){ if(!rec){ return '<div class="card election-result"><h3 class="election-title">Bihar Elections '+year+' Results</h3><div class="muted">Not available</div></div>'; } var w=rec['Winner']||{}, ru=rec['Runner up']||{}; var wP=enrichParty(w.Party, partiesIdx), ruP=enrichParty(ru.Party, partiesIdx); var wVotes=parseInt(String(w.Votes||'').replace(/,/g,''),10)||0; var ruVotes=parseInt(String(ru.Votes||'').replace(/,/g,''),10)||0; var margin=parseInt(String(rec.Margin||'').replace(/,/g,''),10)||Math.max(0,wVotes-ruVotes); var maxV=Math.max(wVotes,ruVotes,1); var wPct=Math.round((wVotes/maxV)*100); var ruPct=Math.round((ruVotes/maxV)*100); return '<div class="card election-result">'+`+
+`'<h3 class="election-title">Bihar Elections '+year+' Results</h3>' +`+
+`'<div class="candidate-row">' +`+
+`'<div class="candidate-info"><div><div class="candidate-name">WINNER: '+(w.Candidate||'-')+'</div><div class="candidate-party">'+(wP.name||wP.code||'-')+' · <span class="vote-count">'+fmt(wVotes)+' votes</span></div></div></div>' +`+
+`'<div class="bar"><span style="width:'+wPct+'%; background:'+wP.color+'"></span></div>' +`+
+`'</div>' +`+
+`'<div class="candidate-row">' +`+
+`'<div class="candidate-info"><div><div class="candidate-name">Runner-up: '+(ru.Candidate||'-')+'</div><div class="candidate-party">'+(ruP.name||ruP.code||'-')+' · <span class="vote-count">'+fmt(ruVotes)+' votes</span></div></div></div>' +`+
+`'<div class="bar"><span style="width:'+ruPct+'%; background:'+ruP.color+'"></span></div>' +`+
+`'</div>' +`+
+`'<div class="margin-info"><span class="margin-text">MARGIN: '+fmt(margin)+' votes</span></div>' +`+
+`'</div>'; }\n`+
+`  var source = (host.getAttribute('data-source')||'gh');\n`+
+`  var override = (host.getAttribute('data-constituency')||'').toLowerCase();\n`+
+`  if(!override){ try{ var qp=new URLSearchParams(location.search||''); override=(qp.get('constituency')||'').toLowerCase(); }catch(_){} }\n`+
+`  var slug = override || extractPageSlug(window.location.href);\n`+
+`  var ep = endpoints(source);\n`+
+`  Promise.all([ fetch(ep.parties).then(r=>r.json()), fetch(ep.consolidated).then(r=>r.json()) ]).then(function(res){\n`+
+`    var parties=res[0]||[]; var consolidated=res[1]||[];\n`+
+`    var partiesIdx={}; (parties||[]).forEach(function(p){ partiesIdx[p.code]=p; });\n`+
+`    var byNo=new Map(); var slugMap=new Map();\n`+
+`    (consolidated||[]).forEach(function(row){ var no=parseInt(String(row.no||''),10); if(Number.isFinite(no)){ byNo.set(no,row); var s=slugifyName(row.constituency_name||row.name||''); if(s) slugMap.set(s,no); } });\n`+
+`    var seatNo=null;\n`+
+`    if(slug && slugMap.has(slug)) seatNo=slugMap.get(slug); else if (slug){ var relaxed=slug.replace(/-/g,''); for (var it of slugMap.keys()){ if(it.replace(/-/g,'')===relaxed){ seatNo = slugMap.get(it); break; } } }\n`+
+`    var container = '<div class="container">';\n`+
+`    if(!seatNo){ host.innerHTML = container + '<div class="card"><div class="error">Could not infer constituency from URL. Set data-constituency on container.</div></div></div>'; return; }\n`+
+`    var row = byNo.get(seatNo); var base = row ? { name: row.constituency_name, district: row.district, reserved: row.reserved || 'General' } : null;\n`+
+`    if(!base){ host.innerHTML = container + '<div class="card"><div class="error">Seat #'+seatNo+' not found.</div></div></div>'; return; }\n`+
+`    var r2010=recFromRow(row,2010), r2015=recFromRow(row,2015), r2020=recFromRow(row,2020), r2025=recFromRow(row,2025);\n`+
+`    var html = ''+\n`+
+`      '<div class="card constituency-header">'+\n`+
+`      '<h2 class="constituency-title">'+base.name+' Assembly Election 2025</h2>'+\n`+
+`      '<div class="constituency-info">'+\n`+
+`        '<div><strong>District:</strong> '+(base.district||'-')+'</div>'+\n`+
+`        '<div><strong>Seat Type:</strong> <span class="badge">'+(base.reserved||'General')+'</span></div>'+\n`+
+`      '</div></div>' +\n`+
+`      (r2025? renderYearBlock(2025, r2025, partiesIdx) : '') +\n`+
+`      '<div class="card"><div class="cms-content-body"><div id="mapEmbed" style="width:100%;"></div></div></div>' +\n`+
+`      '<div class="card">' +\n`+
+`        '<h3 class="past-results-title">Bihar Assembly Elections '+base.name+' Past Results</h3>' +\n`+
+`        renderYearBlock(2020, r2020, partiesIdx) +\n`+
+`        renderYearBlock(2015, r2015, partiesIdx) +\n`+
+`        renderYearBlock(2010, r2010, partiesIdx) +\n`+
+`      '</div>' +\n`+
+`      '<div class="disclaimer-footer"><div class="disclaimer-text">This page incorporates information from Wikipedia and ECI data.</div></div>';\n`+
+`    host.innerHTML = container + html + '</div>';\n`+
+`    try { var el = host.querySelector('#mapEmbed'); if (el){ var ac=String(seatNo).padStart(3,'0'); var iframe=document.createElement('iframe'); iframe.className='embed-map'; iframe.loading='lazy'; iframe.referrerPolicy='no-referrer'; iframe.style.width='100%'; iframe.style.height='600px'; iframe.style.border='0'; iframe.style.borderRadius='8px'; iframe.src='https://suhastpml.github.io/Bihar_constituency_page/map.html?ac='+ac+'&enable2025='+(r2025? '1':'0'); el.innerHTML=''; el.appendChild(iframe); } } catch(_){}\n`+
+`  }).catch(function(e){ host.innerHTML = '<div class="container"><div class="card"><div class="error">Failed to load data for dynamic embed.</div></div></div>'; console&&console.error&&console.error(e); });\n`+
+`})();`;
+      const safe = code.replace(/<\/(script)/gi, '<\\/$1');
+      const snippet = `<div id="${hostId}" data-source="gh"></div>\n<style>${scopedStyles}</style>\n<script>${safe}<\/script>`;
       return snippet;
     }
 
