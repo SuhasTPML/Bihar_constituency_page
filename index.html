@@ -606,11 +606,17 @@
         { year: '2020', rec: r2020, party: partyOf(r2020), name: nameOf(r2020) },
         { year: '2025', rec: r2025, party: partyOf(r2025), name: nameOf(r2025) }
       ].filter(e => e.rec);
-      
+
+      // If 2025 data exists, reverse to show newest first
+      const has2025 = elections.some(e => e.year === '2025');
+      if (has2025) {
+        elections.reverse();
+      }
+
       if (elections.length === 0) {
         return '<div class="trends-container"><div class="muted">No election data available</div></div>';
       }
-      
+
       let timelineHTML = '';
       
       elections.forEach((election, index) => {

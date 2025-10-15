@@ -1185,6 +1185,18 @@
           { year: '2025', rec: r2025, party: partyOf(r2025), name: nameOf(r2025) }
         ].filter(function(e) { return e.rec; });
 
+        // If 2025 data exists, reverse to show newest first
+        var has2025 = false;
+        for (var i = 0; i < elections.length; i++) {
+          if (elections[i].year === '2025') {
+            has2025 = true;
+            break;
+          }
+        }
+        if (has2025) {
+          elections.reverse();
+        }
+
         if (elections.length === 0) {
           return '<div class="trends-container"><div class="muted">No election data available</div></div>';
         }
@@ -2030,6 +2042,18 @@ window.addEventListener('load', initEmbed);
           { year: '2020', rec: r2020, party: partyOf(r2020), name: nameOf(r2020) },
           { year: '2025', rec: r2025, party: partyOf(r2025), name: nameOf(r2025) }
         ].filter(function(e) { return e.rec; });
+
+        // If 2025 data exists, reverse to show newest first
+        var has2025 = false;
+        for (var i = 0; i < elections.length; i++) {
+          if (elections[i].year === '2025') {
+            has2025 = true;
+            break;
+          }
+        }
+        if (has2025) {
+          elections.reverse();
+        }
 
         if (elections.length === 0) {
           hostEl.innerHTML = '<div class="card"><h3 class="past-results-title">Bihar Assembly Elections ' + constituency.constituency_name + ' Past Results</h3><div class="trends-container"><div class="muted">No election data available</div></div></div>';
