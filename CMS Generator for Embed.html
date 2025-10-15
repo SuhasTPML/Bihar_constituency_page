@@ -1290,12 +1290,20 @@
   }
 }
 
-// Start when DOM is ready
+// Start when DOM is ready - multiple triggers for CMS compatibility
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initEmbed);
 } else {
+  // DOM already loaded, try immediately
   initEmbed();
 }
+
+// Also try after a short delay (for CMS environments that manipulate DOM after load)
+setTimeout(initEmbed, 100);
+setTimeout(initEmbed, 500);
+
+// And on window load as final fallback
+window.addEventListener('load', initEmbed);
 })();`;
 
       const snippet = `<div id="${hostId}"></div>
