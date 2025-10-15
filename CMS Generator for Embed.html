@@ -1052,8 +1052,10 @@
       var parties = results[0];
       var consolidated = results[1];
 
-      // Find constituency by slug
+      // Find constituency - try exact slug match first, then fuzzy match
       var constituency = null;
+
+      // 1. Try exact match
       for (var i = 0; i < consolidated.length; i++) {
         if (consolidated[i].slug === slug) {
           constituency = consolidated[i];
@@ -1061,8 +1063,20 @@
         }
       }
 
+      // 2. If no exact match, search for slug anywhere in the URL path
       if (!constituency) {
-        hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Constituency not found for slug: ' + slug + '</div>';
+        var urlLower = parentUrl.toLowerCase();
+        for (var i = 0; i < consolidated.length; i++) {
+          var constSlug = consolidated[i].slug;
+          if (constSlug && urlLower.includes(constSlug)) {
+            constituency = consolidated[i];
+            break;
+          }
+        }
+      }
+
+      if (!constituency) {
+        hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Constituency not found for slug: ' + slug + ' in URL: ' + parentUrl + '</div>';
         return;
       }
 
