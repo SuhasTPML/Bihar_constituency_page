@@ -316,7 +316,7 @@
         <input id="seatNo" type="number" min="1" max="243" placeholder="e.g. 21" />
         <button id="loadBtn" class="primary-btn">Load</button>
         <button id="exportBtn" class="primary-btn" style="background:#10b981" disabled>Export Embed</button>
-        <button id="exportDynamicBtn" class="primary-btn" style="background:#6366f1" disabled>Export Dynamic Embed</button>
+        <button id="exportDynamicBtn" class="primary-btn" style="background:#f59e0b" disabled>Export Dynamic Embed</button>
         <label style="margin-left:12px; display:flex; align-items:center; gap:6px;">
           <input id="resultsToggle" type="checkbox" disabled />
           <span>Results announced (auto)</span>
@@ -523,34 +523,13 @@
           if (Number.isFinite(no)) consolidatedByNo.set(no, row);
         }
       }
-      // Build slug -> seat number map for dynamic embedding
-      const __slugifyName = (txt)=>{
-        try {
-          const t1 = String(txt||'')
-            .replace(/\([^)]*\)/g, '')
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase();
-          return t1.replace(/[^a-z0-9]+/g, '-')
-                   .replace(/-+/g, '-')
-                   .replace(/^-+|-+$/g, '');
-        } catch { return ''; }
-      };
-      const slugToSeatNo = new Map();
-      if (Array.isArray(consolidated)){
-        for (const row of consolidated){
-          const nm = row.constituency_name || row.name || '';
-          const no = parseInt(String(row.no||''),10);
-          const slug = __slugifyName(nm);
-          if (slug && Number.isFinite(no)) slugToSeatNo.set(slug, no);
-        }
-      }
       const byNo = (n)=>{
         const row = consolidatedByNo.get(n);
         if (!row) return null;
         return { name: row.constituency_name, district: row.district, reserved: row.reserved || 'General' };
       };
 
-      return { partiesIdx, allianceColors, allianceOriginalColors, byNo, consolidated, consolidatedByNo, slugToSeatNo };
+      return { partiesIdx, allianceColors, allianceOriginalColors, byNo, consolidated, consolidatedByNo };
     }
 
     function enrichParty(code, partiesIdx){
@@ -677,9 +656,9 @@
         </div>`;
     }
 
-    function renderSeatInto(rootEl, seatNo, data){
+    function renderSeat(seatNo, data){
       const base = data.byNo(seatNo);
-      const out = rootEl;
+      const out = document.getElementById('output');
       if (!base){ out.innerHTML = `<div class="error">Seat #${seatNo} not found.</div>`; return; }
 
       // Build per-year records from consolidated row (includes runner-up)
@@ -763,7 +742,7 @@
         <div class="card current-mla-card">
           <h3 class="current-mla-title">${base.name} Current MLA</h3>
           <p class="mla-name">${mla.mla ? mla.mla : '-'}</p>
-          ${(() => { const parts=[]; if (mlaParty && (mlaParty.name || mlaParty.code)) parts.push(mlaParty.name || mlaParty.code); if (mla && mla.alliance) parts.push(`Alliance: ${mla.alliance}`); return parts.length ? `<p class=\"current-mla-meta\">${parts.join(' · ')}</p>` : '' })()}
+          ${(() => { const parts=[]; if (mlaParty && (mlaParty.name || mlaParty.code)) parts.push(mlaParty.name || mlaParty.code); if (mla && mla.alliance) parts.push(`Alliance: ${mla.alliance}`); return parts.length ? `<p class=\"current-mla-meta\">${parts.join(' • ')}</p>` : '' })()}
         </div>`}
         
         <div class="card">
@@ -854,67 +833,8 @@
         if (announced) injectCms('cms-post', CMS_POST_HTML);
         window.__lastRender = { seatNo, announced };
         const exportBtn = document.getElementById('exportBtn');
-        const exportDynamicBtn = document.getElementById('exportDynamicBtn');
         if (exportBtn) exportBtn.disabled = false;
-        if (exportDynamicBtn) exportDynamicBtn.disabled = false;
       } catch (_) {}
-    }
-
-    // Back-compat wrapper using default output container
-    function renderSeat(seatNo, data){
-      const host = document.getElementById('output');
-      if (!host) return;
-      renderSeatInto(host, seatNo, data);
-    }
-
-    // Helpers for dynamic embed
-    function extractPageSlug(url){
-      try {
-        const u = new URL(url);
-        const segs = u.pathname.split('/').filter(Boolean);
-        if (!segs.length) return '';
-        let last = segs[segs.length - 1].toLowerCase();
-        last = last.replace(/\.(html|htm)$/, '');
-        last = last.replace(/-(assembly|vidhan-sabha)-(election|polls)(-by)?(-20\d{2})?(-\d+)?$/, '');
-        last = last.replace(/-\d+$/, '');
-        return last.replace(/[^a-z0-9-]+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');
-      } catch { return ''; }
-    }
-
-    async function initDynamicEmbed(rootId, opts){
-      const host = document.getElementById(rootId);
-      if (!host) return;
-      host.innerHTML = '<div class="muted">Loading constituency widget...</div>';
-      const getOverride = ()=>{
-        try {
-          const qp = new URLSearchParams(location.search||'');
-          const qs = (qp.get('constituency')||'').trim().toLowerCase();
-          const attr = (host.getAttribute('data-constituency')||'').trim().toLowerCase();
-          return attr || qs;
-        } catch { return (host.getAttribute('data-constituency')||'').trim().toLowerCase(); }
-      };
-      try {
-        const data = await loadAll();
-        let slug = getOverride();
-        if (!slug) slug = extractPageSlug(window.location.href);
-        let seatNo = null;
-        if (slug && data.slugToSeatNo && data.slugToSeatNo.has(slug)){
-          seatNo = data.slugToSeatNo.get(slug);
-        } else if (slug) {
-          const relaxed = slug.replace(/-/g,'');
-          for (const [k,v] of data.slugToSeatNo){
-            if (k.replace(/-/g,'') === relaxed) { seatNo = v; break; }
-          }
-        }
-        if (!seatNo){
-          host.innerHTML = '<div class="error">Could not infer constituency from URL. Set data-constituency on container.</div>';
-          return;
-        }
-        renderSeatInto(host, seatNo, data);
-      } catch (e){
-        console.error(e);
-        host.innerHTML = '<div class="error">Failed to load data for dynamic embed.</div>';
-      }
     }
 
     function buildEmbedHTML(state){
@@ -1030,6 +950,318 @@
       return out;
     }
 
+    function buildDynamicEmbedSnippet(){
+      const hostId = 'bihar-dynamic-embed';
+      const scopedStyles = buildScopedStylesForId(hostId);
+
+      // This is the complete dynamic embed script that will be injected into CMS
+      const dynamicScript = `
+(function() {
+  try {
+    // Get parent URL
+    var parentUrl = '';
+    try {
+      parentUrl = window.parent.location.href;
+    } catch(e) {
+      parentUrl = document.referrer || window.location.href;
+    }
+
+    var hostEl = document.getElementById('${hostId}');
+    if (!hostEl) return;
+
+    // Show loading state
+    hostEl.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">Loading constituency data...</div>';
+
+    // Extract slug from URL
+    function extractSlug(url) {
+      try {
+        var urlObj = new URL(url);
+        var path = urlObj.pathname;
+        // Match patterns like /archives/valmiki-nagar-assembly-election-2025-1400072
+        // Extract the first part before -assembly-election or -election
+        var match = path.match(/\\/([^\\/]+?)(?:-assembly)?-election-\\d{4}/i);
+        if (match && match[1]) return match[1];
+
+        // Try simpler pattern: /archives/slug-anything
+        var parts = path.split('/').filter(function(p){ return p.length > 0; });
+        if (parts.length > 1) {
+          var lastPart = parts[parts.length - 1];
+          // Remove trailing numbers and election year patterns
+          var cleaned = lastPart.replace(/-\\d{4}-\\d+$/, '').replace(/-assembly-election.*$/, '').replace(/-election.*$/, '');
+          if (cleaned) return cleaned;
+        }
+
+        return null;
+      } catch(e) {
+        console.error('Slug extraction error:', e);
+        return null;
+      }
+    }
+
+    var slug = extractSlug(parentUrl);
+    if (!slug) {
+      hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Could not extract constituency from URL: ' + parentUrl + '</div>';
+      return;
+    }
+
+    // Detect data source
+    function detectDataSource() {
+      var host = window.location.hostname.toLowerCase();
+      if (host.includes('quintype.io') || host.includes('sandbox')) return 'sandbox';
+      return 'github';
+    }
+
+    var dataSource = detectDataSource();
+    var filesConfig = {
+      github: {
+        parties: 'https://suhastpml.github.io/Bihar_constituency_page/parties.json',
+        consolidated: 'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json',
+        alliances: 'https://suhastpml.github.io/Bihar_constituency_page/alliances.json'
+      },
+      sandbox: {
+        parties: 'https://dh-sandbox-web.quintype.io/parties.json',
+        consolidated: 'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated',
+        alliances: 'https://dh-sandbox-web.quintype.io/alliances.json'
+      }
+    };
+
+    var FILES = filesConfig[dataSource];
+
+    // Load all data
+    Promise.all([
+      fetch(FILES.parties).then(function(r){ return r.json(); }),
+      fetch(FILES.consolidated).then(function(r){ return r.json(); })
+    ]).then(function(results) {
+      var parties = results[0];
+      var consolidated = results[1];
+
+      // Find constituency by slug
+      var constituency = null;
+      for (var i = 0; i < consolidated.length; i++) {
+        if (consolidated[i].slug === slug) {
+          constituency = consolidated[i];
+          break;
+        }
+      }
+
+      if (!constituency) {
+        hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Constituency not found for slug: ' + slug + '</div>';
+        return;
+      }
+
+      // Build party index
+      var partiesIdx = {};
+      parties.forEach(function(p) { partiesIdx[p.code] = p; });
+
+      // Helper functions (inline the essential ones)
+      var PARTY_NORMALIZE = { 'JDU': 'JD(U)', 'CPM': 'CPI(M)', 'HAM': 'HAM(S)', 'Ind': 'IND' };
+      function normalizeParty(code) {
+        if (!code) return code;
+        var c = code.trim();
+        return PARTY_NORMALIZE[c] || c;
+      }
+
+      function fmtNumber(n) {
+        return (n == null ? 'N/A' : Number(n).toLocaleString('en-IN'));
+      }
+
+      function enrichParty(code, idx) {
+        var norm = normalizeParty(code || '');
+        var meta = idx[norm] || idx[code] || null;
+        return {
+          code: norm || null,
+          name: meta ? meta.name : null,
+          color: meta ? meta.color : '#888'
+        };
+      }
+
+      function recFromConsolidated(row, year) {
+        if (!row) return null;
+        var y = String(year);
+        var wName = row['y' + y + '_winner_name'];
+        var wParty = row['y' + y + '_winner_party'];
+        var wVotes = row['y' + y + '_winner_votes'];
+        var ruName = row['y' + y + '_runner_name'];
+        var ruParty = row['y' + y + '_runner_party'];
+        var ruVotes = row['y' + y + '_runner_votes'];
+        var margin = row['y' + y + '_margin'];
+        if (!wName && !wParty && !wVotes && !margin) return null;
+        return {
+          'Winner': { Candidate: wName || '-', Party: wParty || '-', Votes: wVotes || '0' },
+          'Runner up': { Candidate: ruName || '-', Party: ruParty || '-', Votes: ruVotes || '0' },
+          'Margin': margin || '0'
+        };
+      }
+
+      function renderYearBlock(year, rec, idx) {
+        if (!rec) return '<div class="card election-result"><h3 class="election-title">Bihar Elections ' + year + ' Results</h3><div class="muted">Not available</div></div>';
+        var w = rec['Winner'] || {};
+        var ru = rec['Runner up'] || {};
+        var wP = enrichParty(w.Party, idx);
+        var ruP = enrichParty(ru.Party, idx);
+        var wVotes = parseInt(String(w.Votes || '').replace(/,/g, ''), 10) || 0;
+        var ruVotes = parseInt(String(ru.Votes || '').replace(/,/g, ''), 10) || 0;
+        var margin = parseInt(String(rec.Margin || '').replace(/,/g, ''), 10) || Math.max(0, wVotes - ruVotes);
+        var maxV = Math.max(wVotes, ruVotes, 1);
+        var wPct = Math.round((wVotes / maxV) * 100);
+        var ruPct = Math.round((ruVotes / maxV) * 100);
+
+        return '<div class="card election-result">' +
+          '<h3 class="election-title">Bihar Elections ' + year + ' Results</h3>' +
+          '<div class="candidate-row">' +
+            '<div class="candidate-info">' +
+              '<div>' +
+                '<div class="candidate-name">WINNER: ' + (w.Candidate || '—') + '</div>' +
+                '<div class="candidate-party">' + (wP.name || wP.code || '—') + ' • <span class="vote-count">' + fmtNumber(wVotes) + ' votes</span></div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="bar"><span style="width:' + wPct + '%; background:#16a34a"></span></div>' +
+          '</div>' +
+          '<div class="candidate-row">' +
+            '<div class="candidate-info">' +
+              '<div>' +
+                '<div class="candidate-name">Runner-up: ' + (ru.Candidate || '—') + '</div>' +
+                '<div class="candidate-party">' + (ruP.name || ruP.code || '—') + ' • <span class="vote-count">' + fmtNumber(ruVotes) + ' votes</span></div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="bar"><span style="width:' + ruPct + '%; background:#dc2626"></span></div>' +
+          '</div>' +
+          '<div class="margin-info">' +
+            '<span class="margin-text">MARGIN: ' + fmtNumber(margin) + ' votes</span>' +
+          '</div>' +
+        '</div>';
+      }
+
+      function renderEnhancedTrends(r2010, r2015, r2020, r2025, idx) {
+        function partyOf(rec) { return normalizeParty((rec && rec['Winner'] && rec['Winner'].Party) || ''); }
+        function nameOf(rec) { return (rec && rec['Winner'] && rec['Winner'].Candidate) || null; }
+
+        var elections = [
+          { year: '2010', rec: r2010, party: partyOf(r2010), name: nameOf(r2010) },
+          { year: '2015', rec: r2015, party: partyOf(r2015), name: nameOf(r2015) },
+          { year: '2020', rec: r2020, party: partyOf(r2020), name: nameOf(r2020) },
+          { year: '2025', rec: r2025, party: partyOf(r2025), name: nameOf(r2025) }
+        ].filter(function(e) { return e.rec; });
+
+        if (elections.length === 0) {
+          return '<div class="trends-container"><div class="muted">No election data available</div></div>';
+        }
+
+        var timelineHTML = '';
+        elections.forEach(function(election, index) {
+          var party = enrichParty(election.party, idx);
+          timelineHTML += '<div class="timeline-year">' +
+            '<div class="timeline-year-badge">' + election.year + '</div>' +
+            '<div class="timeline-candidate">' +
+              '<div class="timeline-candidate-name">' + (election.name || '—') + '</div>' +
+              '<div class="timeline-party" style="background: ' + party.color + '">' + (party.code || '—') + '</div>' +
+            '</div>' +
+          '</div>';
+
+          if (index < elections.length - 1) {
+            var nextElection = elections[index + 1];
+            var isHold = election.party === nextElection.party;
+            var changeClass = isHold ? 'timeline-hold' : 'timeline-gain';
+            var changeText = isHold ? 'HOLD' : 'GAIN';
+            timelineHTML += '<div class="timeline-connection">' +
+              '<div class="timeline-line"></div>' +
+              '<div class="timeline-change ' + changeClass + '">' + changeText + '</div>' +
+            '</div>';
+          }
+        });
+
+        return '<div class="trends-container">' +
+          '<div class="timeline-scroll">' +
+            '<div class="timeline-container">' + timelineHTML + '</div>' +
+          '</div>' +
+          '<div class="timeline-hint">← Timeline can be scrolled horizontally →</div>' +
+        '</div>';
+      }
+
+      // Extract year records
+      var r2010 = recFromConsolidated(constituency, 2010);
+      var r2015 = recFromConsolidated(constituency, 2015);
+      var r2020 = recFromConsolidated(constituency, 2020);
+      var r2025 = recFromConsolidated(constituency, 2025);
+
+      var announced = !!r2025;
+      var reserved = constituency.reserved || 'General';
+      var mla = {
+        mla: constituency.current_mla_name,
+        party: constituency.current_mla_party,
+        alliance: constituency.current_mla_alliance
+      };
+      var mlaParty = enrichParty(mla.party, partiesIdx);
+
+      // CMS content blocks
+      var CMS_PRE = '<p>The Bihar Assembly elections are underway. Follow this page for constituency-wise context, key candidates, and background ahead of the 2025 results. We'll update this section with quick takeaways as trends emerge.</p><p>Note: Past results and party colors are based on publicly available records. Turn the 'Results announced' toggle on when official 2025 results are declared to see updated summaries.</p>';
+      var CMS_POST = '<p>The 2025 results for this constituency are in. The summary and margin details are displayed above. Use this section for quick context on how the outcome compares with 2010–2020 and what it means for the broader alliances.</p><p>Data sources include official ECI releases and curated archives. We will refine the summary as more granular booth-level data is published.</p>';
+
+      // Build map iframe
+      var ac = String(constituency.no).padStart(3, '0');
+      var enable2025 = announced ? '1' : '0';
+      var mapUrl = 'https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=' + ac + '&enable2025=' + enable2025;
+      var mapHTML = '<div class="card cms-content-card"><div class="cms-content-body">' +
+        '<iframe class="embed-map" loading="lazy" referrerpolicy="no-referrer" ' +
+        'style="width:100%;height:600px;border:0;border-radius:8px;" src="' + mapUrl + '"></iframe>' +
+        '</div></div>';
+
+      // Render full HTML
+      var html = '<div class="card constituency-header">' +
+        '<h2 class="constituency-title">' + constituency.constituency_name + ' Assembly Election 2025</h2>' +
+        '<div class="constituency-info">' +
+          '<div><strong>District:</strong> ' + constituency.district + '</div>' +
+          '<div><strong>Seat Type:</strong> <span class="badge">' + reserved + '</span></div>' +
+        '</div>' +
+      '</div>' +
+      (!announced ? '<div class="card cms-content-card"><div class="cms-content-body">' + CMS_PRE + '</div></div>' : '') +
+      (announced ? renderYearBlock(2025, r2025, partiesIdx) : '') +
+      (announced ? '<div class="card cms-content-card"><div class="cms-content-body">' + CMS_POST + '</div></div>' : '') +
+      mapHTML +
+      (!announced ? '<div class="card current-mla-card">' +
+        '<h3 class="current-mla-title">' + constituency.constituency_name + ' Current MLA</h3>' +
+        '<p class="mla-name">' + (mla.mla || '-') + '</p>' +
+        (function() {
+          var parts = [];
+          if (mlaParty && (mlaParty.name || mlaParty.code)) parts.push(mlaParty.name || mlaParty.code);
+          if (mla.alliance) parts.push('Alliance: ' + mla.alliance);
+          return parts.length ? '<p class="current-mla-meta">' + parts.join(' • ') + '</p>' : '';
+        })() +
+      '</div>' : '') +
+      '<div class="card">' +
+        '<h3 class="past-results-title">Bihar Assembly Elections ' + constituency.constituency_name + ' Past Results</h3>' +
+        renderEnhancedTrends(r2010, r2015, r2020, (announced ? r2025 : null), partiesIdx) +
+      '</div>' +
+      '<div class="results-container">' +
+        renderYearBlock(2020, r2020, partiesIdx) +
+        renderYearBlock(2015, r2015, partiesIdx) +
+        renderYearBlock(2010, r2010, partiesIdx) +
+      '</div>' +
+      '<div class="disclaimer-footer">' +
+        '<div class="disclaimer-text">' +
+          'This page incorporates information from Wikipedia articles, available under the Creative Commons Attribution-ShareAlike 4.0 License, and data from the Election Commission of India (ECI)' +
+        '</div>' +
+      '</div>';
+
+      hostEl.innerHTML = html;
+
+    }).catch(function(err) {
+      console.error('Dynamic embed error:', err);
+      hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Error loading data: ' + err.message + '</div>';
+    });
+
+  } catch(e) {
+    console.error('Dynamic embed initialization error:', e);
+  }
+})();`;
+
+      const snippet = `<div id="${hostId}"></div>
+<style>${scopedStyles}</style>
+<script>${dynamicScript}<\/script>`;
+
+      return snippet;
+    }
+
     function buildDivOnlySnippet(state){
       const seatNo = state && state.seatNo;
       const announced = !!(state && state.announced);
@@ -1090,106 +1322,6 @@
       return snippet;
     }
 
-    // Build a dynamic, URL-driven embed snippet with fully inline code (no external src)
-    function buildDynamicScriptEmbedSnippet(state){
-      const hostId = 'bihar-embed';
-      const scopedStyles = buildScopedStylesForId(hostId) + `\n#${hostId} .container{max-width:100%!important;padding:0!important}`;
-      const code = (
-        function(){/*BEGIN*/
-          var host = document.getElementById('HOST_ID'); if(!host) return;
-          // inject fonts to match page
-          (function(){ try{ var head=document.head||document.getElementsByTagName('head')[0]; if(!document.querySelector('link[data-bihar-fonts]')){ var l1=document.createElement('link'); l1.rel='preconnect'; l1.href='https://fonts.googleapis.com'; l1.setAttribute('data-bihar-fonts','1'); head.appendChild(l1); var l2=document.createElement('link'); l2.rel='preconnect'; l2.href='https://fonts.gstatic.com'; l2.crossOrigin='anonymous'; l2.setAttribute('data-bihar-fonts','1'); head.appendChild(l2); var lf=document.createElement('link'); lf.rel='stylesheet'; lf.href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto+Serif:wght@400;500;600&family=Roboto+Slab:wght@400;500;600;700&display=swap'; lf.setAttribute('data-bihar-fonts','1'); head.appendChild(lf);} }catch(_){}})();
-          host.innerHTML = '<div class="container"><div class="muted">Loading constituency widget...</div></div>';
-          function slugifyName(t){ try { return String(t||'').replace(/\([^)]*\)/g,'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,''); } catch(e){ return ''; } }
-          function extractPageSlug(u){ try { var url=new URL(u); var segs=url.pathname.split('/').filter(Boolean); if(!segs.length) return ''; var last=segs[segs.length-1].toLowerCase(); last=last.replace(/\.(html|htm)$/,''); last=last.replace(/-(assembly|vidhan-sabha)-(election|polls)(-by)?(-20\d{2})?(-\d+)?$/,''); last=last.replace(/-\d+$/,''); return last.replace(/[^a-z0-9-]+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,''); } catch(e){ return ''; } }
-          function endpoints(source){ source=(source||'').toLowerCase(); if(source==='sandbox'){ return { parties:'https://dh-sandbox-web.quintype.io/parties.json', consolidated:'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated' }; } return { parties:'https://suhastpml.github.io/Bihar_constituency_page/parties.json', consolidated:'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json' }; }
-          function fmt(n){ try{return Number(n).toLocaleString('en-IN');}catch(_){return String(n);} }
-          function enrichParty(code, partiesIdx){ var c=(code||'').trim(); var meta=partiesIdx[c]||null; return { code: c||null, name: meta? meta.name:null, color: meta? meta.color:'#888' }; }
-          function recFromRow(row, year){ if(!row) return null; var y=String(year); var wN=row['y'+y+'_winner_name']; var wP=row['y'+y+'_winner_party']; var wV=row['y'+y+'_winner_votes']; var rN=row['y'+y+'_runner_name']; var rP=row['y'+y+'_runner_party']; var rV=row['y'+y+'_runner_votes']; var m=row['y'+y+'_margin']; if(!wN && !wP && !wV && !m) return null; return { 'Winner': { Candidate: wN||'-', Party: wP||'-', Votes: wV||'0' }, 'Runner up': { Candidate: rN||'-', Party: rP||'-', Votes: rV||'0' }, 'Margin': m||'0' }; }
-          function renderYearBlock(year, rec, partiesIdx){ if(!rec){ return '<div class="card election-result"><h3 class="election-title">Bihar Elections '+year+' Results</h3><div class="muted">Not available</div></div>'; } var w=rec['Winner']||{}, ru=rec['Runner up']||{}; var wP=enrichParty(w.Party, partiesIdx), ruP=enrichParty(ru.Party, partiesIdx); var wVotes=parseInt(String(w.Votes||'').replace(/,/g,''),10)||0; var ruVotes=parseInt(String(ru.Votes||'').replace(/,/g,''),10)||0; var margin=parseInt(String(rec.Margin||'').replace(/,/g,''),10)||Math.max(0,wVotes-ruVotes); var maxV=Math.max(wVotes,ruVotes,1); var wPct=Math.round((wVotes/maxV)*100); var ruPct=Math.round((ruVotes/maxV)*100); return '<div class="card election-result">'+
-              '<h3 class="election-title">Bihar Elections '+year+' Results</h3>'+
-              '<div class="candidate-row">'+
-                '<div class="candidate-info"><div><div class="candidate-name">WINNER: '+(w.Candidate||'-')+'</div><div class="candidate-party">'+(wP.name||wP.code||'-')+' · <span class="vote-count">'+fmt(wVotes)+' votes</span></div></div></div>'+
-                '<div class="bar"><span style="width:'+wPct+'%; background:#16a34a"></span></div>'+
-              '</div>'+
-              '<div class="candidate-row">'+
-                '<div class="candidate-info"><div><div class="candidate-name">Runner-up: '+(ru.Candidate||'-')+'</div><div class="candidate-party">'+(ruP.name||ruP.code||'-')+' · <span class="vote-count">'+fmt(ruVotes)+' votes</span></div></div></div>'+
-                '<div class="bar"><span style="width:'+ruPct+'%; background:#dc2626"></span></div>'+
-              '</div>'+
-              '<div class="margin-info"><span class="margin-text">MARGIN: '+fmt(margin)+' votes</span></div>'+
-            '</div>'; }
-          function renderTimeline(r2010,r2015,r2020,r2025, partiesIdx){
-            function partyOf(rec){ return ((rec&&rec['Winner']&&rec['Winner'].Party)||'').trim(); }
-            function nameOf(rec){ return (rec&&rec['Winner']&&rec['Winner'].Candidate)||''; }
-            var elections=[]; if(r2010) elections.push({year:'2010',rec:r2010}); if(r2015) elections.push({year:'2015',rec:r2015}); if(r2020) elections.push({year:'2020',rec:r2020}); if(r2025) elections.push({year:'2025',rec:r2025}); if(!elections.length) return '<div class="trends-container"><div class="muted">No election data available</div></div>';
-            var html='';
-            for (var i=0;i<elections.length;i++){
-              var e=elections[i]; var wParty=enrichParty(partyOf(e.rec), partiesIdx); var wName=nameOf(e.rec)||'-';
-              html += '<div class="timeline-year">'+
-                        '<div class="timeline-year-badge">'+e.year+'</div>'+
-                        '<div class="timeline-candidate">'+
-                          '<div class="timeline-candidate-name">'+wName+'</div>'+
-                          '<div class="timeline-party" style="background:'+wParty.color+'">'+(wParty.name||wParty.code||'-')+'</div>'+
-                        '</div>'+
-                      '</div>';
-              if (i<elections.length-1){
-                var curP = partyOf(e.rec).toUpperCase(); var nextP = partyOf(elections[i+1].rec).toUpperCase(); var changeText = (curP===nextP? ('Hold') : ('Gain')); var changeClass = (curP===nextP? 'timeline-hold' : 'timeline-gain');
-                html += '<div class="timeline-connection">'+
-                          '<div class="timeline-line"></div>'+
-                          '<div class="timeline-change '+changeClass+'">'+changeText+'</div>'+
-                        '</div>';
-              }
-            }
-            return '<div class="trends-container"><div class="timeline-scroll"><div class="timeline-container">'+html+'</div></div><div class="timeline-hint">Timeline can be scrolled horizontally</div></div>';
-          }
-          var source = (host.getAttribute('data-source')||'gh');
-          var override = (host.getAttribute('data-constituency')||'').toLowerCase();
-          if(!override){ try{ var qp=new URLSearchParams(location.search||''); override=(qp.get('constituency')||'').toLowerCase(); }catch(_){} }
-          var slug = override || extractPageSlug(window.location.href);
-          var ep = endpoints(source);
-          Promise.all([ fetch(ep.parties).then(function(r){return r.json()}), fetch(ep.consolidated).then(function(r){return r.json()}) ]).then(function(res){
-            var parties=res[0]||[]; var consolidated=res[1]||[];
-            var partiesIdx={}; (parties||[]).forEach(function(p){ partiesIdx[p.code]=p; });
-            var byNo=new Map(); var slugMap=new Map();
-            (consolidated||[]).forEach(function(row){ var no=parseInt(String(row.no||''),10); if(Number.isFinite(no)){ byNo.set(no,row); var s=slugifyName(row.constituency_name||row.name||''); if(s) slugMap.set(s,no); } });
-            var seatNo=null; if(slug && slugMap.has(slug)) seatNo=slugMap.get(slug); else if (slug){ var relaxed=slug.replace(/-/g,''); for (var it of slugMap.keys()){ if(it.replace(/-/g,'')===relaxed){ seatNo = slugMap.get(it); break; } } }
-            var container = '<div class="container">';
-            if(!seatNo){ host.innerHTML = container + '<div class="card"><div class="error">Could not infer constituency from URL. Set data-constituency on container.</div></div></div>'; return; }
-            var row = byNo.get(seatNo); var base = row ? { name: row.constituency_name, district: row.district, reserved: row.reserved || 'General' } : null;
-            if(!base){ host.innerHTML = container + '<div class="card"><div class="error">Seat #'+seatNo+' not found.</div></div></div>'; return; }
-            var r2010=recFromRow(row,2010), r2015=recFromRow(row,2015), r2020=recFromRow(row,2020), r2025=recFromRow(row,2025);
-            var announced = !!r2025;
-            var CMS_PRE = '<p>The Bihar Assembly elections are underway. Follow this page for constituency-wise context, key candidates, and background ahead of the 2025 results. Well update this section with quick takeaways as trends emerge.</p><p>Note: Past results and party colors are based on publicly available records. Turn the Results announced toggle on when official 2025 results are declared to see updated summaries.</p>';
-            var CMS_POST = '<p>The 2025 results for this constituency are in. The summary and margin details are displayed above. Use this section for quick context on how the outcome compares with 2010-2020 and what it means for the broader alliances.</p><p>Data sources include official ECI releases and curated archives. We will refine the summary as more granular booth-level data is published.</p>';
-            var html = ''+
-              '<div class="card constituency-header">'+
-              '<h2 class="constituency-title">'+base.name+' Assembly Election 2025</h2>'+
-              '<div class="constituency-info">'+
-                '<div><strong>District:</strong> '+(base.district||'-')+'</div>'+
-                '<div><strong>Seat Type:</strong> <span class="badge">'+(base.reserved||'General')+'</span></div>'+
-              '</div></div>'+
-              (announced? '' : ('<div class="card cms-content-card" id="cms-pre"><div class="cms-content-body">'+CMS_PRE+'</div></div>'))+
-              (announced? renderYearBlock(2025, r2025, partiesIdx) : '')+
-              (announced? ('<div class="card cms-content-card" id="cms-post"><div class="cms-content-body">'+CMS_POST+'</div></div>') : '')+
-              '<div class="card cms-content-card"><div class="cms-content-body"><div id="mapEmbed" style="width:100%;"></div></div></div>'+
-              (announced? '' : (function(){ var mla=row? {mla:row.current_mla_name, party:row.current_mla_party, alliance:row.current_mla_alliance}:{}; var parts=[]; if(mla && (mla.party||mla.alliance)){ if(mla.party) parts.push(mla.party); if(mla.alliance) parts.push('Alliance: '+mla.alliance); } return '<div class="card current-mla-card"><h3 class="current-mla-title">'+base.name+' Current MLA</h3><p class="mla-name">'+(mla.mla||'-')+'</p>'+ (parts.length? '<p class="current-mla-meta">'+parts.join(' · ')+'</p>' : '') +'</div>'; })() )+
-              '<div class="card"><h3 class="past-results-title">Bihar Assembly Elections '+base.name+' Past Results</h3>'+ renderTimeline(r2010,r2015,r2020,announced? r2025:null, partiesIdx) + '</div>'+
-              '<div class="results-container">'+
-                renderYearBlock(2020, r2020, partiesIdx)+
-                renderYearBlock(2015, r2015, partiesIdx)+
-                renderYearBlock(2010, r2010, partiesIdx)+
-              '</div>'+
-              '<div class="disclaimer-footer"><div class="disclaimer-text">This page incorporates information from Wikipedia articles, available under the Creative Commons Attribution-ShareAlike 4.0 License, and data from the Election Commission of India (ECI)</div></div>';
-            host.innerHTML = container + html + '</div>';
-            try { var el = host.querySelector('#mapEmbed'); if (el){ var ac=String(seatNo).padStart(3,'0'); var iframe=document.createElement('iframe'); iframe.className='embed-map'; iframe.loading='lazy'; iframe.referrerPolicy='no-referrer'; iframe.style.width='100%'; iframe.style.height='600px'; iframe.style.border='0'; iframe.style.borderRadius='8px'; iframe.src='https://suhastpml.github.io/Bihar_constituency_page/map.html?ac='+ac+'&enable2025='+(announced? '1':'0'); el.innerHTML=''; el.appendChild(iframe); } } catch(_){}
-          }).catch(function(e){ host.innerHTML = '<div class="container"><div class="card"><div class="error">Failed to load data for dynamic embed.</div></div></div>'; if (window.console && console.error) console.error(e); });
-        /*END*/}.toString()
-      ).replace('function(){/*BEGIN*/','').replace('/*END*/}','').replace(/HOST_ID/g, hostId);
-      const safe = code.replace(/<\/(script)/gi, '<\\/$1');
-      const snippet = `<div id="${hostId}" data-source="gh"></div>\n<style>${scopedStyles}</style>\n<script>${safe}<\/script>`;
-      return snippet;
-    }
-
     function escapeForAttr(str){
       return String(str)
         .replaceAll('&', '&amp;')
@@ -1235,21 +1367,16 @@
 
     async function exportDynamicEmbed(){
       try {
-        const state = window.__lastRender;
-        if (!state || !state.seatNo){
-          alert('Load a constituency first.');
-          return;
-        }
-        const ac = String(state.seatNo).padStart(3,'0');
-        const snippet = buildDynamicScriptEmbedSnippet(state);
+        const snippet = buildDynamicEmbedSnippet();
         try {
           await navigator.clipboard.writeText(snippet);
           const status = document.getElementById('status');
-          if (status) status.textContent = `Copied Dynamic Script Embed for AC ${ac} to clipboard`;
+          if (status) status.textContent = 'Copied dynamic embed snippet to clipboard (works for all constituencies)';
         } catch (e){
+          // Fallback prompt copy
           const ok = window.prompt('Copy the dynamic embed code below:', snippet);
           const status = document.getElementById('status');
-          if (status) status.textContent = ok !== null ? `Dynamic embed snippet ready to copy for AC ${ac}` : `Copy cancelled`;
+          if (status) status.textContent = ok !== null ? 'Dynamic embed snippet ready to copy' : 'Copy cancelled';
         }
       } catch (e){ console.error(e); alert('Failed to copy dynamic embed code'); }
     }
@@ -1272,10 +1399,11 @@
         const btn = document.getElementById('loadBtn');
         const toggle = document.getElementById('resultsToggle');
         const exportBtn = document.getElementById('exportBtn');
+        const exportDynamicBtn = document.getElementById('exportDynamicBtn');
         const go = ()=>{
           const val = parseInt(input.value,10);
           if (!Number.isFinite(val) || val < 1 || val > 243){
-            document.getElementById('output').innerHTML = '<div class="error">Enter a valid constituency number (1â€“243)</div>';
+            document.getElementById('output').innerHTML = '<div class="error">Enter a valid constituency number (1â€"243)</div>';
             return;
           }
           renderSeat(val, data);
@@ -1285,7 +1413,11 @@
         // Toggle is auto-managed and disabled; retain handler if enabled via dev override.
         if (toggle) toggle.addEventListener('change', go);
         if (exportBtn) exportBtn.addEventListener('click', exportEmbed);
-        if (exportDynamicBtn) exportDynamicBtn.addEventListener('click', exportDynamicEmbed);
+        // Enable dynamic embed button immediately (doesn't need a constituency loaded)
+        if (exportDynamicBtn) {
+          exportDynamicBtn.disabled = false;
+          exportDynamicBtn.addEventListener('click', exportDynamicEmbed);
+        }
         const sourceTNow = document.getElementById('sourceToggle');
         if (sourceTNow) sourceTNow.addEventListener('change', ()=>{
           const sp = new URLSearchParams(location.search);
@@ -1301,11 +1433,6 @@
   </script>
 </body>
 </html>
-
-
-
-
-
 
 
 
