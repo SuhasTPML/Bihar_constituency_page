@@ -957,20 +957,37 @@
       // This is the complete dynamic embed script that will be injected into CMS
       const dynamicScript = `
 (function() {
-  try {
-    // Get parent URL
-    var parentUrl = '';
+  var hasRendered = false;
+  var renderAttempts = 0;
+  var maxAttempts = 3;
+
+  function initEmbed() {
     try {
-      parentUrl = window.parent.location.href;
-    } catch(e) {
-      parentUrl = document.referrer || window.location.href;
-    }
+      renderAttempts++;
 
-    var hostEl = document.getElementById('${hostId}');
-    if (!hostEl) return;
+      // Get parent URL
+      var parentUrl = '';
+      try {
+        parentUrl = window.parent.location.href;
+      } catch(e) {
+        parentUrl = document.referrer || window.location.href;
+      }
 
-    // Show loading state
-    hostEl.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">Loading constituency data...</div>';
+      var hostEl = document.getElementById('${hostId}');
+      if (!hostEl) {
+        if (renderAttempts < maxAttempts) {
+          setTimeout(initEmbed, 500);
+        }
+        return;
+      }
+
+      // Check if already rendered and has content
+      if (hasRendered && hostEl.innerHTML.length > 200) {
+        return;
+      }
+
+      // Show loading state
+      hostEl.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">Loading constituency data...</div>';
 
     // Extract slug from URL
     function extractSlug(url) {
@@ -1244,6 +1261,21 @@
       '</div>';
 
       hostEl.innerHTML = html;
+      hasRendered = true;
+
+      // Watch for content being cleared and re-render if needed
+      var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.type === 'childList' && hostEl.innerHTML.length < 200 && hasRendered) {
+            console.log('Bihar embed content was cleared, re-rendering...');
+            hasRendered = false;
+            renderAttempts = 0;
+            setTimeout(initEmbed, 100);
+            observer.disconnect();
+          }
+        });
+      });
+      observer.observe(hostEl, { childList: true, subtree: false });
 
     }).catch(function(err) {
       console.error('Dynamic embed error:', err);
@@ -1252,7 +1284,18 @@
 
   } catch(e) {
     console.error('Dynamic embed initialization error:', e);
+    if (renderAttempts < maxAttempts) {
+      setTimeout(initEmbed, 500);
+    }
   }
+}
+
+// Start when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initEmbed);
+} else {
+  initEmbed();
+}
 })();`;
 
       const snippet = `<div id="${hostId}"></div>
