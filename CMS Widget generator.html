@@ -856,7 +856,6 @@
         const exportBtn = document.getElementById('exportBtn');
         const exportDynamicBtn = document.getElementById('exportDynamicBtn');
         if (exportBtn) exportBtn.disabled = false;
-        const exportDynamicBtn = document.getElementById('exportDynamicBtn');
         if (exportDynamicBtn) exportDynamicBtn.disabled = false;
       } catch (_) {}
     }
@@ -1094,11 +1093,10 @@
     // Build a dynamic, URL-driven embed snippet using external runtime (embed.js)
     function buildDynamicScriptEmbedSnippet(state){
       const seatNo = state && state.seatNo;
-      const ac = String(seatNo).padStart(3,'0');
-      const hostId = `bihar-embed-${ac}`;
+      const hostId = 'bihar-embed';
       const snippet = `<div id="${hostId}" data-source="gh"></div>\n`+
-        `<script defer src="https://suhastpml.github.io/Bihar_constituency_page/embed.js"></script>\n`+
-        `<script>window.BiharEmbed&&window.BiharEmbed.mount('#${hostId}');<\/script>`;
+        `<script defer src="https://suhastpml.github.io/Bihar_constituency_page/embed.js"><\\/script>\n`+
+        `<script>window.BiharEmbed&&window.BiharEmbed.mount('#${hostId}');<\\/script>`;
       return snippet;
     }
 
