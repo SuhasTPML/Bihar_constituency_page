@@ -399,12 +399,13 @@ def generate_2025_widget_v2(constituency):
     slug = constituency.get('slug', '')
     const_id = f"bihar-2025-{slug}"
 
-    template = '''<div id="__CONST_ID__" class="widget-2025">
+    template = '''<div id='__CONST_ID__' class='widget-2025'>
 <style>
 /* Scoped styles to match page tokens */
 #__CONST_ID__ .card { background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:20px; margin:16px 0; }
 #__CONST_ID__ .election-title { font-family:'Playfair Display', serif; font-size:18px; font-weight:600; line-height:36px; margin:0 0 12px; color:#000; }
 #__CONST_ID__ .candidate-row { margin-bottom:16px; }
+#__CONST_ID__ .candidate-info { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
 #__CONST_ID__ .candidate-name { font-family:'Roboto Slab', serif; font-weight:700; font-size:16px; color:#000; }
 #__CONST_ID__ .candidate-party { color:#5B6064; font-size:14px; }
 #__CONST_ID__ .bar { height:8px; border-radius:999px; background:#e5e7eb; position:relative; margin-top:8px; overflow:hidden; }
@@ -413,9 +414,9 @@ def generate_2025_widget_v2(constituency):
 #__CONST_ID__ .margin-text { font-family:'Roboto Slab', serif; font-weight:700; font-size:12px; }
 #__CONST_ID__ .placeholder-message { text-align:center; padding:40px 20px; color:#6b7280; }
 </style>
-<div class="card">
-  <h3 class="election-title">Bihar Elections 2025 Results</h3>
-  <div class="placeholder-message">Results will be updated here after announcement.</div>
+<div class='card'>
+  <h3 class='election-title'>Bihar Elections 2025 Results</h3>
+  <div class='placeholder-message'>Results will be updated here after announcement.</div>
 </div>
 </div>
 <script>
@@ -432,19 +433,23 @@ def generate_2025_widget_v2(constituency):
     var maxV = Math.max(wVotes, ruVotes, 1);
     var wPct = Math.round((wVotes/maxV)*100), ruPct=Math.round((ruVotes/maxV)*100);
     var html = ''+
-    '<div class="card">'+
-      '<h3 class="election-title">Bihar Elections 2025 Results</h3>'+
-      '<div class="candidate-row">'+
-        '<div class="candidate-name">WINNER: '+(c.y2025_winner_name||'—')+'</div>'+
-        '<div class="candidate-party">'+(c.y2025_winner_party||'—')+' • <span class="vote-count">'+wVotes.toLocaleString('en-IN')+' votes</span></div>'+
-        '<div class="bar"><span style="width:'+wPct+'%; background:#16a34a"></span></div>'+
+    '<div class=\'card\'>'+
+      '<h3 class=\'election-title\'>Bihar Elections 2025 Results</h3>'+
+      '<div class=\'candidate-row\'>'+
+        '<div class=\'candidate-info\'><div>'+
+          '<div class=\'candidate-name\'>WINNER: '+(c.y2025_winner_name||'&mdash;')+'</div>'+
+          '<div class=\'candidate-party\'>'+(c.y2025_winner_party||'&mdash;')+' &bull; <span class=\'vote-count\'>'+wVotes.toLocaleString('en-IN')+' votes</span></div>'+
+        '</div></div>'+
+        '<div class=\'bar\'><span style=\'width:'+wPct+'%; background:#16a34a\'></span></div>'+
       '</div>'+
-      '<div class="candidate-row">'+
-        '<div class="candidate-name">Runner-up: '+(c.y2025_runner_name||'—')+'</div>'+
-        '<div class="candidate-party">'+(c.y2025_runner_party||'—')+' • <span class="vote-count">'+ruVotes.toLocaleString('en-IN')+' votes</span></div>'+
-        '<div class="bar"><span style="width:'+ruPct+'%; background:#dc2626"></span></div>'+
+      '<div class=\'candidate-row\'>'+
+        '<div class=\'candidate-info\'><div>'+
+          '<div class=\'candidate-name\'>Runner-up: '+(c.y2025_runner_name||'&mdash;')+'</div>'+
+          '<div class=\'candidate-party\'>'+(c.y2025_runner_party||'&mdash;')+' &bull; <span class=\'vote-count\'>'+ruVotes.toLocaleString('en-IN')+' votes</span></div>'+
+        '</div></div>'+
+        '<div class=\'bar\'><span style=\'width:'+ruPct+'%; background:#dc2626\'></span></div>'+
       '</div>'+
-      '<div class="margin-info"><span class="margin-text">MARGIN: '+margin.toLocaleString('en-IN')+' votes</span></div>'+
+      '<div class=\'margin-info\'><span class=\'margin-text\'>MARGIN: '+margin.toLocaleString('en-IN')+' votes</span></div>'+
     '</div>';
     el.innerHTML = html;
   }).catch(function(){});
@@ -505,12 +510,13 @@ def generate_timeline_widget_v2(constituency):
     slug = constituency.get('slug', '')
     const_id = f"bihar-pastresults-{slug}"
 
-    template = '''<div id="__CONST_ID__" class="widget-past-results">
+    template = '''<div id='__CONST_ID__' class='widget-past-results'>
 <style>
 #__CONST_ID__ .results-container { display:grid; grid-template-columns:1fr; gap:16px; }
 #__CONST_ID__ .card { background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:20px; }
 #__CONST_ID__ .election-title { font-family:'Playfair Display', serif; font-size:18px; font-weight:600; line-height:36px; margin:0 0 12px; color:#000; }
 #__CONST_ID__ .candidate-row { margin-bottom:16px; }
+#__CONST_ID__ .candidate-info { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
 #__CONST_ID__ .candidate-name { font-family:'Roboto Slab', serif; font-weight:700; font-size:16px; color:#000; }
 #__CONST_ID__ .candidate-party { color:#5B6064; font-size:14px; }
 #__CONST_ID__ .bar { height:8px; border-radius:999px; background:#e5e7eb; position:relative; margin-top:8px; overflow:hidden; }
@@ -519,29 +525,33 @@ def generate_timeline_widget_v2(constituency):
 #__CONST_ID__ .margin-text { font-family:'Roboto Slab', serif; font-weight:700; font-size:12px; }
 @media (min-width:768px) { #__CONST_ID__ .results-container { grid-template-columns:1fr 1fr; gap:20px; } }
 </style>
-<div class="results-container">
-  <div class="card"><h3 class="election-title">Loading past results…</h3></div>
+<div class='results-container'>
+  <div class='card'><h3 class='election-title'>Loading past results…</h3></div>
 </div>
 <script>
 (function(){
   var root=document.getElementById('__CONST_ID__'); if(!root) return;
   function ds(){ var h=(location.hostname||'').toLowerCase(); return (h.includes('quintype.io')||h.includes('sandbox'))?'sandbox':'github'; }
   var URLc = ds()==='sandbox' ? 'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated' : 'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json';
-  function rec(row, y){ if(!row) return null; var yy=String(y); var wN=row['y'+yy+'_winner_name'], wP=row['y'+yy+'_winner_party'], wV=row['y'+yy+'_winner_votes']; var rN=row['y'+yy+'_runner_name'], rP=row['y'+yy+'_runner_party'], rV=row['y'+yy+'_runner_votes']; var m=row['y'+yy+'_margin']; if(!wN&&!wP&&!wV&&!m) return null; return {wN:wN||'—', wP:wP||'—', wV:parseInt(wV)||0, rN:rN||'—', rP:rP||'—', rV:parseInt(rV)||0, m: (parseInt(m)||Math.max(0,(parseInt(wV)||0)-(parseInt(rV)||0)))}; }
-  function cardHTML(year, r){ if(!r) return '<div class="card election-result"><h3 class="election-title">Bihar Elections '+year+' Results</h3><div class="muted">Not available</div></div>'; var maxV=Math.max(r.wV,r.rV,1), wPct=Math.round((r.wV/maxV)*100), rPct=Math.round((r.rV/maxV)*100); return ''+
-    '<div class="card election-result">'+
-      '<h3 class="election-title">Bihar Elections '+year+' Results</h3>'+
-      '<div class="candidate-row">'+
-        '<div class="candidate-name">WINNER: '+r.wN+'</div>'+
-        '<div class="candidate-party">'+r.wP+' • <span class="vote-count">'+r.wV.toLocaleString('en-IN')+' votes</span></div>'+
-        '<div class="bar"><span style="width:'+wPct+'%; background:#16a34a"></span></div>'+
+  function rec(row, y){ if(!row) return null; var yy=String(y); var wN=row['y'+yy+'_winner_name'], wP=row['y'+yy+'_winner_party'], wV=row['y'+yy+'_winner_votes']; var rN=row['y'+yy+'_runner_name'], rP=row['y'+yy+'_runner_party'], rV=row['y'+yy+'_runner_votes']; var m=row['y'+yy+'_margin']; if(!wN&&!wP&&!wV&&!m) return null; return {wN:wN||'&mdash;', wP:wP||'&mdash;', wV:parseInt(wV)||0, rN:rN||'&mdash;', rP:rP||'&mdash;', rV:parseInt(rV)||0, m: (parseInt(m)||Math.max(0,(parseInt(wV)||0)-(parseInt(rV)||0)))}; }
+  function cardHTML(year, r){ if(!r) return '<div class=\'card election-result\'><h3 class=\'election-title\'>Bihar Elections '+year+' Results</h3><div class=\'muted\'>Not available</div></div>'; var maxV=Math.max(r.wV,r.rV,1), wPct=Math.round((r.wV/maxV)*100), rPct=Math.round((r.rV/maxV)*100); return ''+
+    '<div class=\'card election-result\'>'+
+      '<h3 class=\'election-title\'>Bihar Elections '+year+' Results</h3>'+
+      '<div class=\'candidate-row\'>'+
+        '<div class=\'candidate-info\'><div>'+
+          '<div class=\'candidate-name\'>WINNER: '+r.wN+'</div>'+
+          '<div class=\'candidate-party\'>'+r.wP+' &bull; <span class=\'vote-count\'>'+r.wV.toLocaleString('en-IN')+' votes</span></div>'+
+        '</div></div>'+
+        '<div class=\'bar\'><span style=\'width:'+wPct+'%; background:#16a34a\'></span></div>'+
       '</div>'+
-      '<div class="candidate-row">'+
-        '<div class="candidate-name">Runner-up: '+r.rN+'</div>'+
-        '<div class="candidate-party">'+r.rP+' • <span class="vote-count">'+r.rV.toLocaleString('en-IN')+' votes</span></div>'+
-        '<div class="bar"><span style="width:'+rPct+'%; background:#dc2626"></span></div>'+
+      '<div class=\'candidate-row\'>'+
+        '<div class=\'candidate-info\'><div>'+
+          '<div class=\'candidate-name\'>Runner-up: '+r.rN+'</div>'+
+          '<div class=\'candidate-party\'>'+r.rP+' &bull; <span class=\'vote-count\'>'+r.rV.toLocaleString('en-IN')+' votes</span></div>'+
+        '</div></div>'+
+        '<div class=\'bar\'><span style=\'width:'+rPct+'%; background:#dc2626\'></span></div>'+
       '</div>'+
-      '<div class="margin-info"><span class="margin-text">MARGIN: '+r.m.toLocaleString('en-IN')+' votes</span></div>'+
+      '<div class=\'margin-info\'><span class=\'margin-text\'>MARGIN: '+r.m.toLocaleString('en-IN')+' votes</span></div>'+
     '</div>'; }
   fetch(URLc).then(function(r){return r.json();}).then(function(data){
     var row=(data||[]).find(function(x){return x.slug=='__SLUG__';});
@@ -591,7 +601,8 @@ def main():
     universal_map = generate_map_widget()
 
     with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
+        # Use minimal CSV quoting to avoid doubling quotes in HTML snippets
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_MINIMAL)
         writer.writeheader()
 
         for constituency in constituencies:
