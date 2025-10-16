@@ -341,14 +341,14 @@
         <button id="exportTimelineWidget" class="primary-btn" style="background:#14b8a6; font-size:14px; padding:10px 16px; min-height:40px;">Timeline Widget</button>
         <button id="exportGridWidget" class="primary-btn" style="background:#f97316; font-size:14px; padding:10px 16px; min-height:40px;">Historical Grid Widget</button>
       </div>
-      <div class="search-controls" style="margin-top:12px;">
+      <!-- <div class="search-controls" style="margin-top:12px;">
         <span style="font-weight:600; color:var(--text);">Static Widgets (Crawlable):</span>
         <button id="exportStaticHeader" class="primary-btn" style="background:#6366f1; font-size:14px; padding:10px 16px; min-height:40px;" disabled>Header (Static)</button>
         <button id="exportStatic2025" class="primary-btn" style="background:#ec4899; font-size:14px; padding:10px 16px; min-height:40px;" disabled>2025 Results (Static)</button>
         <button id="exportStaticMLA" class="primary-btn" style="background:#8b5cf6; font-size:14px; padding:10px 16px; min-height:40px;" disabled>Current MLA (Static)</button>
         <button id="exportStaticTimeline" class="primary-btn" style="background:#14b8a6; font-size:14px; padding:10px 16px; min-height:40px;" disabled>Timeline (Static)</button>
         <button id="exportStaticGrid" class="primary-btn" style="background:#f97316; font-size:14px; padding:10px 16px; min-height:40px;" disabled>Historical Grid (Static)</button>
-      </div>
+      </div> -->
       <div class="search-controls">
         <label style="margin-left:0px; display:flex; align-items:center; gap:6px;">
         <label style="margin-left:12px; display:flex; align-items:center; gap:6px;">
@@ -703,7 +703,8 @@
         const ruParty = row[`y${y}_runner_party`];
         const ruVotes = row[`y${y}_runner_votes`];
         const margin = row[`y${y}_margin`];
-        if (!wName && !wParty && !wVotes && !margin) return null;
+        // Only return a record if there's a winner name
+        if (!wName || wName.trim() === '') return null;
         return {
           'Winner': { Candidate: wName || '-', Party: wParty || '-', Votes: wVotes || '0' },
           'Runner up': { Candidate: ruName || '-', Party: ruParty || '-', Votes: ruVotes || '0' },
@@ -2073,7 +2074,8 @@ window.addEventListener('load', initEmbed);
           var wParty = row['y' + y + '_winner_party'];
           var wVotes = row['y' + y + '_winner_votes'];
           var margin = row['y' + y + '_margin'];
-          if (!wName && !wParty && !wVotes && !margin) return null;
+          // Only return a record if there's a winner name
+          if (!wName || (typeof wName === 'string' && wName.trim() === '')) return null;
           return {
             'Winner': { Candidate: wName || '-', Party: wParty || '-', Votes: wVotes || '0' }
           };
@@ -2117,6 +2119,7 @@ window.addEventListener('load', initEmbed);
           var party = enrichParty(election.party, partiesIdx);
           timelineHTML += '<div class="timeline-year">' +
             '<div class="timeline-year-badge">' + election.year + '</div>' +
+            '<div class="dott"></div>' +
             '<div class="timeline-candidate">' +
               '<div class="timeline-candidate-name">' + (election.name || '—') + '</div>' +
               '<div class="timeline-party" style="background: ' + party.color + '">' + (party.code || '—') + '</div>' +
@@ -2129,7 +2132,6 @@ window.addEventListener('load', initEmbed);
             var changeClass = isHold ? 'timeline-hold' : 'timeline-gain';
             var changeText = isHold ? 'HOLD' : 'GAIN';
             timelineHTML += '<div class="timeline-connection">' +
-              '<div class="timeline-line"></div>' +
               '<div class="timeline-change ' + changeClass + '">' + changeText + '</div>' +
             '</div>';
           }
@@ -2139,7 +2141,10 @@ window.addEventListener('load', initEmbed);
           '<h3 class="past-results-title">Bihar Assembly Elections ' + constituency.constituency_name + ' Past Results</h3>' +
           '<div class="trends-container">' +
             '<div class="timeline-scroll">' +
-              '<div class="timeline-container">' + timelineHTML + '</div>' +
+              '<div class="timeline-container">' +
+                '<div class="timeline-line"></div>' +
+                timelineHTML +
+              '</div>' +
             '</div>' +
             '<div class="timeline-hint">← Timeline can be scrolled horizontally →</div>' +
           '</div>' +
@@ -2357,7 +2362,8 @@ window.addEventListener('load', initEmbed);
           var ruParty = row['y' + y + '_runner_party'];
           var ruVotes = row['y' + y + '_runner_votes'];
           var margin = row['y' + y + '_margin'];
-          if (!wName && !wParty && !wVotes && !margin) return null;
+          // Only return a record if there's a winner name
+          if (!wName || (typeof wName === 'string' && wName.trim() === '')) return null;
           return {
             'Winner': { Candidate: wName || '-', Party: wParty || '-', Votes: wVotes || '0' },
             'Runner up': { Candidate: ruName || '-', Party: ruParty || '-', Votes: ruVotes || '0' },
