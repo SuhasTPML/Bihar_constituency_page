@@ -323,12 +323,20 @@
         </label>
       </div>
       <div class="search-controls" style="margin-top:12px;">
-        <span style="font-weight:600; color:var(--text);">Individual Widgets:</span>
+        <span style="font-weight:600; color:var(--text);">Dynamic Widgets:</span>
         <button id="exportHeaderWidget" class="primary-btn" style="background:#6366f1; font-size:14px; padding:10px 16px; min-height:40px;">Header Widget</button>
         <button id="export2025Widget" class="primary-btn" style="background:#ec4899; font-size:14px; padding:10px 16px; min-height:40px;">2025 Results Widget</button>
         <button id="exportMLAWidget" class="primary-btn" style="background:#8b5cf6; font-size:14px; padding:10px 16px; min-height:40px;">Current MLA Widget</button>
         <button id="exportTimelineWidget" class="primary-btn" style="background:#14b8a6; font-size:14px; padding:10px 16px; min-height:40px;">Timeline Widget</button>
         <button id="exportGridWidget" class="primary-btn" style="background:#f97316; font-size:14px; padding:10px 16px; min-height:40px;">Historical Grid Widget</button>
+      </div>
+      <div class="search-controls" style="margin-top:12px;">
+        <span style="font-weight:600; color:var(--text);">Static Widgets (Crawlable):</span>
+        <button id="exportStaticHeader" class="primary-btn" style="background:#6366f1; font-size:14px; padding:10px 16px; min-height:40px;" disabled>Header (Static)</button>
+        <button id="exportStatic2025" class="primary-btn" style="background:#ec4899; font-size:14px; padding:10px 16px; min-height:40px;" disabled>2025 Results (Static)</button>
+        <button id="exportStaticMLA" class="primary-btn" style="background:#8b5cf6; font-size:14px; padding:10px 16px; min-height:40px;" disabled>Current MLA (Static)</button>
+        <button id="exportStaticTimeline" class="primary-btn" style="background:#14b8a6; font-size:14px; padding:10px 16px; min-height:40px;" disabled>Timeline (Static)</button>
+        <button id="exportStaticGrid" class="primary-btn" style="background:#f97316; font-size:14px; padding:10px 16px; min-height:40px;" disabled>Historical Grid (Static)</button>
       </div>
       <div class="search-controls">
         <label style="margin-left:0px; display:flex; align-items:center; gap:6px;">
@@ -843,8 +851,14 @@
         if (!announced) injectCms('cms-pre', CMS_PRE_HTML);
         if (announced) injectCms('cms-post', CMS_POST_HTML);
         window.__lastRender = { seatNo, announced };
+        window.__lastRenderData = data; // Store data for static exporters
         const exportBtn = document.getElementById('exportBtn');
         if (exportBtn) exportBtn.disabled = false;
+        // Enable static export buttons
+        ['exportStaticHeader','exportStatic2025','exportStaticMLA','exportStaticTimeline','exportStaticGrid'].forEach(id=>{
+          const btn = document.getElementById(id);
+          if (btn) btn.disabled = false;
+        });
       } catch (_) {}
     }
 
@@ -2379,6 +2393,233 @@ window.addEventListener('load', initEmbed);
       const snippet = `<div id="${hostId}">\n  <style>${scopedStyles}</style>\n  ${clone.innerHTML}\n</div>`;
       return snippet;
     }
+
+    // Static widget builders (crawlable HTML)
+    function buildStaticHeaderHTML(state){
+      const seatNo = state && state.seatNo;
+      if (!seatNo) return '';
+      const data = window.__lastRenderData;
+      if (!data) return '';
+
+      const base = data.byNo(seatNo);
+      if (!base) return '';
+
+      const reserved = base.reserved || 'General';
+      const hostId = `bihar-static-header-${String(seatNo).padStart(3,'0')}`;
+      const scopedStyles = buildScopedStylesForId(hostId);
+
+      const html = `<div id="${hostId}">
+  <style>${scopedStyles}</style>
+  <div class="card constituency-header">
+    <h2 class="constituency-title">${base.name} Assembly Election 2025</h2>
+    <div class="constituency-info">
+      <div><strong>District:</strong> ${base.district}</div>
+      <div><strong>Seat Type:</strong> <span class="badge">${reserved}</span></div>
+    </div>
+  </div>
+</div>`;
+      return html;
+    }
+
+    function buildStatic2025ResultsHTML(state){
+      const seatNo = state && state.seatNo;
+      if (!seatNo) return '';
+      const data = window.__lastRenderData;
+      if (!data || !data.consolidatedByNo) return '';
+
+      const row = data.consolidatedByNo.get(seatNo);
+      if (!row) return '';
+
+      // Check for 2025 data
+      const wName = row.y2025_winner_name;
+      const wParty = row.y2025_winner_party;
+      const wVotes = row.y2025_winner_votes;
+      const margin = row.y2025_margin;
+
+      if (!wName && !wParty && !wVotes && !margin) {
+        return '<!-- No 2025 data available -->';
+      }
+
+      const hostId = `bihar-static-2025-${String(seatNo).padStart(3,'0')}`;
+      const scopedStyles = buildScopedStylesForId(hostId);
+
+      const ruName = row.y2025_runner_name;
+      const ruParty = row.y2025_runner_party;
+      const ruVotes = row.y2025_runner_votes;
+
+      const wP = enrichParty(wParty, data.partiesIdx);
+      const ruP = enrichParty(ruParty, data.partiesIdx);
+      const wVotesNum = parseInt(String(wVotes || '').replace(/,/g, ''), 10) || 0;
+      const ruVotesNum = parseInt(String(ruVotes || '').replace(/,/g, ''), 10) || 0;
+      const marginNum = parseInt(String(margin || '').replace(/,/g, ''), 10) || Math.max(0, wVotesNum - ruVotesNum);
+      const maxV = Math.max(wVotesNum, ruVotesNum, 1);
+      const wPct = Math.round((wVotesNum / maxV) * 100);
+      const ruPct = Math.round((ruVotesNum / maxV) * 100);
+
+      const html = `<div id="${hostId}">
+  <style>${scopedStyles}</style>
+  <div class="card election-result">
+    <h3 class="election-title">Bihar Elections 2025 Results</h3>
+    <div class="candidate-row">
+      <div class="candidate-info">
+        <div>
+          <div class="candidate-name">WINNER: ${wName || '—'}</div>
+          <div class="candidate-party">${wP.name || wP.code || '—'} • <span class="vote-count">${fmtNumber(wVotesNum)} votes</span></div>
+        </div>
+      </div>
+      <div class="bar"><span style="width:${wPct}%; background:#16a34a"></span></div>
+    </div>
+    <div class="candidate-row">
+      <div class="candidate-info">
+        <div>
+          <div class="candidate-name">Runner-up: ${ruName || '—'}</div>
+          <div class="candidate-party">${ruP.name || ruP.code || '—'} • <span class="vote-count">${fmtNumber(ruVotesNum)} votes</span></div>
+        </div>
+      </div>
+      <div class="bar"><span style="width:${ruPct}%; background:#dc2626"></span></div>
+    </div>
+    <div class="margin-info">
+      <span class="margin-text">MARGIN: ${fmtNumber(marginNum)} votes</span>
+    </div>
+  </div>
+</div>`;
+      return html;
+    }
+
+    function buildStaticMLAHTML(state){
+      const seatNo = state && state.seatNo;
+      if (!seatNo) return '';
+      const data = window.__lastRenderData;
+      if (!data || !data.consolidatedByNo) return '';
+
+      const row = data.consolidatedByNo.get(seatNo);
+      if (!row) return '';
+
+      // Check if 2025 data exists - if so, don't show MLA widget
+      const has2025 = row.y2025_winner_name || row.y2025_winner_party || row.y2025_winner_votes || row.y2025_margin;
+      if (has2025) {
+        return '<!-- Current MLA hidden when 2025 results exist -->';
+      }
+
+      const hostId = `bihar-static-mla-${String(seatNo).padStart(3,'0')}`;
+      const scopedStyles = buildScopedStylesForId(hostId);
+      const base = data.byNo(seatNo);
+
+      const mla = {
+        mla: row.current_mla_name,
+        party: row.current_mla_party,
+        alliance: row.current_mla_alliance
+      };
+      const mlaParty = enrichParty(mla.party, data.partiesIdx);
+
+      const metaParts = [];
+      if (mlaParty && (mlaParty.name || mlaParty.code)) metaParts.push(mlaParty.name || mlaParty.code);
+      if (mla.alliance) metaParts.push(`Alliance: ${mla.alliance}`);
+      const metaHTML = metaParts.length ? `<p class="current-mla-meta">${metaParts.join(' • ')}</p>` : '';
+
+      const html = `<div id="${hostId}">
+  <style>${scopedStyles}</style>
+  <div class="card current-mla-card">
+    <h3 class="current-mla-title">${base.name} Current MLA</h3>
+    <p class="mla-name">${mla.mla || '-'}</p>
+    ${metaHTML}
+  </div>
+</div>`;
+      return html;
+    }
+
+    function buildStaticTimelineHTML(state){
+      const seatNo = state && state.seatNo;
+      if (!seatNo) return '';
+      const data = window.__lastRenderData;
+      if (!data || !data.consolidatedByNo) return '';
+
+      const row = data.consolidatedByNo.get(seatNo);
+      if (!row) return '';
+
+      const base = data.byNo(seatNo);
+      const hostId = `bihar-static-timeline-${String(seatNo).padStart(3,'0')}`;
+      const scopedStyles = buildScopedStylesForId(hostId);
+
+      // Build records for each year
+      function recFromConsolidated(r, year){
+        if (!r) return null;
+        const y = String(year);
+        const wName = r[`y${y}_winner_name`];
+        const wParty = r[`y${y}_winner_party`];
+        const wVotes = r[`y${y}_winner_votes`];
+        const margin = r[`y${y}_margin`];
+        if (!wName && !wParty && !wVotes && !margin) return null;
+        return { 'Winner': { Candidate: wName || '-', Party: wParty || '-', Votes: wVotes || '0' } };
+      }
+
+      const r2010 = recFromConsolidated(row, 2010);
+      const r2015 = recFromConsolidated(row, 2015);
+      const r2020 = recFromConsolidated(row, 2020);
+      const r2025 = recFromConsolidated(row, 2025);
+
+      const timelineHTML = renderEnhancedTrends(r2010, r2015, r2020, r2025, data.partiesIdx);
+
+      const html = `<div id="${hostId}">
+  <style>${scopedStyles}</style>
+  <div class="card">
+    <h3 class="past-results-title">Bihar Assembly Elections ${base.name} Past Results</h3>
+    ${timelineHTML}
+  </div>
+</div>`;
+      return html;
+    }
+
+    function buildStaticGridHTML(state){
+      const seatNo = state && state.seatNo;
+      if (!seatNo) return '';
+      const data = window.__lastRenderData;
+      if (!data || !data.consolidatedByNo) return '';
+
+      const row = data.consolidatedByNo.get(seatNo);
+      if (!row) return '';
+
+      const hostId = `bihar-static-grid-${String(seatNo).padStart(3,'0')}`;
+      const scopedStyles = buildScopedStylesForId(hostId);
+
+      // Build records for 2010, 2015, 2020
+      function recFromConsolidated(r, year){
+        if (!r) return null;
+        const y = String(year);
+        const wName = r[`y${y}_winner_name`];
+        const wParty = r[`y${y}_winner_party`];
+        const wVotes = r[`y${y}_winner_votes`];
+        const ruName = r[`y${y}_runner_name`];
+        const ruParty = r[`y${y}_runner_party`];
+        const ruVotes = r[`y${y}_runner_votes`];
+        const margin = r[`y${y}_margin`];
+        if (!wName && !wParty && !wVotes && !margin) return null;
+        return {
+          'Winner': { Candidate: wName || '-', Party: wParty || '-', Votes: wVotes || '0' },
+          'Runner up': { Candidate: ruName || '-', Party: ruParty || '-', Votes: ruVotes || '0' },
+          'Margin': margin || '0'
+        };
+      }
+
+      const r2010 = recFromConsolidated(row, 2010);
+      const r2015 = recFromConsolidated(row, 2015);
+      const r2020 = recFromConsolidated(row, 2020);
+
+      const gridHTML = `
+        ${renderYearBlock(2020, r2020, data.partiesIdx)}
+        ${renderYearBlock(2015, r2015, data.partiesIdx)}
+        ${renderYearBlock(2010, r2010, data.partiesIdx)}
+      `;
+
+      const html = `<div id="${hostId}">
+  <style>${scopedStyles}</style>
+  <div class="results-container">
+    ${gridHTML}
+  </div>
+</div>`;
+      return html;
+    }
+
     function buildInlineEmbedSnippet(state){
       const seatNo = state && state.seatNo;
       const announced = !!(state && state.announced);
@@ -2547,6 +2788,106 @@ window.addEventListener('load', initEmbed);
       } catch (e){ console.error(e); alert('Failed to copy widget code'); }
     }
 
+    async function exportStaticHeader(){
+      try {
+        const state = window.__lastRender;
+        if (!state || !state.seatNo){
+          alert('Load a constituency first.');
+          return;
+        }
+        const html = buildStaticHeaderHTML(state);
+        if (!html){
+          alert('Unable to generate static Header widget. Make sure constituency data is loaded.');
+          return;
+        }
+        await navigator.clipboard.writeText(html);
+        document.getElementById('status').textContent = 'Copied static Header widget to clipboard (crawlable HTML)';
+      } catch (e){
+        console.error(e);
+        alert('Failed to copy static widget code');
+      }
+    }
+
+    async function exportStatic2025(){
+      try {
+        const state = window.__lastRender;
+        if (!state || !state.seatNo){
+          alert('Load a constituency first.');
+          return;
+        }
+        const html = buildStatic2025ResultsHTML(state);
+        if (!html || html.startsWith('<!--')){
+          alert('No 2025 results data available for this constituency.');
+          return;
+        }
+        await navigator.clipboard.writeText(html);
+        document.getElementById('status').textContent = 'Copied static 2025 Results widget to clipboard (crawlable HTML)';
+      } catch (e){
+        console.error(e);
+        alert('Failed to copy static widget code');
+      }
+    }
+
+    async function exportStaticMLA(){
+      try {
+        const state = window.__lastRender;
+        if (!state || !state.seatNo){
+          alert('Load a constituency first.');
+          return;
+        }
+        const html = buildStaticMLAHTML(state);
+        if (!html || html.startsWith('<!--')){
+          alert('Current MLA widget not available (may be hidden due to 2025 results).');
+          return;
+        }
+        await navigator.clipboard.writeText(html);
+        document.getElementById('status').textContent = 'Copied static Current MLA widget to clipboard (crawlable HTML)';
+      } catch (e){
+        console.error(e);
+        alert('Failed to copy static widget code');
+      }
+    }
+
+    async function exportStaticTimeline(){
+      try {
+        const state = window.__lastRender;
+        if (!state || !state.seatNo){
+          alert('Load a constituency first.');
+          return;
+        }
+        const html = buildStaticTimelineHTML(state);
+        if (!html){
+          alert('Unable to generate static Timeline widget. Make sure constituency data is loaded.');
+          return;
+        }
+        await navigator.clipboard.writeText(html);
+        document.getElementById('status').textContent = 'Copied static Timeline widget to clipboard (crawlable HTML)';
+      } catch (e){
+        console.error(e);
+        alert('Failed to copy static widget code');
+      }
+    }
+
+    async function exportStaticGrid(){
+      try {
+        const state = window.__lastRender;
+        if (!state || !state.seatNo){
+          alert('Load a constituency first.');
+          return;
+        }
+        const html = buildStaticGridHTML(state);
+        if (!html){
+          alert('Unable to generate static Historical Grid widget. Make sure constituency data is loaded.');
+          return;
+        }
+        await navigator.clipboard.writeText(html);
+        document.getElementById('status').textContent = 'Copied static Historical Grid widget to clipboard (crawlable HTML)';
+      } catch (e){
+        console.error(e);
+        alert('Failed to copy static widget code');
+      }
+    }
+
     (async function init(){
       try {
         // Default data source toggle based on host/query
@@ -2604,6 +2945,27 @@ window.addEventListener('load', initEmbed);
         const exportGridWidgetBtn = document.getElementById('exportGridWidget');
         if (exportGridWidgetBtn) {
           exportGridWidgetBtn.addEventListener('click', exportGridWidget);
+        }
+        // Wire up static export buttons
+        const exportStaticHeaderBtn = document.getElementById('exportStaticHeader');
+        if (exportStaticHeaderBtn) {
+          exportStaticHeaderBtn.addEventListener('click', exportStaticHeader);
+        }
+        const exportStatic2025Btn = document.getElementById('exportStatic2025');
+        if (exportStatic2025Btn) {
+          exportStatic2025Btn.addEventListener('click', exportStatic2025);
+        }
+        const exportStaticMLABtn = document.getElementById('exportStaticMLA');
+        if (exportStaticMLABtn) {
+          exportStaticMLABtn.addEventListener('click', exportStaticMLA);
+        }
+        const exportStaticTimelineBtn = document.getElementById('exportStaticTimeline');
+        if (exportStaticTimelineBtn) {
+          exportStaticTimelineBtn.addEventListener('click', exportStaticTimeline);
+        }
+        const exportStaticGridBtn = document.getElementById('exportStaticGrid');
+        if (exportStaticGridBtn) {
+          exportStaticGridBtn.addEventListener('click', exportStaticGrid);
         }
         const sourceTNow = document.getElementById('sourceToggle');
         if (sourceTNow) sourceTNow.addEventListener('change', ()=>{
