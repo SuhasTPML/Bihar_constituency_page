@@ -21,9 +21,9 @@ The Patna Sahib assembly constituency (No. 184) is located in the Patna district
 ```
 
 **Formulaic Logic:**
-- If `reserved` == "" → use "General"
-- If `reserved` == "SC" → use "SC"
-- If `reserved` == "ST" → use "ST"
+- If `reserved` == "" then use "General"
+- If `reserved` == "SC" then use "SC"
+- If `reserved` == "ST" then use "ST"
 
 ---
 
