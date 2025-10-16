@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -1617,12 +1617,31 @@ window.addEventListener('load', initEmbed);
         var wVotes = constituency.y2025_winner_votes;
         var margin = constituency.y2025_margin;
 
-        if (!wName && !wParty && !wVotes && !margin) {
-          // No 2025 data, return empty
-          hostEl.innerHTML = '';
-          hasRendered = true;
-          return;
-        }
+        // Show skeleton when a 2025 winner is not present
+        if (!wName) {
+  var skel = ''+
+    '<div class="card election-result">'+
+      '<h3 class="election-title">Bihar Elections 2025 Results</h3>'+
+      '<div class="note" style="margin-bottom:8px;color:#5B6064;font-style:italic;">You can come check the results here once they are announced on result day.</div>'+
+      '<div class="candidate-row">'+
+        '<div class="candidate-info"><div>'+
+          '<div class="candidate-name">WINNER: To be announced</div>'+
+          '<div class="candidate-party muted">&mdash;</div>'+
+        '</div></div>'+
+        '<div class="bar"><span style="width:40%; background:#e5e7eb"></span></div>'+
+      '</div>'+
+      '<div class="candidate-row">'+
+        '<div class="candidate-info"><div>'+
+          '<div class="candidate-name">Runner-up: To be announced</div>'+
+          '<div class="candidate-party muted">&mdash;</div>'+
+        '</div></div>'+
+        '<div class="bar"><span style="width:30%; background:#e5e7eb"></span></div>'+
+      '</div>'+
+    '</div>';
+  hostEl.innerHTML = skel;
+  hasRendered = true;
+  return;
+}
 
         // Build party index
         var partiesIdx = {};
@@ -2430,271 +2449,68 @@ window.addEventListener('load', initEmbed);
       const row = data.consolidatedByNo.get(seatNo);
       if (!row) return '';
 
-      // Check for 2025 data
-      const wName = row.y2025_winner_name;
-      const wParty = row.y2025_winner_party;
-      const wVotes = row.y2025_winner_votes;
-      const margin = row.y2025_margin;
-
-      if (!wName && !wParty && !wVotes && !margin) {
-        return '<!-- No 2025 data available -->';
-      }
-
       const hostId = `bihar-static-2025-${String(seatNo).padStart(3,'0')}`;
       const scopedStyles = buildScopedStylesForId(hostId);
 
-      const ruName = row.y2025_runner_name;
-      const ruParty = row.y2025_runner_party;
-      const ruVotes = row.y2025_runner_votes;
-
-      const wP = enrichParty(wParty, data.partiesIdx);
-      const ruP = enrichParty(ruParty, data.partiesIdx);
-      const wVotesNum = parseInt(String(wVotes || '').replace(/,/g, ''), 10) || 0;
-      const ruVotesNum = parseInt(String(ruVotes || '').replace(/,/g, ''), 10) || 0;
-      const marginNum = parseInt(String(margin || '').replace(/,/g, ''), 10) || Math.max(0, wVotesNum - ruVotesNum);
-      const maxV = Math.max(wVotesNum, ruVotesNum, 1);
-      const wPct = Math.round((wVotesNum / maxV) * 100);
-      const ruPct = Math.round((ruVotesNum / maxV) * 100);
-
-      const html = `<div id="${hostId}">
+      const hasWinner2025 = !!row.y2025_winner_name;
+      if (!hasWinner2025) {
+        const html = `<div id="${hostId}">
   <style>${scopedStyles}</style>
   <div class="card election-result">
     <h3 class="election-title">Bihar Elections 2025 Results</h3>
+    <div class="note" style="margin-bottom:8px;color:#5B6064;font-style:italic;">You can come check the results here once they are announced on result day.</div>
     <div class="candidate-row">
-      <div class="candidate-info">
-        <div>
-          <div class="candidate-name">WINNER: ${wName || '—'}</div>
-          <div class="candidate-party">${wP.name || wP.code || '—'} • <span class="vote-count">${fmtNumber(wVotesNum)} votes</span></div>
-        </div>
-      </div>
-      <div class="bar"><span style="width:${wPct}%; background:#16a34a"></span></div>
+      <div class="candidate-info"><div>
+        <div class="candidate-name">WINNER: To be announced</div>
+        <div class="candidate-party muted">&mdash;</div>
+      </div></div>
+      <div class="bar"><span style="width:40%; background:#e5e7eb"></span></div>
     </div>
     <div class="candidate-row">
-      <div class="candidate-info">
-        <div>
-          <div class="candidate-name">Runner-up: ${ruName || '—'}</div>
-          <div class="candidate-party">${ruP.name || ruP.code || '—'} • <span class="vote-count">${fmtNumber(ruVotesNum)} votes</span></div>
-        </div>
-      </div>
-      <div class="bar"><span style="width:${ruPct}%; background:#dc2626"></span></div>
-    </div>
-    <div class="margin-info">
-      <span class="margin-text">MARGIN: ${fmtNumber(marginNum)} votes</span>
+      <div class="candidate-info"><div>
+        <div class="candidate-name">Runner-up: To be announced</div>
+        <div class="candidate-party muted">&mdash;</div>
+      </div></div>
+      <div class="bar"><span style="width:30%; background:#e5e7eb"></span></div>
     </div>
   </div>
 </div>`;
-      return html;
-    }
-
-    function buildStaticMLAHTML(state){
-      const seatNo = state && state.seatNo;
-      if (!seatNo) return '';
-      const data = window.__lastRenderData;
-      if (!data || !data.consolidatedByNo) return '';
-
-      const row = data.consolidatedByNo.get(seatNo);
-      if (!row) return '';
-
-      // Check if 2025 data exists - if so, don't show MLA widget
-      const has2025 = row.y2025_winner_name || row.y2025_winner_party || row.y2025_winner_votes || row.y2025_margin;
-      if (has2025) {
-        return '<!-- Current MLA hidden when 2025 results exist -->';
+        return html;
       }
 
-      const hostId = `bihar-static-mla-${String(seatNo).padStart(3,'0')}`;
-      const scopedStyles = buildScopedStylesForId(hostId);
-      const base = data.byNo(seatNo);
-
-      const mla = {
-        mla: row.current_mla_name,
-        party: row.current_mla_party,
-        alliance: row.current_mla_alliance
+      const rec = {
+        'Winner': { Candidate: row.y2025_winner_name || '-', Party: row.y2025_winner_party || '-', Votes: row.y2025_winner_votes || 0 },
+        'Runner up': { Candidate: row.y2025_runner_name || '-', Party: row.y2025_runner_party || '-', Votes: row.y2025_runner_votes || 0 },
+        'Margin': row.y2025_margin || 0
       };
-      const mlaParty = enrichParty(mla.party, data.partiesIdx);
-
-      const metaParts = [];
-      if (mlaParty && (mlaParty.name || mlaParty.code)) metaParts.push(mlaParty.name || mlaParty.code);
-      if (mla.alliance) metaParts.push(`Alliance: ${mla.alliance}`);
-      const metaHTML = metaParts.length ? `<p class="current-mla-meta">${metaParts.join(' • ')}</p>` : '';
-
+      const card = renderYearBlock(2025, rec, data.partiesIdx);
       const html = `<div id="${hostId}">
   <style>${scopedStyles}</style>
-  <div class="card current-mla-card">
-    <h3 class="current-mla-title">${base.name} Current MLA</h3>
-    <p class="mla-name">${mla.mla || '-'}</p>
-    ${metaHTML}
-  </div>
+  ${card}
 </div>`;
       return html;
     }
 
-    function buildStaticTimelineHTML(state){
-      const seatNo = state && state.seatNo;
-      if (!seatNo) return '';
-      const data = window.__lastRenderData;
-      if (!data || !data.consolidatedByNo) return '';
-
-      const row = data.consolidatedByNo.get(seatNo);
-      if (!row) return '';
-
-      const base = data.byNo(seatNo);
-      const hostId = `bihar-static-timeline-${String(seatNo).padStart(3,'0')}`;
-      const scopedStyles = buildScopedStylesForId(hostId);
-
-      // Build records for each year
-      function recFromConsolidated(r, year){
-        if (!r) return null;
-        const y = String(year);
-        const wName = r[`y${y}_winner_name`];
-        const wParty = r[`y${y}_winner_party`];
-        const wVotes = r[`y${y}_winner_votes`];
-        const margin = r[`y${y}_margin`];
-        if (!wName && !wParty && !wVotes && !margin) return null;
-        return { 'Winner': { Candidate: wName || '-', Party: wParty || '-', Votes: wVotes || '0' } };
-      }
-
-      const r2010 = recFromConsolidated(row, 2010);
-      const r2015 = recFromConsolidated(row, 2015);
-      const r2020 = recFromConsolidated(row, 2020);
-      const r2025 = recFromConsolidated(row, 2025);
-
-      const timelineHTML = renderEnhancedTrends(r2010, r2015, r2020, r2025, data.partiesIdx);
-
-      const html = `<div id="${hostId}">
-  <style>${scopedStyles}</style>
-  <div class="card">
-    <h3 class="past-results-title">Bihar Assembly Elections ${base.name} Past Results</h3>
-    ${timelineHTML}
-  </div>
-</div>`;
-      return html;
-    }
-
-    function buildStaticGridHTML(state){
-      const seatNo = state && state.seatNo;
-      if (!seatNo) return '';
-      const data = window.__lastRenderData;
-      if (!data || !data.consolidatedByNo) return '';
-
-      const row = data.consolidatedByNo.get(seatNo);
-      if (!row) return '';
-
-      const hostId = `bihar-static-grid-${String(seatNo).padStart(3,'0')}`;
-      const scopedStyles = buildScopedStylesForId(hostId);
-
-      // Build records for 2010, 2015, 2020
-      function recFromConsolidated(r, year){
-        if (!r) return null;
-        const y = String(year);
-        const wName = r[`y${y}_winner_name`];
-        const wParty = r[`y${y}_winner_party`];
-        const wVotes = r[`y${y}_winner_votes`];
-        const ruName = r[`y${y}_runner_name`];
-        const ruParty = r[`y${y}_runner_party`];
-        const ruVotes = r[`y${y}_runner_votes`];
-        const margin = r[`y${y}_margin`];
-        if (!wName && !wParty && !wVotes && !margin) return null;
-        return {
-          'Winner': { Candidate: wName || '-', Party: wParty || '-', Votes: wVotes || '0' },
-          'Runner up': { Candidate: ruName || '-', Party: ruParty || '-', Votes: ruVotes || '0' },
-          'Margin': margin || '0'
-        };
-      }
-
-      const r2010 = recFromConsolidated(row, 2010);
-      const r2015 = recFromConsolidated(row, 2015);
-      const r2020 = recFromConsolidated(row, 2020);
-
-      const gridHTML = `
-        ${renderYearBlock(2020, r2020, data.partiesIdx)}
-        ${renderYearBlock(2015, r2015, data.partiesIdx)}
-        ${renderYearBlock(2010, r2010, data.partiesIdx)}
-      `;
-
-      const html = `<div id="${hostId}">
-  <style>${scopedStyles}</style>
-  <div class="results-container">
-    ${gridHTML}
-  </div>
-</div>`;
-      return html;
-    }
-
-    function buildInlineEmbedSnippet(state){
-      const seatNo = state && state.seatNo;
-      const announced = !!(state && state.announced);
-      const ac = String(seatNo).padStart(3,'0');
-      const enable2025 = announced ? '1' : '0';
-      const output = document.getElementById('output');
-      const clone = output ? output.cloneNode(true) : document.createElement('div');
-      const map = clone.querySelector('#mapEmbed');
-      if (map){
-        const iframe = document.createElement('iframe');
-        iframe.className = 'embed-map';
-        iframe.loading = 'lazy';
-        iframe.referrerPolicy = 'no-referrer';
-        iframe.style.width = '100%';
-        iframe.style.height = '600px';
-        iframe.style.border = '0';
-        iframe.style.borderRadius = '8px';
-        iframe.src = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac}&enable2025=${enable2025}`;
-        map.innerHTML = '';
-        map.appendChild(iframe);
-      }
-      // Inline styles, but scope CSS vars to shadow host
-      let styles = '';
-      try {
-        document.querySelectorAll('style').forEach(s=>{ styles += (s.textContent||'') + '\n'; });
-        styles = styles.replace(/:root/g, ':host');
-        styles = styles.replace(/\bhtml\b/g, ':host');
-        styles = styles.replace(/\bbody\b/g, ':host');
-      } catch {}
-      const hostId = `bihar-embed-${ac}`;
-      const snippet = `<div id="${hostId}"></div>\n<script>(function(){\n  try {\n    var host = document.getElementById('${hostId}'); if (!host) return;\n    var shadow = host.attachShadow({ mode: 'open' });\n    var styleEl = document.createElement('style');\n    styleEl.textContent = ${JSON.stringify(styles)};\n    shadow.appendChild(styleEl);\n    var wrap = document.createElement('div');\n    wrap.className = 'container';\n    wrap.innerHTML = ${JSON.stringify(clone.innerHTML)};\n    shadow.appendChild(wrap);\n  } catch(e) { console && console.error && console.error(e); }\n})();<\/script>`;
-      return snippet;
-    }
-
-    function escapeForAttr(str){
-      return String(str)
-        .replaceAll('&', '&amp;')
-        .replaceAll('"', '&quot;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;');
-    }
-
-    function buildIframeSrcdocSnippet(state){
-      const html = buildEmbedHTML(state);
-      const srcdoc = escapeForAttr(html);
-      // Fixed height is safer without postMessage auto-resize; adjust as needed
-      const snippet = `<iframe 
-  title="Bihar Constituency"
-  loading="lazy"
-  referrerpolicy="no-referrer"
-  style="width:100%; max-width:1120px; height:1100px; border:0; border-radius:8px;"
-  srcdoc="${srcdoc}"></iframe>`;
-      return snippet;
-    }
 
     async function exportEmbed(){
       try {
         const state = window.__lastRender;
         if (!state || !state.seatNo){
-          alert('Load a constituency first.');
+          alert("Load a constituency first.");
           return;
         }
-        const ac = String(state.seatNo).padStart(3,'0');
+        const ac = String(state.seatNo).padStart(3,"0");
         const snippet = buildDivOnlySnippet(state);
         try {
           await navigator.clipboard.writeText(snippet);
-          const status = document.getElementById('status');
+          const status = document.getElementById("status");
           if (status) status.textContent = `Copied DIV-only embed snippet for AC ${ac} to clipboard`;
         } catch (e){
-          // Fallback prompt copy
-          const ok = window.prompt('Copy the embed code below:', snippet);
-          const status = document.getElementById('status');
+          const ok = window.prompt("Copy the embed code below:", snippet);
+          const status = document.getElementById("status");
           if (status) status.textContent = ok !== null ? `Embed snippet ready to copy for AC ${ac}` : `Copy cancelled`;
         }
-      } catch (e){ console.error(e); alert('Failed to copy embed code'); }
+      } catch (e){ console.error(e); alert("Failed to copy embed code"); }
     }
 
     async function exportDynamicEmbed(){
@@ -2910,7 +2726,7 @@ window.addEventListener('load', initEmbed);
         const go = ()=>{
           const val = parseInt(input.value,10);
           if (!Number.isFinite(val) || val < 1 || val > 243){
-            document.getElementById('output').innerHTML = '<div class="error">Enter a valid constituency number (1â€"243)</div>';
+            document.getElementById('output').innerHTML = '<div class="error">Enter a valid constituency number (1-243)</div>';
             return;
           }
           renderSeat(val, data);
