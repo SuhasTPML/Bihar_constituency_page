@@ -185,7 +185,7 @@ Notes
 
 ## Implementation Steps in Generator (next changes)
 
-1) Add “Copy Block” buttons with handlers:
+1) Add "Copy Block" buttons with handlers:
    - Map (Pre) — copies iframe with `enable2025=0`
    - Map (Post) — copies iframe with `enable2025=1`
    - Current MLA (Pre)
@@ -198,8 +198,147 @@ Notes
    - Inject inline script only for the timeline hint (if scripts allowed).
 3) QA: Verify copied block renders correctly when pasted into a blank HTML page and in the target CMS preview.
 
+## ✅ Static Widget Exporters Implementation (COMPLETED)
+
+**Overview**: Added 5 static (crawlable) widget exporters to `CMS Generator for Embed.html` that generate pre-rendered HTML for SEO/crawlability. This provides an Option A solution where static HTML is pasted into CMS and is immediately crawlable by search engines.
+
+**Implementation Details** (Commit: 46b1247):
+
+### 1. User Interface (Lines 325-340)
+Added 5 new static export buttons in a dedicated section:
+- **Header (Static)** - Purple button - Exports constituency header with district/seat info
+- **2025 Results (Static)** - Pink button - Exports winner/runner-up with vote bars (only when 2025 data exists)
+- **Current MLA (Static)** - Purple button - Exports current MLA card (hides when 2025 data exists)
+- **Timeline (Static)** - Teal button - Exports election timeline (auto-reverses when 2025 present)
+- **Historical Grid (Static)** - Orange button - Exports 2020/2015/2010 results grid
+
+All buttons start disabled and enable only after a constituency is loaded.
+
+### 2. Static Builder Functions (Lines 2391-2615)
+Five builder functions that generate standalone HTML with scoped CSS:
+
+**`buildStaticHeaderHTML(state)`** - Generates constituency header
+- Shows constituency name, district, and seat type (General/SC/ST)
+- Uses unique ID: `bihar-static-header-{seatNo}`
+- Returns empty string if no data
+
+**`buildStatic2025ResultsHTML(state)`** - Generates 2025 results card
+- Shows winner/runner-up with vote counts and percentage bars
+- Displays victory margin
+- Returns HTML comment `<!-- No 2025 data available -->` if no 2025 data
+- Uses unique ID: `bihar-static-2025-{seatNo}`
+
+**`buildStaticMLAHTML(state)`** - Generates current MLA card
+- Shows incumbent MLA name, party, and term info
+- Returns HTML comment `<!-- Current MLA hidden when 2025 results exist -->` if 2025 data present
+- Uses unique ID: `bihar-static-mla-{seatNo}`
+
+**`buildStaticTimelineHTML(state)`** - Generates election timeline
+- Shows historical election results in vertical timeline format
+- **Auto-reverses order when 2025 data exists** (newest→oldest)
+- Uses existing `renderEnhancedTrends()` function
+- Uses unique ID: `bihar-static-timeline-{seatNo}`
+
+**`buildStaticGridHTML(state)`** - Generates historical grid
+- Shows 2020, 2015, and 2010 results in card format
+- Uses existing `renderYearBlock()` function
+- Uses unique ID: `bihar-static-grid-{seatNo}`
+
+### 3. Data Storage (Line 854)
+```javascript
+window.__lastRenderData = data; // Store data for static exporters
+```
+Stores constituency data globally when `renderSeat()` is called, allowing static builders to access the same data source.
+
+### 4. Export Handler Functions (Lines 2791-2889)
+Five async handler functions that:
+- Validate that a constituency is loaded
+- Call corresponding builder function
+- Check for empty/comment results and show appropriate alerts
+- Copy generated HTML to clipboard
+- Update status message with success confirmation
+
+**Error Handling**:
+- `exportStatic2025()` - Alerts if no 2025 data available
+- `exportStaticMLA()` - Alerts if hidden due to 2025 results
+- All handlers show clear error if no constituency loaded
+
+### 5. Event Listeners (Lines 2950-2969)
+Wired up click event listeners for all 5 static export buttons in the `init()` function.
+
+### 6. Auto-Enable Buttons (Lines 858-861)
+```javascript
+// Enable static export buttons
+['exportStaticHeader','exportStatic2025','exportStaticMLA','exportStaticTimeline','exportStaticGrid'].forEach(id=>{
+  const btn = document.getElementById(id);
+  if (btn) btn.disabled = false;
+});
+```
+Automatically enables all static buttons when a constituency is successfully loaded.
+
+### How It Works
+
+1. **User loads constituency** (e.g., seat #21 - Patna Sahib)
+2. **Static buttons become enabled** automatically
+3. **User clicks any static widget button** (e.g., "Timeline (Static)")
+4. **Pre-rendered HTML is copied to clipboard** with scoped CSS
+5. **User pastes into CMS HTML block** - content displays immediately
+6. **Search engines can crawl** the content (no JavaScript required)
+
+### Key Benefits
+
+✅ **SEO Crawlable**: Search engines see actual HTML content in source, not empty divs
+✅ **Self-contained**: Each widget has scoped CSS with unique IDs to prevent conflicts
+✅ **No JavaScript Required**: Works without client-side code execution
+✅ **Modular**: Each widget can be embedded independently
+✅ **Timeline Intelligence**: Automatically reverses order when 2025 data exists
+✅ **Conditional Rendering**: 2025 Results shows only with data, MLA hides when 2025 exists
+✅ **Standalone**: Works exactly like existing "Export Embed" button
+
+### Workflow Example
+
+```
+1. Open CMS Generator for Embed.html
+2. Enter constituency number (e.g., 21) and click Load
+3. Click "Header (Static)" → Copies to clipboard
+4. Paste into CMS HTML block → Header appears
+5. Click "Timeline (Static)" → Copies to clipboard
+6. Paste into CMS HTML block → Timeline appears
+7. Click "Historical Grid (Static)" → Copies to clipboard
+8. Paste into CMS HTML block → Grid appears
+9. Save and publish CMS page
+10. Search engines can now crawl all widget content
+```
+
+### Technical Notes
+
+- **Scoped CSS**: Uses `buildScopedStylesForId()` to generate CSS that only affects the specific widget
+- **Unique IDs**: Each widget uses format `bihar-static-{widgetType}-{seatNo}` (e.g., `bihar-static-timeline-021`)
+- **Data Access**: Reads from `window.__lastRenderData` set during `renderSeat()`
+- **Reuses Existing Functions**: Leverages `renderYearBlock()`, `renderEnhancedTrends()`, and other existing rendering functions
+- **Timeline Reversal Logic**: Checks for 2025 data existence and reverses array if found
+
+### Comparison: Static vs Dynamic Widgets
+
+| Feature | Static Widgets | Dynamic Widgets |
+|---------|---------------|-----------------|
+| **SEO Crawlable** | ✅ Yes (HTML in source) | ❌ No (JS-generated) |
+| **JavaScript Required** | ❌ No | ✅ Yes |
+| **Load Time** | ✅ Instant | ⏱️ Requires fetch |
+| **Updates with JSON** | ❌ Must regenerate | ✅ Auto-updates |
+| **CMS Workflow** | Load → Export → Paste | Paste once (works everywhere) |
+| **Use Case** | SEO-critical pages | Flexible embeds |
+
+### Maintenance
+
+- **Data updates**: When JSON files change, regenerate static widgets by loading constituency and re-exporting
+- **Bulk regeneration**: Can be scripted if needed (load each constituency and export programmatically)
+- **No breaking changes**: Static widgets work independently of dynamic widget updates
+
 ## Next Steps
 
+- ✅ **Static widget exporters implemented and tested** (Commit: 46b1247)
 - Confirm CMS capabilities for `<style>` and `<script>` in HTML blocks.
-- If approved, implement the “Copy Block” exports in `Generator.html` and update this plan with button-to-column mapping.
+- Test static widgets in actual CMS environment (Quintype).
+- Consider adding bulk export functionality if many constituencies need static updates.
 - Optionally add a configuration toggle to choose CSS-only timeline hint behavior in strict CMS environments.
