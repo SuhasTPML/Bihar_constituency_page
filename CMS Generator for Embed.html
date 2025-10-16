@@ -138,7 +138,7 @@
       flex-direction: column;
       align-items: center;
       position: relative;
-      min-width: 120px;
+      min-width: 170px;
       padding: 0 10px;
     }
     .timeline-year-badge {
@@ -149,17 +149,26 @@
       padding: 8px 16px;
       border-radius: 20px;
       margin-bottom: 16px;
-      box-shadow: 0 2px 8px rgba(0, 145, 172, 0.3);
+      box-shadow: rgba(0, 145, 172, 0.3) 0px 2px 8px;
       position: relative;
       z-index: 2;
+    }
+    .dott {
+      width: 15px;
+      height: 15px;
+      background: #0091AC;
+      margin: 0 auto;
+      border-radius: 50px;
+      border: 2px solid #fff;
     }
     .timeline-candidate {
       text-align: center;
       margin-bottom: 8px;
+      margin-top: 30px;
     }
     .timeline-candidate-name {
       font-weight: 600;
-      font-size: 14px;
+      font-size: 18px;
       color: var(--text);
       margin-bottom: 4px;
     }
@@ -180,11 +189,13 @@
       position: relative;
     }
     .timeline-line {
-      width: 60px;
-      height: 3px;
-      background: var(--border);
-      position: relative;
+      width: 100%;
+      height: 2px;
+      background: #0091AC;
+      position: absolute;
       margin: 10px 0;
+      left: 0;
+      top: 52px;
     }
     .timeline-line::before {
       content: '';
@@ -269,7 +280,7 @@
         min-width: 80px;
       }
       .timeline-line {
-        width: 50px;
+        top: 41px;
       }
       .timeline-change {
         font-size: 10px;
@@ -636,38 +647,39 @@
       
       elections.forEach((election, index) => {
         const party = enrichParty(election.party, partiesIdx);
-        
+
         // Year node
         timelineHTML += `
           <div class="timeline-year">
             <div class="timeline-year-badge">${election.year}</div>
+            <div class="dott"></div>
             <div class="timeline-candidate">
               <div class="timeline-candidate-name">${election.name || '—'}</div>
               <div class="timeline-party" style="background: ${party.color}">${party.code || '—'}</div>
             </div>
           </div>`;
-        
+
         // Connection (only if not the last item)
         if (index < elections.length - 1) {
           const nextElection = elections[index + 1];
           const isHold = election.party === nextElection.party;
           const changeClass = isHold ? 'timeline-hold' : 'timeline-gain';
           const changeText = isHold ? 'HOLD' : 'GAIN';
-          
+
           timelineHTML += `
             <div class="timeline-connection">
-              <div class="timeline-line"></div>
               <div class="timeline-change ${changeClass}">
                 ${changeText}
               </div>
             </div>`;
         }
       });
-      
+
       return `
         <div class="trends-container">
           <div class="timeline-scroll">
             <div class="timeline-container">
+              <div class="timeline-line"></div>
               ${timelineHTML}
             </div>
           </div>
