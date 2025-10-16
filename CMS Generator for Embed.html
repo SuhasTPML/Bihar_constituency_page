@@ -1619,29 +1619,35 @@ window.addEventListener('load', initEmbed);
 
         // Show skeleton when a 2025 winner is not present
         if (!wName) {
-  var skel = ''+
-    '<div class="card election-result">'+
-      '<h3 class="election-title">Bihar Elections 2025 Results</h3>'+
-      '<div class="note" style="margin-bottom:8px;color:#5B6064;font-style:italic;">You can come check the results here once they are announced on result day.</div>'+
-      '<div class="candidate-row">'+
-        '<div class="candidate-info"><div>'+
-          '<div class="candidate-name">WINNER: To be announced</div>'+
-          '<div class="candidate-party muted">&mdash;</div>'+
-        '</div></div>'+
-        '<div class="bar"><span style="width:40%; background:#e5e7eb"></span></div>'+
-      '</div>'+
-      '<div class="candidate-row">'+
-        '<div class="candidate-info"><div>'+
-          '<div class="candidate-name">Runner-up: To be announced</div>'+
-          '<div class="candidate-party muted">&mdash;</div>'+
-        '</div></div>'+
-        '<div class="bar"><span style="width:30%; background:#e5e7eb"></span></div>'+
-      '</div>'+
-    '</div>';
-  hostEl.innerHTML = skel;
-  hasRendered = true;
-  return;
-}
+          var css = '<style>'+
+            '#'+ '${hostId}' + ' .card{position:relative}'+
+            '#'+ '${hostId}' + ' .overlay{position:absolute;inset:0;background:rgba(255,255,255,0.85);display:flex;align-items:center;justify-content:center;text-align:center;border-radius:12px;pointer-events:none;z-index:1}'+
+            '#'+ '${hostId}' + ' .overlay-text{font-size:18px;font-weight:700;color:#6b7280}'+
+          '</style>';
+          var skel = css +
+            '<div class="card election-result">'+
+              '<div class="overlay"><p class="overlay-text">Results not announced yet. Return on result day to see the outcome.</p></div>'+
+              '<h3 class="election-title">Bihar Elections 2025 Results</h3>'+
+              '<div class="candidate-row">'+
+                '<div class="candidate-info"><div>'+
+                  '<div class="candidate-name"><span class="muted">WINNER:</span> <span class="muted">To be announced</span></div>'+
+                  '<div class="candidate-party"><span class="muted">&mdash; &bull; <span class="vote-count">&mdash; votes</span></span></div>'+
+                '</div></div>'+
+                '<div class="bar"><span style="width:40%; background:#e5e7eb"></span></div>'+
+              '</div>'+
+              '<div class="candidate-row">'+
+                '<div class="candidate-info"><div>'+
+                  '<div class="candidate-name"><span class="muted">Runner-up:</span> <span class="muted">To be announced</span></div>'+
+                  '<div class="candidate-party"><span class="muted">&mdash; &bull; <span class="vote-count">&mdash; votes</span></span></div>'+
+                '</div></div>'+
+                '<div class="bar"><span style="width:30%; background:#e5e7eb"></span></div>'+
+              '</div>'+
+              '<div class="margin-info"><span class="margin-text muted">MARGIN: &mdash; votes</span></div>'+
+            '</div>';
+          hostEl.innerHTML = skel;
+          hasRendered = true;
+          return;
+        }
 
         // Build party index
         var partiesIdx = {};
@@ -2455,24 +2461,29 @@ window.addEventListener('load', initEmbed);
       const hasWinner2025 = !!row.y2025_winner_name;
       if (!hasWinner2025) {
         const html = `<div id="${hostId}">
-  <style>${scopedStyles}</style>
+  <style>${scopedStyles}
+  #${hostId} .card{position:relative}
+  #${hostId} .overlay{position:absolute;inset:0;background:rgba(255,255,255,0.85);display:flex;align-items:center;justify-content:center;text-align:center;border-radius:12px;pointer-events:none;z-index:1}
+  #${hostId} .overlay-text{font-size:18px;font-weight:700;color:#6b7280}
+  </style>
   <div class="card election-result">
+    <div class="overlay"><p class="overlay-text">Results not announced yet. Return on result day to see the outcome.</p></div>
     <h3 class="election-title">Bihar Elections 2025 Results</h3>
-    <div class="note" style="margin-bottom:8px;color:#5B6064;font-style:italic;">You can come check the results here once they are announced on result day.</div>
     <div class="candidate-row">
       <div class="candidate-info"><div>
-        <div class="candidate-name">WINNER: To be announced</div>
-        <div class="candidate-party muted">&mdash;</div>
+        <div class="candidate-name"><span class="muted">WINNER:</span> <span class="muted">To be announced</span></div>
+        <div class="candidate-party"><span class="muted">&mdash; &bull; <span class="vote-count">&mdash; votes</span></span></div>
       </div></div>
       <div class="bar"><span style="width:40%; background:#e5e7eb"></span></div>
     </div>
     <div class="candidate-row">
       <div class="candidate-info"><div>
-        <div class="candidate-name">Runner-up: To be announced</div>
-        <div class="candidate-party muted">&mdash;</div>
+        <div class="candidate-name"><span class="muted">Runner-up:</span> <span class="muted">To be announced</span></div>
+        <div class="candidate-party"><span class="muted">&mdash; &bull; <span class="vote-count">&mdash; votes</span></span></div>
       </div></div>
       <div class="bar"><span style="width:30%; background:#e5e7eb"></span></div>
     </div>
+    <div class="margin-info"><span class="margin-text muted">MARGIN: &mdash; votes</span></div>
   </div>
 </div>`;
         return html;
@@ -2798,6 +2809,8 @@ window.addEventListener('load', initEmbed);
   </script>
 </body>
 </html>
+
+
 
 
 
