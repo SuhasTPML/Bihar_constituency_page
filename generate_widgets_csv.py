@@ -315,42 +315,246 @@ def generate_map_widget():
 
 
 def generate_headline(constituency):
-    """Generate headline for CMS."""
+    """Generate headline in the same format as generator files."""
     name = constituency.get('constituency_name', '')
-    return f"{name} Assembly Election 2025 - Results, Winner, Runner-up"
+    return f"{name} Assembly Election 2025"
 
 
 def generate_body_text(constituency):
-    """Generate body text for article."""
+    """Generate body text using generate_constituency_writeups.py as reference."""
+    def seat_type(res):
+        return "General" if res == "" else res
+
+    def fmt(n):
+        try:
+            return f"{int(n):,}"
+        except Exception:
+            return str(n)
+
+    def result_para(data, year):
+        y = str(year)
+        wname = data.get(f'y{y}_winner_name', '')
+        wparty = data.get(f'y{y}_winner_party', '')
+        wvotes = data.get(f'y{y}_winner_votes', 0)
+        rname = data.get(f'y{y}_runner_name', '')
+        rparty = data.get(f'y{y}_runner_party', '')
+        rvotes = data.get(f'y{y}_runner_votes', 0)
+        margin = data.get(f'y{y}_margin', 0)
+        return (
+            f"In the {year} Bihar Assembly elections, {wname} ({wparty}) won the seat with {fmt(wvotes)} votes. "
+            f"{rname} ({rparty}) was the runner-up with {fmt(rvotes)} votes. The victory margin was {fmt(margin)} votes."
+        )
+
+    # Opening
     name = constituency.get('constituency_name', '')
+    no = constituency.get('no', '')
     district = constituency.get('district', '')
     reserved = constituency.get('reserved', '')
-    seat_type = "General" if reserved == "" else reserved
     lok_sabha = constituency.get('lok_sabha', '')
+    current_mla = constituency.get('current_mla_name', '')
+    current_party = constituency.get('current_mla_party', '')
 
-    body = f"The {name} constituency is in {district} district of Bihar. This is a {seat_type} seat under the {lok_sabha} Lok Sabha constituency.\n\n"
+    opening = (
+        f"The {name} assembly constituency (No. {no}) is located in the {district} district of Bihar. "
+        f"It is a {seat_type(reserved)} seat under the {lok_sabha} Lok Sabha constituency. "
+        f"{current_mla} of the {current_party} currently represents this constituency."
+    )
 
-    # Add 2020 results
+    # Yearly result paragraphs
+    p2020 = result_para(constituency, 2020)
+    p2015 = result_para(constituency, 2015)
+    p2010 = result_para(constituency, 2010)
+
+    # Pattern summary
+    w2010 = constituency.get('y2010_winner_name', '')
+    w2015 = constituency.get('y2015_winner_name', '')
     w2020 = constituency.get('y2020_winner_name', '')
-    p2020 = constituency.get('y2020_winner_party', '')
-    v2020 = constituency.get('y2020_winner_votes', 0)
-    r2020 = constituency.get('y2020_runner_name', '')
-    rp2020 = constituency.get('y2020_runner_party', '')
-    rv2020 = constituency.get('y2020_runner_votes', 0)
+    p10 = constituency.get('y2010_winner_party', '')
+    p15 = constituency.get('y2015_winner_party', '')
+    p20 = constituency.get('y2020_winner_party', '')
+    same_candidate = (w2010 == w2015 == w2020) and bool(w2020)
+    same_party = (p10 == p15 == p20) and bool(p20)
+    if same_candidate:
+        pattern = f"{w2020} has won this constituency in all three elections between 2010 and 2020"
+        pattern += f", representing {p20} in each election" if same_party else f", representing {p10} in 2010, {p15} in 2015, and {p20} in 2020"
+    else:
+        pattern = f"The constituency has seen victories by {w2010} in 2010, {w2015} in 2015, and {w2020} in 2020"
+    m2010 = constituency.get('y2010_margin', 0)
+    m2015 = constituency.get('y2015_margin', 0)
     m2020 = constituency.get('y2020_margin', 0)
+    margins = f". The victory margins were {fmt(m2010)} votes in 2010, {fmt(m2015)} votes in 2015, and {fmt(m2020)} votes in 2020"
+    v2010 = constituency.get('y2010_winner_votes', 0)
+    v2015 = constituency.get('y2015_winner_votes', 0)
+    v2020 = constituency.get('y2020_winner_votes', 0)
+    votes = f". The winning candidate's vote count was {fmt(v2010)} in 2010, {fmt(v2015)} in 2015, and {fmt(v2020)} in 2020."
 
-    try:
-        v2020_fmt = f"{int(v2020):,}"
-        rv2020_fmt = f"{int(rv2020):,}"
-        m2020_fmt = f"{int(m2020):,}"
-    except:
-        v2020_fmt = str(v2020)
-        rv2020_fmt = str(rv2020)
-        m2020_fmt = str(m2020)
+    pattern_summary = pattern + margins + votes
 
-    body += f"In the 2020 Bihar Assembly elections, {w2020} ({p2020}) won the seat with {v2020_fmt} votes. {r2020} ({rp2020}) was the runner-up with {rv2020_fmt} votes. The victory margin was {m2020_fmt} votes."
-
+    body = f"{opening}\n\n{p2020}\n\n{p2015}\n\n{p2010}\n\n{pattern_summary}"
     return body
+
+
+def generate_2025_widget_v2(constituency):
+    """2025 Results widget (aligned with CMS classes and layout)."""
+    slug = constituency.get('slug', '')
+    const_id = f"bihar-2025-{slug}"
+
+    template = '''<div id="__CONST_ID__" class="widget-2025">
+<style>
+/* Scoped styles to match page tokens */
+#__CONST_ID__ .card { background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:20px; margin:16px 0; }
+#__CONST_ID__ .election-title { font-family:'Playfair Display', serif; font-size:18px; font-weight:600; line-height:36px; margin:0 0 12px; color:#000; }
+#__CONST_ID__ .candidate-row { margin-bottom:16px; }
+#__CONST_ID__ .candidate-name { font-family:'Roboto Slab', serif; font-weight:700; font-size:16px; color:#000; }
+#__CONST_ID__ .candidate-party { color:#5B6064; font-size:14px; }
+#__CONST_ID__ .bar { height:8px; border-radius:999px; background:#e5e7eb; position:relative; margin-top:8px; overflow:hidden; }
+#__CONST_ID__ .bar span { position:absolute; left:0; top:0; bottom:0; border-radius:999px; display:block; }
+#__CONST_ID__ .margin-info { margin-top:16px; padding-top:16px; border-top:1px solid #E5E7EB; }
+#__CONST_ID__ .margin-text { font-family:'Roboto Slab', serif; font-weight:700; font-size:12px; }
+#__CONST_ID__ .placeholder-message { text-align:center; padding:40px 20px; color:#6b7280; }
+</style>
+<div class="card">
+  <h3 class="election-title">Bihar Elections 2025 Results</h3>
+  <div class="placeholder-message">Results will be updated here after announcement.</div>
+</div>
+</div>
+<script>
+(function(){
+  var el = document.getElementById('__CONST_ID__');
+  if (!el) return;
+  function detectDataSource(){ var h=(location.hostname||'').toLowerCase(); return (h.includes('quintype.io')||h.includes('sandbox'))?'sandbox':'github'; }
+  var FILE = detectDataSource()==='sandbox' ? 'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated' : 'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json';
+  fetch(FILE).then(function(r){return r.json();}).then(function(data){
+    var c=(data||[]).find(function(x){return x.slug=='__SLUG__';});
+    var has2025 = c && (c.y2025_winner_name || c.y2025_winner_party || c.y2025_winner_votes || c.y2025_margin);
+    if(!has2025) return;
+    var wVotes = parseInt(c.y2025_winner_votes)||0, ruVotes=parseInt(c.y2025_runner_votes)||0, margin=parseInt(c.y2025_margin)||Math.max(0,(parseInt(c.y2025_winner_votes)||0)-(parseInt(c.y2025_runner_votes)||0));
+    var maxV = Math.max(wVotes, ruVotes, 1);
+    var wPct = Math.round((wVotes/maxV)*100), ruPct=Math.round((ruVotes/maxV)*100);
+    var html = ''+
+    '<div class="card">'+
+      '<h3 class="election-title">Bihar Elections 2025 Results</h3>'+
+      '<div class="candidate-row">'+
+        '<div class="candidate-name">WINNER: '+(c.y2025_winner_name||'—')+'</div>'+
+        '<div class="candidate-party">'+(c.y2025_winner_party||'—')+' • <span class="vote-count">'+wVotes.toLocaleString('en-IN')+' votes</span></div>'+
+        '<div class="bar"><span style="width:'+wPct+'%; background:#16a34a"></span></div>'+
+      '</div>'+
+      '<div class="candidate-row">'+
+        '<div class="candidate-name">Runner-up: '+(c.y2025_runner_name||'—')+'</div>'+
+        '<div class="candidate-party">'+(c.y2025_runner_party||'—')+' • <span class="vote-count">'+ruVotes.toLocaleString('en-IN')+' votes</span></div>'+
+        '<div class="bar"><span style="width:'+ruPct+'%; background:#dc2626"></span></div>'+
+      '</div>'+
+      '<div class="margin-info"><span class="margin-text">MARGIN: '+margin.toLocaleString('en-IN')+' votes</span></div>'+
+    '</div>';
+    el.innerHTML = html;
+  }).catch(function(){});
+})();
+</script>'''
+
+    widget_html = template.replace('__CONST_ID__', const_id).replace('__SLUG__', slug)
+    return widget_html
+
+
+def generate_mla_widget_v2(constituency):
+    """Current MLA widget (matches page classes; hides if 2025 exists)."""
+    slug = constituency.get('slug', '')
+    const_id = f"bihar-mla-{slug}"
+    name = constituency.get('constituency_name', '')
+    mla_name = constituency.get('current_mla_name', '')
+    mla_party = constituency.get('current_mla_party', '')
+    mla_alliance = constituency.get('current_mla_alliance', '')
+
+    template = '''<div id="__CONST_ID__" class="widget-mla">
+<style>
+#__CONST_ID__ .card { background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:20px; margin:16px 0; }
+#__CONST_ID__ .current-mla-title { font-family:'Roboto Slab', serif; font-size:16px; font-weight:400; line-height:21px; color:#000; margin:0 0 6px; }
+#__CONST_ID__ .mla-name { font-family:'Roboto Slab', serif; font-size:16px; font-weight:400; line-height:21px; color:#000; margin:0; }
+#__CONST_ID__ .current-mla-meta { font-family:'Roboto Slab', serif; font-size:14px; line-height:18px; color:#5B6064; margin:4px 0 0; }
+</style>
+<div class="card current-mla-card">
+  <h3 class="current-mla-title">__NAME__ Current MLA</h3>
+  <p class="mla-name">__MLA_NAME__</p>
+  <p class="current-mla-meta">__MLA_META__</p>
+</div>
+</div>
+<script>
+(function(){
+  var root = document.getElementById('__CONST_ID__'); if (!root) return;
+  function ds(){ var h=(location.hostname||'').toLowerCase(); return (h.includes('quintype.io')||h.includes('sandbox'))?'sandbox':'github'; }
+  var URLc = ds()==='sandbox' ? 'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated' : 'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json';
+  fetch(URLc).then(function(r){return r.json();}).then(function(data){
+    var c=(data||[]).find(function(x){return x.slug=='__SLUG__';});
+    var has2025 = c && (c.y2025_winner_name || c.y2025_winner_party || c.y2025_winner_votes || c.y2025_margin);
+    if (has2025) { root.style.display='none'; }
+  }).catch(function(){});
+})();
+</script>'''
+
+    meta = (mla_party or '-') + ((' • Alliance: ' + (mla_alliance or '')) if mla_alliance else '')
+    widget_html = (template
+                   .replace('__CONST_ID__', const_id)
+                   .replace('__SLUG__', slug)
+                   .replace('__NAME__', name)
+                   .replace('__MLA_NAME__', (mla_name or '-'))
+                   .replace('__MLA_META__', meta))
+    return widget_html
+
+
+def generate_timeline_widget_v2(constituency):
+    """Past results widget using three result cards (2020/2015/2010), matching CMS markup."""
+    slug = constituency.get('slug', '')
+    const_id = f"bihar-pastresults-{slug}"
+
+    template = '''<div id="__CONST_ID__" class="widget-past-results">
+<style>
+#__CONST_ID__ .results-container { display:grid; grid-template-columns:1fr; gap:16px; }
+#__CONST_ID__ .card { background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:20px; }
+#__CONST_ID__ .election-title { font-family:'Playfair Display', serif; font-size:18px; font-weight:600; line-height:36px; margin:0 0 12px; color:#000; }
+#__CONST_ID__ .candidate-row { margin-bottom:16px; }
+#__CONST_ID__ .candidate-name { font-family:'Roboto Slab', serif; font-weight:700; font-size:16px; color:#000; }
+#__CONST_ID__ .candidate-party { color:#5B6064; font-size:14px; }
+#__CONST_ID__ .bar { height:8px; border-radius:999px; background:#e5e7eb; position:relative; margin-top:8px; overflow:hidden; }
+#__CONST_ID__ .bar span { position:absolute; left:0; top:0; bottom:0; border-radius:999px; display:block; }
+#__CONST_ID__ .margin-info { margin-top:16px; padding-top:16px; border-top:1px solid #E5E7EB; }
+#__CONST_ID__ .margin-text { font-family:'Roboto Slab', serif; font-weight:700; font-size:12px; }
+@media (min-width:768px) { #__CONST_ID__ .results-container { grid-template-columns:1fr 1fr; gap:20px; } }
+</style>
+<div class="results-container">
+  <div class="card"><h3 class="election-title">Loading past results…</h3></div>
+</div>
+<script>
+(function(){
+  var root=document.getElementById('__CONST_ID__'); if(!root) return;
+  function ds(){ var h=(location.hostname||'').toLowerCase(); return (h.includes('quintype.io')||h.includes('sandbox'))?'sandbox':'github'; }
+  var URLc = ds()==='sandbox' ? 'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated' : 'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json';
+  function rec(row, y){ if(!row) return null; var yy=String(y); var wN=row['y'+yy+'_winner_name'], wP=row['y'+yy+'_winner_party'], wV=row['y'+yy+'_winner_votes']; var rN=row['y'+yy+'_runner_name'], rP=row['y'+yy+'_runner_party'], rV=row['y'+yy+'_runner_votes']; var m=row['y'+yy+'_margin']; if(!wN&&!wP&&!wV&&!m) return null; return {wN:wN||'—', wP:wP||'—', wV:parseInt(wV)||0, rN:rN||'—', rP:rP||'—', rV:parseInt(rV)||0, m: (parseInt(m)||Math.max(0,(parseInt(wV)||0)-(parseInt(rV)||0)))}; }
+  function cardHTML(year, r){ if(!r) return '<div class="card election-result"><h3 class="election-title">Bihar Elections '+year+' Results</h3><div class="muted">Not available</div></div>'; var maxV=Math.max(r.wV,r.rV,1), wPct=Math.round((r.wV/maxV)*100), rPct=Math.round((r.rV/maxV)*100); return ''+
+    '<div class="card election-result">'+
+      '<h3 class="election-title">Bihar Elections '+year+' Results</h3>'+
+      '<div class="candidate-row">'+
+        '<div class="candidate-name">WINNER: '+r.wN+'</div>'+
+        '<div class="candidate-party">'+r.wP+' • <span class="vote-count">'+r.wV.toLocaleString('en-IN')+' votes</span></div>'+
+        '<div class="bar"><span style="width:'+wPct+'%; background:#16a34a"></span></div>'+
+      '</div>'+
+      '<div class="candidate-row">'+
+        '<div class="candidate-name">Runner-up: '+r.rN+'</div>'+
+        '<div class="candidate-party">'+r.rP+' • <span class="vote-count">'+r.rV.toLocaleString('en-IN')+' votes</span></div>'+
+        '<div class="bar"><span style="width:'+rPct+'%; background:#dc2626"></span></div>'+
+      '</div>'+
+      '<div class="margin-info"><span class="margin-text">MARGIN: '+r.m.toLocaleString('en-IN')+' votes</span></div>'+
+    '</div>'; }
+  fetch(URLc).then(function(r){return r.json();}).then(function(data){
+    var row=(data||[]).find(function(x){return x.slug=='__SLUG__';});
+    if(!row){ root.querySelector('.results-container').innerHTML='<div class="card"><div class="muted">Constituency not found</div></div>'; return; }
+    var r2020=rec(row,2020), r2015=rec(row,2015), r2010=rec(row,2010);
+    var html = cardHTML(2020,r2020)+cardHTML(2015,r2015)+cardHTML(2010,r2010);
+    root.querySelector('.results-container').innerHTML = html;
+  }).catch(function(){ root.querySelector('.results-container').innerHTML='<div class="card"><div class="muted">Error loading data</div></div>'; });
+})();
+</script>'''
+
+    widget_html = template.replace('__CONST_ID__', const_id).replace('__SLUG__', slug)
+    return widget_html
 
 
 def main():
@@ -401,9 +605,9 @@ def main():
                 'name': name,
                 'headline': generate_headline(constituency),
                 'body_text': generate_body_text(constituency),
-                'widget_2025_results': generate_2025_widget(constituency),
-                'widget_current_mla': generate_mla_widget(constituency),
-                'widget_timeline': generate_timeline_widget(constituency),
+                'widget_2025_results': generate_2025_widget_v2(constituency),
+                'widget_current_mla': generate_mla_widget_v2(constituency),
+                'widget_timeline': generate_timeline_widget_v2(constituency),
                 'widget_grid': generate_grid_widget(constituency),
                 'widget_map': universal_map
             }
