@@ -515,10 +515,13 @@
       const { allianceColors, allianceOriginalColors } = buildAllianceColorsFromParties(parties||[], alliancesOverride || null);
       // Index consolidated by seat number
       const consolidatedByNo = new Map();
+      const consolidatedBySlug = new Map();
       if (Array.isArray(consolidated)){
         for (const row of consolidated){
           const no = parseInt(String(row.no||''),10);
           if (Number.isFinite(no)) consolidatedByNo.set(no, row);
+          const slug = (row.slug || row.constituency_name || '').toString().trim().toLowerCase();
+          if (slug) consolidatedBySlug.set(slug, row);
         }
       }
       const byNo = (n)=>{
@@ -527,7 +530,7 @@
         return { name: row.constituency_name, district: row.district, reserved: row.reserved || 'General' };
       };
 
-      return { partiesIdx, allianceColors, allianceOriginalColors, byNo, consolidated, consolidatedByNo };
+      return { partiesIdx, allianceColors, allianceOriginalColors, byNo, consolidated, consolidatedByNo, consolidatedBySlug };
     }
 
     function enrichParty(code, partiesIdx){
@@ -660,7 +663,7 @@
         </div>`;
     }
 
-    function renderSeat(seatNo, data){
+    function renderSeat(seatNo, data, suppressNav){
       const base = data.byNo(seatNo);
       const out = document.getElementById('output');
       if (!base){ out.innerHTML = `<div class="error">Seat #${seatNo} not found.</div>`; return; }
@@ -767,6 +770,35 @@
         </div>`;
 
       out.innerHTML = headerHTML;
+      // Update URL path to /slug/<constituency-slug> when on sandbox (pretty URL)
+      try {
+        if (!suppressNav) {
+          const host = (location.hostname||'').toLowerCase();
+          const isSandbox = host.includes('quintype.io') || host.includes('sandbox');
+          if (isSandbox && data && data.consolidatedByNo) {
+            const rowForNav = data.consolidatedByNo.get(seatNo);
+            const slug = (rowForNav && (rowForNav.slug || rowForNav.constituency_name)) ? String(rowForNav.slug || rowForNav.constituency_name).trim().toLowerCase() : '';
+            if (slug) {
+              const path = location.pathname;
+              const basePath = (function(){
+                const idx = path.indexOf('/slug/');
+                if (idx >= 0) return path.slice(0, idx);
+                // fallback: directory of current path
+                const lastSlash = path.lastIndexOf('/');
+                return lastSlash > 0 ? path.slice(0, lastSlash) : '';
+              })();
+              const newUrl = `${location.origin}${basePath}/slug/${slug}${location.search}`;
+              const currentSlug = (function(){
+                const m = path.match(/\/slug\/([^/?#]+)/i);
+                return m ? decodeURIComponent(m[1]).toLowerCase() : '';
+              })();
+              if (currentSlug !== slug) {
+                history.replaceState({ seatNo }, '', newUrl);
+              }
+            }
+          }
+        }
+      } catch(_) {}
       // Update timeline scroll hint visibility: mobile always show; desktop show only for 4 years
       try {
         const isMobile = () => window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
@@ -861,7 +893,7 @@
             document.getElementById('output').innerHTML = '<div class="error">Enter a valid constituency number (1â€“243)</div>';
             return;
           }
-          renderSeat(val, data);
+          renderSeat(val, data, false);
         };
         btn.addEventListener('click', go);
         input.addEventListener('keydown', (e)=>{ if (e.key==='Enter') go(); });
@@ -873,6 +905,22 @@
           sp.set('source', sourceTNow.checked ? 'gh' : 'sandbox');
           location.search = sp.toString();
         });
+
+        // If hosted on sandbox and path contains /slug/<name>, render that seat on load
+        try {
+          const host = (location.hostname||'').toLowerCase();
+          const isSandbox = host.includes('quintype.io') || host.includes('sandbox');
+          const m = location.pathname.match(/\/slug\/([^/?#]+)/i);
+          const slugFromPath = m ? decodeURIComponent(m[1]).toLowerCase() : '';
+          if (isSandbox && slugFromPath && data.consolidatedBySlug) {
+            const row = data.consolidatedBySlug.get(slugFromPath);
+            if (row && Number.isFinite(parseInt(row.no,10))){
+              const seat = parseInt(row.no,10);
+              if (input) input.value = String(seat);
+              renderSeat(seat, data, true);
+            }
+          }
+        } catch(_) {}
       } catch (e){
         document.getElementById('status').textContent = 'Failed to load data';
         document.getElementById('output').innerHTML = '<div class="error">Error loading files. If opened directly as file://, please serve over http:// with a local server.</div>';
@@ -882,6 +930,5 @@
   </script>
 </body>
 </html>
-
 
 
