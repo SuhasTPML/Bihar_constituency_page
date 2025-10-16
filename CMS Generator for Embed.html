@@ -1861,9 +1861,9 @@ window.addEventListener('load', initEmbed);
           return;
         }
 
-        // Check for 2025 data - if exists, hide this widget
-        var has2025 = constituency.y2025_winner_name || constituency.y2025_winner_party || constituency.y2025_winner_votes || constituency.y2025_margin;
-        if (has2025) {
+        // Check for 2025 winner - if exists, hide this widget
+        var has2025Winner = constituency.y2025_winner_name && constituency.y2025_winner_name.trim() !== '';
+        if (has2025Winner) {
           hostEl.innerHTML = '';
           hasRendered = true;
           return;
