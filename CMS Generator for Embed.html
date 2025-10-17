@@ -346,6 +346,7 @@
         <button id="exportMLAWidget" class="primary-btn" style="background:#8b5cf6; font-size:14px; padding:10px 16px; min-height:40px;">Current MLA Widget</button>
         <button id="exportTimelineWidget" class="primary-btn" style="background:#14b8a6; font-size:14px; padding:10px 16px; min-height:40px;">Timeline Widget</button>
         <button id="exportGridWidget" class="primary-btn" style="background:#f97316; font-size:14px; padding:10px 16px; min-height:40px;">Historical Grid Widget</button>
+        <button id="exportMapWidget" class="primary-btn" style="background:#0ea5e9; font-size:14px; padding:10px 16px; min-height:40px;">Map Iframe Widget</button>
       </div>
       <!-- <div class="search-controls" style="margin-top:12px;">
         <span style="font-weight:600; color:var(--text);">Static Widgets (Crawlable):</span>
@@ -2188,6 +2189,126 @@ window.addEventListener('load', initEmbed);
       return snippet;
     }
 
+    // Widget 6: Map Iframe (generic; detects constituency from parent URL and passes ?name=)
+    function buildWidget_MapIframe_DynamicEmbed(){
+      const hostId = 'bihar-widget-map-iframe';
+      const scopedStyles = buildScopedStylesForId(hostId);
+
+      const dynamicScript = `
+(function() {
+  var hasRendered = false;
+  var renderAttempts = 0;
+  var maxAttempts = 3;
+
+  function initEmbed() {
+    try {
+      renderAttempts++;
+      var parentUrl = '';
+      try { parentUrl = window.parent.location.href; } catch(e) { parentUrl = document.referrer || window.location.href; }
+
+      var hostEl = document.getElementById('${hostId}');
+      if (!hostEl) {
+        if (renderAttempts < maxAttempts) setTimeout(initEmbed, 500);
+        return;
+      }
+      if (hasRendered && hostEl.querySelector('iframe')) return;
+
+      hostEl.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">Loading map…</div>';
+
+      function extractSlug(url) {
+        try {
+          var urlObj = new URL(url);
+          var path = urlObj.pathname;
+          var match = path.match(/\/([^\/]+?)(?:-assembly)?-election-\d{4}/i);
+          if (match && match[1]) return match[1];
+          var parts = path.split('/').filter(function(p){ return p.length > 0; });
+          if (parts.length > 1) {
+            var lastPart = parts[parts.length - 1];
+            var cleaned = lastPart.replace(/-\d{4}-\d+$/, '').replace(/-assembly-election.*$/, '').replace(/-election.*$/, '');
+            if (cleaned) return cleaned;
+          }
+          return null;
+        } catch(e) { return null; }
+      }
+
+      function detectDataSource() {
+        var host = window.location.hostname.toLowerCase();
+        if (host.includes('quintype.io') || host.includes('sandbox')) return 'sandbox';
+        return 'github';
+      }
+
+      var slug = extractSlug(parentUrl);
+      if (!slug) {
+        hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Could not extract constituency from URL</div>';
+        return;
+      }
+
+      var dataSource = detectDataSource();
+      var filesConfig = {
+        github: { consolidated: 'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json' },
+        sandbox: { consolidated: 'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated' }
+      };
+      var FILES = filesConfig[dataSource];
+
+      fetch(FILES.consolidated).then(function(r){ return r.json(); }).then(function(consolidated){
+        var constituency = null;
+        for (var i = 0; i < consolidated.length; i++) {
+          if (consolidated[i].slug === slug) { constituency = consolidated[i]; break; }
+        }
+        if (!constituency) {
+          var urlLower = parentUrl.toLowerCase();
+          for (var j = 0; j < consolidated.length; j++) {
+            var constSlug = consolidated[j].slug;
+            if (constSlug && urlLower.includes(constSlug)) { constituency = consolidated[j]; break; }
+          }
+        }
+        if (!constituency) {
+          hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Constituency not found</div>';
+          return;
+        }
+
+        var name = encodeURIComponent((constituency.constituency_name || constituency.name || '').toString());
+        var src = (dataSource === 'sandbox')
+          ? ('https://dh-sandbox-web.quintype.io/biharmap?name=' + name)
+          : ('https://suhastpml.github.io/Bihar_constituency_page/map.html?name=' + name);
+
+        var iframe = document.createElement('iframe');
+        iframe.className = 'embed-map';
+        iframe.loading = 'lazy';
+        iframe.referrerPolicy = 'no-referrer';
+        iframe.style.width = '100%';
+        iframe.style.height = '600px';
+        iframe.style.border = '0';
+        iframe.style.borderRadius = '8px';
+        iframe.src = src;
+
+        hostEl.innerHTML = '';
+        hostEl.appendChild(iframe);
+        hasRendered = true;
+      }).catch(function(){
+        hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Error loading map</div>';
+      });
+    } catch(e) {
+      if (renderAttempts < maxAttempts) setTimeout(initEmbed, 500);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEmbed);
+  } else {
+    initEmbed();
+  }
+  setTimeout(initEmbed, 100);
+  setTimeout(initEmbed, 500);
+  window.addEventListener('load', initEmbed);
+})();`;
+
+      const snippet = `<div id="${hostId}"></div>
+<style>${scopedStyles}</style>
+<script>${dynamicScript}<\/script>`;
+      return snippet;
+    }
+
     // Widget 5: Historical Results Grid (2020, 2015, 2010 cards)
     function buildWidget_HistoricalGrid_DynamicEmbed(){
       const hostId = 'bihar-widget-grid';
@@ -2565,6 +2686,7 @@ window.addEventListener('load', initEmbed);
           const status = document.getElementById('status');
           if (status) status.textContent = ok !== null ? 'Dynamic embed snippet ready to copy' : 'Copy cancelled';
         }
+
       } catch (e){ console.error(e); alert('Failed to copy dynamic embed code'); }
     }
 
@@ -2643,6 +2765,21 @@ window.addEventListener('load', initEmbed);
       } catch (e){ console.error(e); alert('Failed to copy widget code'); }
     }
 
+
+    async function exportMapWidget(){
+      try {
+        const snippet = buildWidget_MapIframe_DynamicEmbed();
+        try {
+          await navigator.clipboard.writeText(snippet);
+          const status = document.getElementById('status');
+          if (status) status.textContent = 'Copied Map Iframe Widget embed to clipboard (generic)';
+        } catch (e){
+          const ok = window.prompt('Copy the Map Iframe Widget embed code below:', snippet);
+          const status = document.getElementById('status');
+          if (status) status.textContent = ok !== null ? 'Map Iframe Widget ready to copy' : 'Copy cancelled';
+        }
+      } catch (e){ console.error(e); alert('Failed to copy widget code'); }
+    }
     async function exportStaticHeader(){
       try {
         const state = window.__lastRender;
@@ -2657,6 +2794,7 @@ window.addEventListener('load', initEmbed);
         }
         await navigator.clipboard.writeText(html);
         document.getElementById('status').textContent = 'Copied static Header widget to clipboard (crawlable HTML)';
+
       } catch (e){
         console.error(e);
         alert('Failed to copy static widget code');
@@ -2696,6 +2834,7 @@ window.addEventListener('load', initEmbed);
           return;
         }
         await navigator.clipboard.writeText(html);
+
         document.getElementById('status').textContent = 'Copied static Current MLA widget to clipboard (crawlable HTML)';
       } catch (e){
         console.error(e);
@@ -2757,6 +2896,9 @@ window.addEventListener('load', initEmbed);
           if (sourceT) sourceT.checked = useLocalDefault;
         })();
         const data = await loadAll();
+
+
+
         const input = document.getElementById('seatNo');
         const btn = document.getElementById('loadBtn');
         const toggle = document.getElementById('resultsToggle');
@@ -2801,6 +2943,10 @@ window.addEventListener('load', initEmbed);
         if (exportGridWidgetBtn) {
           exportGridWidgetBtn.addEventListener('click', exportGridWidget);
         }
+        const exportMapWidgetBtn = document.getElementById('exportMapWidget');
+        if (exportMapWidgetBtn) {
+          exportMapWidgetBtn.addEventListener('click', exportMapWidget);
+        }
         // Wire up static export buttons
         const exportStaticHeaderBtn = document.getElementById('exportStaticHeader');
         if (exportStaticHeaderBtn) {
@@ -2837,6 +2983,7 @@ window.addEventListener('load', initEmbed);
   </script>
 </body>
 </html>
+
 
 
 
