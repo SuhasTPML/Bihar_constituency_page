@@ -1,0 +1,2960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto+Serif:wght@400;500;600&family=Roboto+Slab:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Bihar Assembly | Constituency Viewer</title>
+  <style>
+    :root {
+      --bg: #FFFFFF;
+      --card: #FFFFFF;
+      --text: #000000;
+      --muted: #5B6064;
+      --border: #E5E7EB;
+      --primary: #0EA5E9;
+      --primary-dark: #0284C7;
+      --header-bg: #0EA5E9; --header-text: #FFFFFF;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-md: 0 8px 24px rgba(0,0,0,0.06);
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.5 'Roboto Slab', 'Roboto Serif', Georgia, serif; background: var(--bg); color: var(--text); }
+    .container { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+    
+    /* Header Styles */
+    .main-header { display: none !important; }
+    .header-content { max-width: 1120px; margin: 0 auto; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .menu-icon, .search-icon, .account-icon { cursor: pointer; font-size: 18px; }
+    .site-title { font-size: 18px; font-weight: 600; margin: 0; letter-spacing: 0.5px; }
+    
+    /* Search Section */
+    .search-section { padding: 24px 0 16px; }
+    .search-controls { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+    .search-controls label { font-weight: 500; color: var(--text); }
+    input[type="number"] { padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; width: 260px; font-size: 16px; min-height: 48px; background: #fff; }
+    input[type="number"]::placeholder { color: var(--muted); opacity: 1; }
+    input[type="number"]:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0, 145, 172, 0.1); }
+    .primary-btn { padding: 12px 20px; border: none; border-radius: 10px; background: var(--primary); color: #fff; cursor: pointer; font-size: 16px; font-weight: 600; min-height: 48px; }
+    .primary-btn:hover { background: var(--primary-dark); }
+    .helper-text { color: #999999; font-size: 16px; margin-bottom: 8px; font-family: 'Roboto Slab', serif; }
+    .status-text { color: var(--muted); font-size: 14px; }
+    /* Mobile-first Card Layout */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+    .constituency-header { margin-bottom: 24px; }
+    .constituency-title { font-family: 'Playfair Display', serif; font-size: 44px; font-weight: 700; margin: 0 0 8px; color: var(--text); line-height: 1.1; }
+    .constituency-info { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .current-mla-card { margin-bottom: 16px; }
+    .current-mla-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 36px;
+      margin: 0 0 12px;
+      color: var(--text);
+    }
+    .mla-name {
+      font-family: 'Roboto Slab', serif;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 21px;
+      color: #000;
+      margin: 0;
+    }
+    .mla-party { color: var(--muted); font-size: 14px; }
+    .mla-alliance { color: var(--muted); font-size: 14px; margin-top: 2px; }
+    .current-mla-meta {
+      font-family: 'Roboto Slab', serif;
+      font-size: 14px;
+      line-height: 18px;
+      color: #5B6064;
+      margin: 4px 0 0;
+    }
+    
+    /* CMS Content Placeholder */
+    .cms-content-card { margin-bottom: 16px; }
+    .cms-content-title { font-size: 16px; font-weight: 600; margin: 0 0 12px; letter-spacing: 0.5px; color: var(--text); }
+    .cms-content-body { color: var(--text); line-height: 1.6; font-size: 15px; }
+    .cms-placeholder { color: var(--muted); font-style: italic; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px dashed var(--border); }
+    .map-section-title { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 600; margin: 0 0 6px; color: #000; line-height: 1.15; }
+    .map-helper { color: #000; font-size: 16px; margin: 0 0 12px; font-family: 'Roboto Slab', serif; }
+    /* Figma-aligned section titles */
+    .past-results-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; line-height: 36px; margin: 0 0 12px; color: var(--text); }
+    
+    /* Mobile-first: Stack everything vertically */
+    .results-container { display: flex; flex-direction: column; gap: 16px; }
+    .muted { color: var(--muted); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #eef2ff; border: 1px solid #e5e7eb; font-size: 12px; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; color: #fff; font-size: 12px; }
+    .kv { display: grid; grid-template-columns: 140px 1fr; gap: 6px 12px; }
+    .section-title { font-weight: 600; margin: 0 0 8px; }
+    .vote-bars { margin-top: 8px; }
+    .bar { height: 8px; border-radius: 999px; background: #e5e7eb; position: relative; margin-bottom: 6px; }
+    .bar > span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; }
+    .bar-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .hr { height: 1px; background: var(--border); margin: 12px 0; }
+    .note { font-size: 12px; color: var(--muted); }
+    .error { color: #b91c1c; }
+    
+    /* Data Source Disclaimer Footer */
+    .disclaimer-footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    .disclaimer-text {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.4;
+      font-weight: 400;
+    }
+    
+    /* Horizontal Timeline */
+    .trends-container { margin: 20px 0; }
+    .timeline-scroll {
+      overflow-x: auto;
+      padding: 20px 0;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+    .timeline-container {
+      display: flex;
+      align-items: center;
+      min-width: max-content;
+      padding: 0 20px;
+      gap: 0;
+      position: relative;
+    }
+    .timeline-year {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      min-width: 170px;
+      padding: 0 10px;
+    }
+    .timeline-year-badge {
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      box-shadow: rgba(0, 145, 172, 0.3) 0px 2px 8px;
+      position: relative;
+      z-index: 2;
+    }
+    .dott {
+      width: 15px;
+      height: 15px;
+      background: #0091AC;
+      margin: 0 auto;
+      border-radius: 50px;
+      border: 2px solid #fff;
+    }
+    .timeline-candidate {
+      text-align: center;
+      margin-bottom: 8px;
+      margin-top: 30px;
+    }
+    .timeline-candidate-name {
+      font-weight: 600;
+      font-size: 18px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .timeline-party {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .timeline-connection {
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      min-width: 100px;
+      position: relative;
+    }
+    .timeline-line {
+      width: 100%;
+      height: 2px;
+      background: #0091AC;
+      position: absolute;
+      margin: 10px 0;
+      left: 0;
+      top: 52px;
+    }
+    .timeline-line::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      right: -4px;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-left: 8px solid var(--border);
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+    }
+    .timeline-change {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 8px;
+    }
+    .timeline-hold {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+    .timeline-gain {
+      background: #fef3c7;
+      color: #d97706;
+    }
+    .timeline-hint {
+      display: none; /* Hidden by default on desktop */
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 8px;
+      margin-bottom: 4px;
+      font-style: italic;
+    }
+
+    /* Election Result Cards */
+    .election-result { margin-bottom: 16px; }
+    .election-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; line-height: 36px; margin: 0 0 12px; color: var(--text); }
+    /* Ensure Current MLA heading matches election title even when scoped */
+    #bihar-embed-021 .current-mla-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; line-height: 36px; margin: 0 0 12px; color: var(--text); }
+    #bihar-dynamic-embed .current-mla-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; line-height: 36px; margin: 0 0 12px; color: var(--text); }
+    .candidate-row { margin-bottom: 16px; }
+    .candidate-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .candidate-name { font-family: 'Roboto Slab', serif; font-weight: 400; font-size: 16px; padding-bottom: 8px; }
+    .candidate-party { color: var(--muted); font-size: 14px; }
+    .vote-count { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 600; }
+    .margin-info { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .margin-text { font-family: 'Roboto Slab', serif; font-weight: 700; font-size: 12px; }
+    
+    /* Mobile Timeline Optimizations */
+    @media (max-width: 767px) {
+      /* Match Current MLA heading size to Past Results on mobile */
+      .current-mla-title { font-size: 20px; }
+      #bihar-embed-021 .current-mla-title { font-size: 20px; }
+      #bihar-dynamic-embed .current-mla-title { font-size: 20px; }
+      .timeline-scroll {
+        padding: 16px 0;
+        scroll-snap-type: x mandatory;
+      }
+      .timeline-container {
+        padding: 0 16px;
+      }
+      .timeline-year {
+        min-width: 100px;
+        padding: 0 8px;
+        scroll-snap-align: center;
+      }
+      .timeline-year-badge {
+        font-size: 14px;
+        padding: 6px 12px;
+        margin-bottom: 12px;
+      }
+      .timeline-candidate-name {
+        font-size: 12px;
+      }
+      .timeline-party {
+        font-size: 11px;
+        padding: 3px 8px;
+      }
+      .timeline-connection {
+        min-width: 80px;
+      }
+      .timeline-line {
+        top: 41px;
+      }
+      .timeline-change {
+        font-size: 10px;
+        padding: 3px 6px;
+      }
+      .timeline-hint {
+        display: block; /* Show on mobile */
+      }
+    }
+
+    /* Responsive Breakpoints */
+    @media (min-width: 768px) {
+      .container { padding: 0 24px; }
+      .search-controls { gap: 16px; }
+      .results-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+      .constituency-title { font-size: 28px; }
+    }
+    
+    @media (min-width: 1024px) {
+      .results-container { grid-template-columns: 1fr 1fr 1fr; }
+      .header-content { padding: 0 24px; }
+      .constituency-title { font-size: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="main-header">
+    <div class="header-content">
+      <div class="header-left">
+        <span class="menu-icon">☰</span>
+        <h1 class="site-title">BIHAR ASSEMBLY</h1>
+      </div>
+      <div class="header-right">
+        <span class="search-icon">🔍</span>
+        <span class="account-icon">👤</span>
+      </div>
+    </div>
+  </header>
+  
+  <div class="container">
+    <div class="search-section">
+      <div class="search-controls">
+        <label for="seatNo">Constituency No:</label>
+        <input id="seatNo" type="number" min="1" max="243" placeholder="e.g. 21" />
+        <button id="loadBtn" class="primary-btn">Load</button>
+        <button id="exportBtn" class="primary-btn" style="background:#10b981" disabled>Export Embed</button>
+        <button id="exportDynamicBtn" class="primary-btn" style="background:#f59e0b" disabled>Export Dynamic Embed</button>
+        <label style="margin-left:12px; display:flex; align-items:center; gap:6px;">
+          <input id="resultsToggle" type="checkbox" disabled />
+          <span>Results announced (auto)</span>
+        </label>
+      </div>
+      <div class="search-controls" style="margin-top:12px;">
+        <span style="font-weight:600; color:var(--text);">Dynamic Widgets:</span>
+        <button id="exportHeaderWidget" class="primary-btn" style="background:#6366f1; font-size:14px; padding:10px 16px; min-height:40px;">Header Widget</button>
+        <button id="export2025Widget" class="primary-btn" style="background:#ec4899; font-size:14px; padding:10px 16px; min-height:40px;">2025 Results Widget</button>
+        <button id="exportMLAWidget" class="primary-btn" style="background:#8b5cf6; font-size:14px; padding:10px 16px; min-height:40px;">Current MLA Widget</button>
+        <button id="exportTimelineWidget" class="primary-btn" style="background:#14b8a6; font-size:14px; padding:10px 16px; min-height:40px;">Timeline Widget</button>
+        <button id="exportGridWidget" class="primary-btn" style="background:#f97316; font-size:14px; padding:10px 16px; min-height:40px;">Historical Grid Widget</button>
+        <button id="exportMapWidget" class="primary-btn" style="background:#0ea5e9; font-size:14px; padding:10px 16px; min-height:40px;">Map Iframe Widget</button>
+      </div>
+      <!-- <div class="search-controls" style="margin-top:12px;">
+        <span style="font-weight:600; color:var(--text);">Static Widgets (Crawlable):</span>
+        <button id="exportStaticHeader" class="primary-btn" style="background:#6366f1; font-size:14px; padding:10px 16px; min-height:40px;" disabled>Header (Static)</button>
+        <button id="exportStatic2025" class="primary-btn" style="background:#ec4899; font-size:14px; padding:10px 16px; min-height:40px;" disabled>2025 Results (Static)</button>
+        <button id="exportStaticMLA" class="primary-btn" style="background:#8b5cf6; font-size:14px; padding:10px 16px; min-height:40px;" disabled>Current MLA (Static)</button>
+        <button id="exportStaticTimeline" class="primary-btn" style="background:#14b8a6; font-size:14px; padding:10px 16px; min-height:40px;" disabled>Timeline (Static)</button>
+        <button id="exportStaticGrid" class="primary-btn" style="background:#f97316; font-size:14px; padding:10px 16px; min-height:40px;" disabled>Historical Grid (Static)</button>
+      </div> -->
+      <div class="search-controls">
+        <label style="margin-left:0px; display:flex; align-items:center; gap:6px;">
+        <label style="margin-left:12px; display:flex; align-items:center; gap:6px;">
+          <input id="sourceToggle" type="checkbox" />
+          <span>Use local bundled data</span>
+        </label>
+      </div>
+      <div class="helper-text">Search constituency by number, name, or district. Page auto-detects 2025 results from data.</div>
+      <span id="status" class="status-text"></span>
+      <div class="note">Tip: Serve this file over a local web server to allow fetching local JSON (e.g., <span class="mono">python -m http.server</span> and open http://localhost:8000/constituency_viewer.html).</div>
+    </div>
+
+    <div id="output"></div>
+    <div class="note" style="margin-top:12px;">
+      This page incorporates information from Wikipedia articles, available under the Creative Commons Attribution-ShareAlike 4.0 License
+    </div>
+  </div>
+
+  <script>
+    // Inline CMS content blocks (hardcoded)
+    const CMS_PRE_HTML = `
+      <p>The Bihar Assembly elections are underway. Follow this page for constituency-wise context, key candidates, and background ahead of the 2025 results. We’ll update this section with quick takeaways as trends emerge.</p>
+      <p>Note: Past results and party colors are based on publicly available records. Turn the ‘Results announced’ toggle on when official 2025 results are declared to see updated summaries.</p>
+    `;
+    const CMS_POST_HTML = `
+      <p>The 2025 results for this constituency are in. The summary and margin details are displayed above. Use this section for quick context on how the outcome compares with 2010–2020 and what it means for the broader alliances.</p>
+      <p>Data sources include official ECI releases and curated archives. We will refine the summary as more granular booth-level data is published.</p>
+    `;
+    function detectDataSource(){
+      try {
+        const qp = new URLSearchParams(location.search);
+        const forced = (qp.get('source') || '').toLowerCase();
+        if (forced === 'sandbox') return 'sandbox';
+        if (forced === 'gh' || forced === 'github') return 'github';
+      } catch {}
+      const host = (location.hostname || '').toLowerCase();
+      if (host.includes('quintype.io') || host.includes('sandbox')) return 'sandbox';
+      return 'github';
+    }
+
+    function getFiles(useLocal){
+      if (useLocal){
+        return {
+          parties: './parties.json',
+          resultsConsolidated: './bihar_election_results_consolidated.json',
+          alliances: './alliances.json',
+        };
+      }
+      const src = detectDataSource();
+      if (src === 'sandbox'){
+        return {
+          parties: 'https://dh-sandbox-web.quintype.io/parties.json',
+          resultsConsolidated: 'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated',
+          alliances: 'https://dh-sandbox-web.quintype.io/alliances.json',
+        };
+      }
+      return {
+        parties: 'https://suhastpml.github.io/Bihar_constituency_page/parties.json',
+        resultsConsolidated: 'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json',
+        alliances: 'https://suhastpml.github.io/Bihar_constituency_page/alliances.json',
+      };
+    }
+
+    const PARTY_NORMALIZE = new Map([
+      ['JDU','JD(U)'], ['JD(U)','JD(U)'], ['CPM','CPI(M)'], ['HAM','HAM(S)'], ['Ind','IND'], ['IND','IND']
+    ]);
+
+    const fmtNumber = (n) => (n==null? 'N/A' : Number(n).toLocaleString('en-IN'));
+
+    function normalizeParty(code){ if(!code) return code; const c = code.trim(); return PARTY_NORMALIZE.get(c) || c; }
+
+    // Color utilities and dynamic alliance palette (aligned with map.html)
+    function pastelizeColor(hex, mix = 0.25) {
+      if (!hex || typeof hex !== 'string') return '#e5e7eb';
+      const normalized = hex.replace('#', '').trim();
+      if (!normalized || normalized.length !== 6 || /[^0-9a-f]/i.test(normalized)) return '#e5e7eb';
+      const r = parseInt(normalized.slice(0, 2), 16);
+      const g = parseInt(normalized.slice(2, 4), 16);
+      const b = parseInt(normalized.slice(4, 6), 16);
+      const blend = (c) => Math.round(c + (255 - c) * mix);
+      const toHex = (v) => v.toString(16).padStart(2, '0');
+      return '#' + toHex(blend(r)) + toHex(blend(g)) + toHex(blend(b));
+    }
+
+    function normalizeAllianceKey(a){ return (a == null) ? null : String(a).trim().toUpperCase(); }
+    function isValidHexColor(hex){ if(!hex || typeof hex !== 'string') return false; const h = hex.trim(); return /^#?[0-9a-fA-F]{6}$/.test(h); }
+    function to6Hex(hex){ const h = hex.replace('#','').trim(); return '#' + h.toLowerCase(); }
+    function deterministicColorFor(key){ let h=0, s=55, l=52; for(let i=0;i<key.length;i++){ h=((h<<5)-h)+key.charCodeAt(i); h|=0; } const hue=Math.abs(h)%360; const a=s/100*Math.min(l/100,1-l/100); const f=n=>{ const k=(n+hue/30)%12; const col=l/100 - a*Math.max(Math.min(k-3, 9-k, 1), -1); return Math.round(255*col).toString(16).padStart(2,'0'); }; return '#'+f(0)+f(8)+f(4); }
+    function resolveAllianceForYear(party, year, partiesIdx){
+      const info = partiesIdx[party] || partiesIdx[normalizeParty(party)] || null;
+      if (!info) return 'NA';
+      const alliances = info.alliances || null;
+      const a = (alliances && (alliances[String(year)] || alliances[year]))
+        || info[`alliance_${year}`]
+        || info.alliance_2020
+        || info.alliance
+        || 'NA';
+      return normalizeAllianceKey(a) || 'NA';
+    }
+    function buildAllianceColorsFromParties(parties, override){
+      const pastel = new Map();
+      const original = new Map();
+      // 1) Apply explicit overrides from alliances.json
+      if (override && typeof override === 'object'){
+        for (const k in override){
+          if (!Object.prototype.hasOwnProperty.call(override, k)) continue;
+          const key = normalizeAllianceKey(k);
+          const hex = to6Hex(String(override[k]||''));
+          if (!key || !isValidHexColor(hex)) continue;
+          original.set(key, hex);
+          pastel.set(key, pastelizeColor(hex));
+        }
+      }
+      // 2) Fill remaining labels from parties.json
+      const candidates = new Map();
+      const pushCandidate = (label, hex) => {
+        const key = normalizeAllianceKey(label);
+        if (!key || original.has(key)) return;
+        const h = (hex || '').trim();
+        if (!h) return;
+        const hex6 = to6Hex(h);
+        if (hex6 === '#ffffff' || !isValidHexColor(hex6)) return;
+        if (!candidates.has(key)) candidates.set(key, []);
+        candidates.get(key).push(hex6);
+      };
+      for (const p of (parties||[])){
+        const ac = p.alliance_colour_code || p.alliance_color_code || p.alliance_colour || p.alliance_color || '';
+        pushCandidate(p.alliance, ac);
+        const almap = p.alliances || {};
+        for (const y of Object.keys(almap)) pushCandidate(almap[y], ac);
+      }
+      for (const [ally, arr] of candidates){
+        if (!arr.length) continue;
+        const freq = new Map();
+        for (const h of arr) freq.set(h, (freq.get(h)||0)+1);
+        const chosen = Array.from(freq.entries()).sort((a,b)=> b[1]-a[1] || a[0].localeCompare(b[0]))[0][0];
+        original.set(ally, chosen);
+        pastel.set(ally, pastelizeColor(chosen));
+      }
+      // 3) Seed NA if missing
+      if (!original.has('NA')) { original.set('NA','#999999'); pastel.set('NA', pastelizeColor('#999999')); }
+      return { allianceColors: pastel, allianceOriginalColors: original };
+    }
+
+    function parseCSV(text){
+      // Robust-enough CSV parser supporting quoted fields and commas
+      const rows = [];
+      let i=0, field='', row=[], inQ=false; 
+      function pushField(){ row.push(field); field=''; }
+      function pushRow(){ rows.push(row); row=[]; }
+      while(i<text.length){
+        const ch = text[i];
+        if (inQ){
+          if (ch==='"' && text[i+1]==='"'){ field+='"'; i+=2; continue; }
+          if (ch==='"'){ inQ=false; i++; continue; }
+          field+=ch; i++; continue;
+        } else {
+          if (ch==='"'){ inQ=true; i++; continue; }
+          if (ch===','){ pushField(); i++; continue; }
+          if (ch==='\n'){ pushField(); pushRow(); i++; continue; }
+          if (ch==='\r'){ i++; continue; }
+          field+=ch; i++; continue;
+        }
+      }
+      if (field.length>0 || row.length>0) { pushField(); pushRow(); }
+      // Header map
+      const header = rows.shift() || [];
+      return rows.filter(r=>r.length>0 && r.some(c=>c.trim()!=='')).map(r=>{
+        const o={}; header.forEach((h,idx)=>{ o[h]=r[idx]; }); return o;
+      });
+    }
+
+    async function loadAll(){
+      const status = document.getElementById('status');
+      status.textContent = 'Loading data...';
+      const useLocal = !!(document.getElementById('sourceToggle') && document.getElementById('sourceToggle').checked);
+      const FILES = getFiles(useLocal);
+      const [partiesRes, consolidatedRes] = await Promise.all([
+        fetch(FILES.parties),
+        fetch(FILES.resultsConsolidated)
+      ]);
+      const [parties, consolidated] = await Promise.all([
+        partiesRes.json(), consolidatedRes.json()
+      ]);
+      // Try to load alliances.json (optional)
+      let alliancesOverride = null;
+      try {
+        const aRes = await fetch(FILES.alliances);
+        if (aRes && aRes.ok) alliancesOverride = await aRes.json();
+      } catch(_){}
+      status.textContent = 'Data loaded';
+
+      // Indexes
+      const partiesIdx = {}; (parties||[]).forEach(p=> partiesIdx[p.code]=p);
+      // Build dynamic alliance palettes (for consistency with map.html)
+      const { allianceColors, allianceOriginalColors } = buildAllianceColorsFromParties(parties||[], alliancesOverride || null);
+      // Index consolidated by seat number
+      const consolidatedByNo = new Map();
+      if (Array.isArray(consolidated)){
+        for (const row of consolidated){
+          const no = parseInt(String(row.no||''),10);
+          if (Number.isFinite(no)) consolidatedByNo.set(no, row);
+        }
+      }
+      const byNo = (n)=>{
+        const row = consolidatedByNo.get(n);
+        if (!row) return null;
+        return { name: row.constituency_name, district: row.district, reserved: row.reserved || 'General' };
+      };
+
+      return { partiesIdx, allianceColors, allianceOriginalColors, byNo, consolidated, consolidatedByNo };
+    }
+
+    function enrichParty(code, partiesIdx){
+      const norm = normalizeParty(code||'');
+      const meta = partiesIdx[norm] || partiesIdx[code] || null;
+      return { code: norm || null, name: meta? meta.name : null, color: meta? meta.color : '#888' };
+    }
+
+    function renderYearBlock(year, rec, partiesIdx){
+      if (!rec) return `<div class="card election-result"><h3 class="election-title">Bihar Elections ${year} Results</h3><div class="muted">Not available</div></div>`;
+      const w = rec['Winner'] || {}; const ru = rec['Runner up'] || {};
+      const wP = enrichParty(w.Party, partiesIdx); const ruP = enrichParty(ru.Party, partiesIdx);
+      const wVotes = parseInt(String(w.Votes||'').replace(/,/g,''),10) || 0;
+      const ruVotes = parseInt(String(ru.Votes||'').replace(/,/g,''),10) || 0;
+      const margin = parseInt(String(rec.Margin||'').replace(/,/g,''),10) || Math.max(0, wVotes-ruVotes);
+      const maxV = Math.max(wVotes, ruVotes, 1);
+      const wPct = Math.round((wVotes/maxV)*100);
+      const ruPct = Math.round((ruVotes/maxV)*100);
+      
+      const marginType = margin > 20000 ? 'Comfortable' : margin > 5000 ? 'Moderate' : 'Close';
+      
+      return `
+        <div class="card election-result">
+          <h3 class="election-title">Bihar Elections ${year} Results</h3>
+          
+          <div class="candidate-row">
+            <div class="candidate-info">
+              <div>
+                <div class="candidate-name">WINNER: ${w.Candidate || '—'}</div>
+                <div class="candidate-party">${wP.name || wP.code || '—'} • <span class="vote-count">${fmtNumber(wVotes)} votes</span></div>
+              </div>
+            </div>
+            <div class="bar"><span style="width:${wPct}%; background:#16a34a"></span></div>
+          </div>
+          
+          <div class="candidate-row">
+            <div class="candidate-info">
+              <div>
+                <div class="candidate-name">Runner-up: ${ru.Candidate || '—'}</div>
+                <div class="candidate-party">${ruP.name || ruP.code || '—'} • <span class="vote-count">${fmtNumber(ruVotes)} votes</span></div>
+              </div>
+            </div>
+            <div class="bar"><span style="width:${ruPct}%; background:#dc2626"></span></div>
+          </div>
+          
+          <div class="margin-info">
+            <span class="margin-text">MARGIN: ${fmtNumber(margin)} votes</span>
+          </div>
+        </div>`;
+    }
+
+    function computeTrend(r2010, r2015, r2020, r2025){
+      const partyOf = (rec)=> normalizeParty((rec && rec['Winner'] && rec['Winner'].Party) || '');
+      const nameOf = (rec)=> (rec && rec['Winner'] && rec['Winner'].Candidate) || null;
+      const p10 = partyOf(r2010), p15 = partyOf(r2015), p20 = partyOf(r2020);
+      const p25 = partyOf(r2025);
+      const lines = [];
+      if (p10 && p15){ lines.push(p10 === p15 ? `2010 → 2015: Hold by ${p15}` : `2010 → 2015: Gain from ${p10} to ${p15}`); }
+      if (p15 && p20){ lines.push(p15 === p20 ? `2015 → 2020: Hold by ${p20}` : `2015 → 2020: Gain from ${p15} to ${p20}`); }
+      const winners = [];
+      if (r2010) winners.push(`2010: ${nameOf(r2010) || '—'} (${p10 || '—'})`);
+      if (r2015) winners.push(`2015: ${nameOf(r2015) || '—'} (${p15 || '—'})`);
+      if (r2020) winners.push(`2020: ${nameOf(r2020) || '-'} (${p20 || '-'})`);
+      if (r2025) winners.push(`2025: ${nameOf(r2025) || '-'} (${p25 || '-'})`);
+      return { lines, winners };
+    }
+
+    function renderEnhancedTrends(r2010, r2015, r2020, r2025, partiesIdx) {
+      const partyOf = (rec) => normalizeParty((rec && rec['Winner'] && rec['Winner'].Party) || '');
+      const nameOf = (rec) => (rec && rec['Winner'] && rec['Winner'].Candidate) || null;
+      
+      // Get all election years and their data
+      const elections = [
+        { year: '2010', rec: r2010, party: partyOf(r2010), name: nameOf(r2010) },
+        { year: '2015', rec: r2015, party: partyOf(r2015), name: nameOf(r2015) },
+        { year: '2020', rec: r2020, party: partyOf(r2020), name: nameOf(r2020) },
+        { year: '2025', rec: r2025, party: partyOf(r2025), name: nameOf(r2025) }
+      ].filter(e => e.rec);
+      
+      if (elections.length === 0) {
+        return '<div class="trends-container"><div class="muted">No election data available</div></div>';
+      }
+      
+      let timelineHTML = '';
+      
+      elections.forEach((election, index) => {
+        const party = enrichParty(election.party, partiesIdx);
+
+        // Year node
+        timelineHTML += `
+          <div class="timeline-year">
+            <div class="timeline-year-badge">${election.year}</div>
+            <div class="dott"></div>
+            <div class="timeline-candidate">
+              <div class="timeline-candidate-name">${election.name || '—'}</div>
+              <div class="timeline-party" style="background: ${party.color}">${party.code || '—'}</div>
+            </div>
+          </div>`;
+
+        // Connection (only if not the last item)
+        if (index < elections.length - 1) {
+          const nextElection = elections[index + 1];
+          const isHold = election.party === nextElection.party;
+          const changeClass = isHold ? 'timeline-hold' : 'timeline-gain';
+          const changeText = isHold ? 'HOLD' : 'GAIN';
+
+          timelineHTML += `
+            <div class="timeline-connection">
+              <div class="timeline-change ${changeClass}">
+                ${changeText}
+              </div>
+            </div>`;
+        }
+      });
+
+      return `
+        <div class="trends-container">
+          <div class="timeline-scroll">
+            <div class="timeline-container">
+              <div class="timeline-line"></div>
+              ${timelineHTML}
+            </div>
+          </div>
+          <div class="timeline-hint">← Timeline can be scrolled horizontally →</div>
+        </div>`;
+    }
+
+    function renderSeat(seatNo, data){
+      const base = data.byNo(seatNo);
+      const out = document.getElementById('output');
+      if (!base){ out.innerHTML = `<div class="error">Seat #${seatNo} not found.</div>`; return; }
+
+      // Build per-year records from consolidated row (includes runner-up)
+      function recFromConsolidated(row, year){
+        if (!row) return null;
+        const y = String(year);
+        const wName = row[`y${y}_winner_name`];
+        const wParty = row[`y${y}_winner_party`];
+        const wVotes = row[`y${y}_winner_votes`];
+        const ruName = row[`y${y}_runner_name`];
+        const ruParty = row[`y${y}_runner_party`];
+        const ruVotes = row[`y${y}_runner_votes`];
+        const margin = row[`y${y}_margin`];
+        // Only return a record if there's a winner name
+        if (!wName || wName.trim() === '') return null;
+        return {
+          'Winner': { Candidate: wName || '-', Party: wParty || '-', Votes: wVotes || '0' },
+          'Runner up': { Candidate: ruName || '-', Party: ruParty || '-', Votes: ruVotes || '0' },
+          'Margin': margin || '0',
+        };
+      }
+
+      let r2010 = null, r2015 = null, r2020 = null, r2025 = null;
+      let row = null;
+      if (data && data.consolidatedByNo){
+        row = data.consolidatedByNo.get(seatNo) || null;
+        r2010 = recFromConsolidated(row, 2010);
+        r2015 = recFromConsolidated(row, 2015);
+        r2020 = recFromConsolidated(row, 2020);
+        r2025 = recFromConsolidated(row, 2025);
+      }
+
+      const mla = row ? { mla: row.current_mla_name, party: row.current_mla_party, alliance: row.current_mla_alliance } : {};
+      const mlaParty = enrichParty(mla.party, data.partiesIdx);
+      const reserved = base.reserved ? base.reserved : 'General';
+      const trend = computeTrend(r2010, r2015, r2020, r2025);
+
+      // Determine announced mode automatically based on presence of 2025 data,
+      // with optional override via URL param `announced=1|0`.
+      let announced = !!r2025;
+      try {
+        const qp = new URLSearchParams(location.search);
+        const force = (qp.get('announced') || '').trim();
+        if (force === '1' || force.toLowerCase() === 'true') announced = true;
+        if (force === '0' || force.toLowerCase() === 'false') announced = false;
+      } catch {}
+      const announcedToggle = document.getElementById('resultsToggle');
+      if (announcedToggle) {
+        announcedToggle.checked = announced;
+        announcedToggle.disabled = true;
+        announcedToggle.title = 'Auto-detected from data (override via ?announced=1|0)';
+      }
+
+      const headerHTML = `
+        <div class="card constituency-header">
+          <h2 class="constituency-title">${base.name} Assembly Election 2025</h2>
+          <div class="constituency-info">
+            <div><strong>District:</strong> ${base.district}</div>
+            <div><strong>Seat Type:</strong> <span class="badge">${reserved}</span></div>
+          </div>
+        </div>
+
+        ${announced ? '' : `
+        <div class="card cms-content-card" id="cms-pre">
+          <div class="cms-content-body">
+            <div class="cms-placeholder">Loading…</div>
+          </div>
+        </div>`}
+        
+        ${announced ? renderYearBlock(2025, r2025, data.partiesIdx) : ''}
+
+        ${announced ? `
+        <div class=\"card cms-content-card\" id=\"cms-post\">\n          <div class=\"cms-content-body\">\n            <div class=\"cms-placeholder\">Loading…</div>\n          </div>\n        </div>` : ''}
+        
+        <div class="card cms-content-card">
+          <div class="cms-content-body">
+            <div id="mapEmbed" style="width:100%;"></div>
+          </div>
+        </div>
+        
+        ${announced ? '' : `
+        <div class="card current-mla-card">
+          <h3 class="current-mla-title">${base.name} Current MLA</h3>
+          <p class="mla-name">${mla.mla ? mla.mla : '-'}</p>
+          ${(() => { const parts=[]; if (mlaParty && (mlaParty.name || mlaParty.code)) parts.push(mlaParty.name || mlaParty.code); if (mla && mla.alliance) parts.push(`Alliance: ${mla.alliance}`); return parts.length ? `<p class=\"current-mla-meta\">${parts.join(' • ')}</p>` : '' })()}
+        </div>`}
+        
+        <div class="card">
+          <h3 class="past-results-title">Bihar Assembly Elections ${base.name} Past Results</h3>
+          ${renderEnhancedTrends(r2010, r2015, r2020, (announced ? r2025 : null), data.partiesIdx)}
+        </div>
+        
+        <div class="results-container">
+          ${renderYearBlock(2020, r2020, data.partiesIdx)}
+          ${renderYearBlock(2015, r2015, data.partiesIdx)}
+          ${renderYearBlock(2010, r2010, data.partiesIdx)}
+        </div>
+        
+        <div class="disclaimer-footer">
+          <div class="disclaimer-text">
+            This page incorporates information from Wikipedia articles, available under the Creative Commons Attribution-ShareAlike 4.0 License, and data from the Election Commission of India (ECI)
+          </div>
+        </div>`;
+
+      out.innerHTML = headerHTML;
+      // Update timeline scroll hint visibility: mobile always show; desktop show only for 4 years
+      try {
+        const isMobile = () => window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
+        const updateHint = (root)=>{
+          const scroller = root.querySelector('.timeline-scroll');
+          const hint = root.querySelector('.timeline-hint');
+          if (!scroller || !hint) return;
+          if (isMobile()) {
+            hint.style.display = 'block';
+            return;
+          }
+          const yearCount = scroller.querySelectorAll('.timeline-year').length;
+          hint.style.display = (yearCount >= 4) ? 'block' : 'none';
+        };
+        document.querySelectorAll('.trends-container').forEach(tc=> updateHint(tc));
+        if (!window.__timelineHintResizeBound) {
+          window.__timelineHintResizeBound = true;
+          window.addEventListener('resize', () => {
+            document.querySelectorAll('.trends-container').forEach(tc=> updateHint(tc));
+          });
+        }
+      } catch (_) {}
+      // Mount map iframe: sandbox → dh-sandbox route; otherwise → GitHub Pages (with local fallback)
+      try {
+        const mountMap = async (num)=>{
+          const el = document.getElementById('mapEmbed');
+          if (!el) return;
+          el.innerHTML = '';
+          const ac = String(num).padStart(3,'0');
+          const iframe = document.createElement('iframe');
+          iframe.className = 'embed-map';
+          iframe.loading = 'lazy';
+          iframe.referrerPolicy = 'no-referrer';
+          iframe.style.width = '100%';
+          iframe.style.height = '600px';
+          iframe.style.border = '0';
+          iframe.style.borderRadius = '8px';
+          const enable2025 = announced ? '1' : '0';
+          const host = (location.hostname||'').toLowerCase();
+          const isSandbox = host.includes('quintype.io') || host.includes('sandbox');
+          const cname = encodeURIComponent((base && base.name) || '');
+          const ghRemote = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac}&enable2025=${enable2025}&name=${cname}`;
+          const local = `./map.html?ac=${ac}&enable2025=${enable2025}&name=${cname}`;
+          let target = ghRemote;
+          if (isSandbox) {
+            const sandboxUrl = `https://dh-sandbox-web.quintype.io/biharmap?ac=${ac}&enable2025=${enable2025}&name=${cname}`;
+            try {
+              const head = await fetch(sandboxUrl, { method: 'HEAD' });
+              if (head && head.ok) target = sandboxUrl;
+            } catch {}
+          }
+          let loaded = false;
+          iframe.onload = ()=>{ loaded = true; };
+          iframe.src = target;
+          el.appendChild(iframe);
+          if (target !== local) setTimeout(()=>{ if (!loaded) iframe.src = local; }, 3000);
+        };
+        // Fire-and-forget; do not await inside non-async scope
+        mountMap(seatNo);
+        // Inject hardcoded CMS content into pre/post blocks
+        const injectCms = (id, html)=>{
+          const el = document.getElementById(id);
+          if (!el) return;
+          const body = el.querySelector('.cms-content-body');
+          if (!body) return;
+          body.innerHTML = html;
+        };
+        if (!announced) injectCms('cms-pre', CMS_PRE_HTML);
+        if (announced) injectCms('cms-post', CMS_POST_HTML);
+        window.__lastRender = { seatNo, announced };
+        window.__lastRenderData = data; // Store data for static exporters
+        const exportBtn = document.getElementById('exportBtn');
+        if (exportBtn) exportBtn.disabled = false;
+        // Enable static export buttons
+        ['exportStaticHeader','exportStatic2025','exportStaticMLA','exportStaticTimeline','exportStaticGrid'].forEach(id=>{
+          const btn = document.getElementById(id);
+          if (btn) btn.disabled = false;
+        });
+      } catch (_) {}
+    }
+
+    function buildEmbedHTML(state){
+      const seatNo = state && state.seatNo;
+      const announced = !!(state && state.announced);
+      const ac = String(seatNo).padStart(3,'0');
+      const enable2025 = announced ? '1' : '0';
+      const output = document.getElementById('output');
+      const clone = output ? output.cloneNode(true) : document.createElement('div');
+      const map = clone.querySelector('#mapEmbed');
+      if (map){
+        const iframe = document.createElement('iframe');
+        iframe.className = 'embed-map';
+        iframe.loading = 'lazy';
+        iframe.referrerPolicy = 'no-referrer';
+        iframe.style.width = '100%';
+        iframe.style.height = '600px';
+        iframe.style.border = '0';
+        iframe.style.borderRadius = '8px';
+        const cname = encodeURIComponent((state && state.name) || '');
+        iframe.src = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac}&enable2025=${enable2025}&name=${cname}`;
+        map.innerHTML = '';
+        map.appendChild(iframe);
+      }
+      let titleText = 'Bihar Constituency';
+      try {
+        const t = clone.querySelector('.constituency-title');
+        if (t && t.textContent) titleText = t.textContent.trim();
+      } catch {}
+      let styles = '';
+      try { document.querySelectorAll('style').forEach(s=>{ styles += (s.textContent||'') + '\n'; }); } catch {}
+      const headFonts = `
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto+Serif:wght@400;500;600&family=Roboto+Slab:wght@400;500;600;700&display=swap" rel="stylesheet">`;
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  ${headFonts}
+  <title>${titleText}</title>
+  <style>${styles}</style>
+</head>
+<body>
+  <div class="container">
+    ${clone.innerHTML}
+  </div>
+</body>
+</html>`;
+      return html;
+    }
+
+    function buildScopedStylesForId(id){
+      const ID = '#' + id;
+      function scopeSelector(sel){
+        let t = sel.trim();
+        // Replace global roots with container id
+        t = t.replace(/:root/g, ID);
+        t = t.replace(/(^|\s)html(\b|\s|:)/g, `$1${ID}$2`);
+        t = t.replace(/(^|\s)body(\b|\s|:)/g, `$1${ID}$2`);
+        // Prefix if not already targeting the container
+        if (!t.startsWith(ID)) t = ID + ' ' + t;
+        return t;
+      }
+      function scopeRule(rule){
+        try {
+          const CSSRuleObj = window.CSSRule || {};
+          const STYLE = CSSRuleObj.STYLE_RULE || 1;
+          const MEDIA = CSSRuleObj.MEDIA_RULE || 4;
+          const FONT = CSSRuleObj.FONT_FACE_RULE || 5;
+          const SUPPORTS = CSSRuleObj.SUPPORTS_RULE || 12;
+          const KEYFRAMES = CSSRuleObj.KEYFRAMES_RULE || 7;
+          const KEYFRAME = CSSRuleObj.KEYFRAME_RULE || 8;
+          switch (rule.type) {
+            case STYLE: {
+              const parts = (rule.selectorText || '').split(',');
+              const scoped = parts.map(scopeSelector).join(', ');
+              return scoped + ' {' + rule.style.cssText + '}';
+            }
+            case MEDIA: {
+              let inner = '';
+              for (let i=0; i<rule.cssRules.length; i++) inner += scopeRule(rule.cssRules[i]);
+              return '@media ' + (rule.media && rule.media.mediaText || '') + '{' + inner + '}';
+            }
+            case FONT: {
+              return rule.cssText;
+            }
+            case SUPPORTS: {
+              let inner = '';
+              for (let i=0; i<rule.cssRules.length; i++) inner += scopeRule(rule.cssRules[i]);
+              return '@supports ' + (rule.conditionText || '') + '{' + inner + '}';
+            }
+            case KEYFRAMES: {
+              // Keep keyframes as-is; names unlikely to collide
+              return rule.cssText;
+            }
+            case KEYFRAME: {
+              return rule.cssText;
+            }
+            default:
+              return rule.cssText || '';
+          }
+        } catch(_) { return ''; }
+      }
+      let out = '';
+      try {
+        for (const sheet of Array.from(document.styleSheets)){
+          if (!sheet.ownerNode || sheet.ownerNode.tagName !== 'STYLE') continue;
+          const rules = sheet.cssRules || [];
+          for (let i=0; i<rules.length; i++) out += scopeRule(rules[i]);
+        }
+      } catch(_) {}
+      return out;
+    }
+
+    function buildDynamicEmbedSnippet(){
+      const hostId = 'bihar-dynamic-embed';
+      const scopedStyles = buildScopedStylesForId(hostId);
+
+      // This is the complete dynamic embed script that will be injected into CMS
+      const dynamicScript = `
+(function() {
+  var hasRendered = false;
+  var renderAttempts = 0;
+  var maxAttempts = 3;
+
+  function initEmbed() {
+    try {
+      renderAttempts++;
+
+      // Get parent URL
+      var parentUrl = '';
+      try {
+        parentUrl = window.parent.location.href;
+      } catch(e) {
+        parentUrl = document.referrer || window.location.href;
+      }
+
+      var hostEl = document.getElementById('${hostId}');
+      if (!hostEl) {
+        if (renderAttempts < maxAttempts) {
+          setTimeout(initEmbed, 500);
+        }
+        return;
+      }
+
+      // Check if already rendered and has content
+      if (hasRendered && hostEl.innerHTML.length > 200) {
+        return;
+      }
+
+      // Show loading state
+      hostEl.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">Loading constituency data...</div>';
+
+    // Extract slug from URL
+    function extractSlug(url) {
+      try {
+        var urlObj = new URL(url);
+        var path = urlObj.pathname;
+        // Match patterns like /archives/valmiki-nagar-assembly-election-2025-1400072
+        // Extract the first part before -assembly-election or -election
+        var match = path.match(/\\/([^\\/]+?)(?:-assembly)?-election-\\d{4}/i);
+        if (match && match[1]) return match[1];
+
+        // Try simpler pattern: /archives/slug-anything
+        var parts = path.split('/').filter(function(p){ return p.length > 0; });
+        if (parts.length > 1) {
+          var lastPart = parts[parts.length - 1];
+          // Remove trailing numbers and election year patterns
+          var cleaned = lastPart.replace(/-\\d{4}-\\d+$/, '').replace(/-assembly-election.*$/, '').replace(/-election.*$/, '');
+          if (cleaned) return cleaned;
+        }
+
+        return null;
+      } catch(e) {
+        console.error('Slug extraction error:', e);
+        return null;
+      }
+    }
+
+    var slug = extractSlug(parentUrl);
+    if (!slug) {
+      hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Could not extract constituency from URL: ' + parentUrl + '</div>';
+      return;
+    }
+
+    // Detect data source
+    function detectDataSource() {
+      var host = window.location.hostname.toLowerCase();
+      if (host.includes('quintype.io') || host.includes('sandbox')) return 'sandbox';
+      return 'github';
+    }
+
+    var dataSource = detectDataSource();
+    var filesConfig = {
+      github: {
+        parties: 'https://suhastpml.github.io/Bihar_constituency_page/parties.json',
+        consolidated: 'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json',
+        alliances: 'https://suhastpml.github.io/Bihar_constituency_page/alliances.json'
+      },
+      sandbox: {
+        parties: 'https://dh-sandbox-web.quintype.io/parties.json',
+        consolidated: 'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated',
+        alliances: 'https://dh-sandbox-web.quintype.io/alliances.json'
+      }
+    };
+
+    var FILES = filesConfig[dataSource];
+
+    // Load all data
+    Promise.all([
+      fetch(FILES.parties).then(function(r){ return r.json(); }),
+      fetch(FILES.consolidated).then(function(r){ return r.json(); })
+    ]).then(function(results) {
+      var parties = results[0];
+      var consolidated = results[1];
+
+      // Find constituency - try exact slug match first, then fuzzy match
+      var constituency = null;
+
+      // 1. Try exact match
+      for (var i = 0; i < consolidated.length; i++) {
+        if (consolidated[i].slug === slug) {
+          constituency = consolidated[i];
+          break;
+        }
+      }
+
+      // 2. If no exact match, search for slug anywhere in the URL path
+      if (!constituency) {
+        var urlLower = parentUrl.toLowerCase();
+        for (var i = 0; i < consolidated.length; i++) {
+          var constSlug = consolidated[i].slug;
+          if (constSlug && urlLower.includes(constSlug)) {
+            constituency = consolidated[i];
+            break;
+          }
+        }
+      }
+
+      if (!constituency) {
+        hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Constituency not found for slug: ' + slug + ' in URL: ' + parentUrl + '</div>';
+        return;
+      }
+
+      // Build party index
+      var partiesIdx = {};
+      parties.forEach(function(p) { partiesIdx[p.code] = p; });
+
+      // Helper functions (inline the essential ones)
+      var PARTY_NORMALIZE = { 'JDU': 'JD(U)', 'CPM': 'CPI(M)', 'HAM': 'HAM(S)', 'Ind': 'IND' };
+      function normalizeParty(code) {
+        if (!code) return code;
+        var c = code.trim();
+        return PARTY_NORMALIZE[c] || c;
+      }
+
+      function fmtNumber(n) {
+        return (n == null ? 'N/A' : Number(n).toLocaleString('en-IN'));
+      }
+
+      function enrichParty(code, idx) {
+        var norm = normalizeParty(code || '');
+        var meta = idx[norm] || idx[code] || null;
+        return {
+          code: norm || null,
+          name: meta ? meta.name : null,
+          color: meta ? meta.color : '#888'
+        };
+      }
+
+      function recFromConsolidated(row, year) {
+        if (!row) return null;
+        var y = String(year);
+        var wName = row['y' + y + '_winner_name'];
+        var wParty = row['y' + y + '_winner_party'];
+        var wVotes = row['y' + y + '_winner_votes'];
+        var ruName = row['y' + y + '_runner_name'];
+        var ruParty = row['y' + y + '_runner_party'];
+        var ruVotes = row['y' + y + '_runner_votes'];
+        var margin = row['y' + y + '_margin'];
+        if (!wName && !wParty && !wVotes && !margin) return null;
+        return {
+          'Winner': { Candidate: wName || '-', Party: wParty || '-', Votes: wVotes || '0' },
+          'Runner up': { Candidate: ruName || '-', Party: ruParty || '-', Votes: ruVotes || '0' },
+          'Margin': margin || '0'
+        };
+      }
+
+      function renderYearBlock(year, rec, idx) {
+        if (!rec) return '<div class="card election-result"><h3 class="election-title">Bihar Elections ' + year + ' Results</h3><div class="muted">Not available</div></div>';
+        var w = rec['Winner'] || {};
+        var ru = rec['Runner up'] || {};
+        var wP = enrichParty(w.Party, idx);
+        var ruP = enrichParty(ru.Party, idx);
+        var wVotes = parseInt(String(w.Votes || '').replace(/,/g, ''), 10) || 0;
+        var ruVotes = parseInt(String(ru.Votes || '').replace(/,/g, ''), 10) || 0;
+        var margin = parseInt(String(rec.Margin || '').replace(/,/g, ''), 10) || Math.max(0, wVotes - ruVotes);
+        var maxV = Math.max(wVotes, ruVotes, 1);
+        var wPct = Math.round((wVotes / maxV) * 100);
+        var ruPct = Math.round((ruVotes / maxV) * 100);
+
+        return '<div class="card election-result">' +
+          '<h3 class="election-title">Bihar Elections ' + year + ' Results</h3>' +
+          '<div class="candidate-row">' +
+            '<div class="candidate-info">' +
+              '<div>' +
+                '<div class="candidate-name">WINNER: ' + (w.Candidate || '—') + '</div>' +
+                '<div class="candidate-party">' + (wP.name || wP.code || '—') + ' • <span class="vote-count">' + fmtNumber(wVotes) + ' votes</span></div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="bar"><span style="width:' + wPct + '%; background:#16a34a"></span></div>' +
+          '</div>' +
+          '<div class="candidate-row">' +
+            '<div class="candidate-info">' +
+              '<div>' +
+                '<div class="candidate-name">Runner-up: ' + (ru.Candidate || '—') + '</div>' +
+                '<div class="candidate-party">' + (ruP.name || ruP.code || '—') + ' • <span class="vote-count">' + fmtNumber(ruVotes) + ' votes</span></div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="bar"><span style="width:' + ruPct + '%; background:#dc2626"></span></div>' +
+          '</div>' +
+          '<div class="margin-info">' +
+            '<span class="margin-text">MARGIN: ' + fmtNumber(margin) + ' votes</span>' +
+          '</div>' +
+        '</div>';
+      }
+
+      function renderEnhancedTrends(r2010, r2015, r2020, r2025, idx) {
+        function partyOf(rec) { return normalizeParty((rec && rec['Winner'] && rec['Winner'].Party) || ''); }
+        function nameOf(rec) { return (rec && rec['Winner'] && rec['Winner'].Candidate) || null; }
+
+        var elections = [
+          { year: '2010', rec: r2010, party: partyOf(r2010), name: nameOf(r2010) },
+          { year: '2015', rec: r2015, party: partyOf(r2015), name: nameOf(r2015) },
+          { year: '2020', rec: r2020, party: partyOf(r2020), name: nameOf(r2020) },
+          { year: '2025', rec: r2025, party: partyOf(r2025), name: nameOf(r2025) }
+        ].filter(function(e) { return e.rec; });
+
+        // If 2025 data exists, reverse to show newest first
+        var has2025 = false;
+        for (var i = 0; i < elections.length; i++) {
+          if (elections[i].year === '2025') {
+            has2025 = true;
+            break;
+          }
+        }
+        if (has2025) {
+          elections.reverse();
+        }
+
+        if (elections.length === 0) {
+          return '<div class="trends-container"><div class="muted">No election data available</div></div>';
+        }
+
+        var timelineHTML = '';
+        elections.forEach(function(election, index) {
+          var party = enrichParty(election.party, idx);
+          timelineHTML += '<div class="timeline-year">' +
+            '<div class="timeline-year-badge">' + election.year + '</div>' +
+            '<div class="timeline-candidate">' +
+              '<div class="timeline-candidate-name">' + (election.name || '—') + '</div>' +
+              '<div class="timeline-party" style="background: ' + party.color + '">' + (party.code || '—') + '</div>' +
+            '</div>' +
+          '</div>';
+
+          if (index < elections.length - 1) {
+            var nextElection = elections[index + 1];
+            var isHold = election.party === nextElection.party;
+            var changeClass = isHold ? 'timeline-hold' : 'timeline-gain';
+            var changeText = isHold ? 'HOLD' : 'GAIN';
+            timelineHTML += '<div class="timeline-connection">' +
+              '<div class="timeline-line"></div>' +
+              '<div class="timeline-change ' + changeClass + '">' + changeText + '</div>' +
+            '</div>';
+          }
+        });
+
+        return '<div class="trends-container">' +
+          '<div class="timeline-scroll">' +
+            '<div class="timeline-container">' + timelineHTML + '</div>' +
+          '</div>' +
+          '<div class="timeline-hint">← Timeline can be scrolled horizontally →</div>' +
+        '</div>';
+      }
+
+      // Extract year records
+      var r2010 = recFromConsolidated(constituency, 2010);
+      var r2015 = recFromConsolidated(constituency, 2015);
+      var r2020 = recFromConsolidated(constituency, 2020);
+      var r2025 = recFromConsolidated(constituency, 2025);
+
+      var announced = !!r2025;
+      var reserved = constituency.reserved || 'General';
+      var mla = {
+        mla: constituency.current_mla_name,
+        party: constituency.current_mla_party,
+        alliance: constituency.current_mla_alliance
+      };
+      var mlaParty = enrichParty(mla.party, partiesIdx);
+
+      // CMS content blocks
+      var CMS_PRE = '<p>The Bihar Assembly elections are underway. Follow this page for constituency-wise context, key candidates, and background ahead of the 2025 results. We will update this section with quick takeaways as trends emerge.</p><p>Note: Past results and party colors are based on publicly available records. Turn the \\'Results announced\\' toggle on when official 2025 results are declared to see updated summaries.</p>';
+      var CMS_POST = '<p>The 2025 results for this constituency are in. The summary and margin details are displayed above. Use this section for quick context on how the outcome compares with 2010–2020 and what it means for the broader alliances.</p><p>Data sources include official ECI releases and curated archives. We will refine the summary as more granular booth-level data is published.</p>';
+
+      // Build map iframe
+      var ac = String(constituency.no).padStart(3, '0');
+      var enable2025 = announced ? '1' : '0';
+      var cname = encodeURIComponent((constituency.constituency_name || constituency.name || '').toString());
+      var mapUrl = 'https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=' + ac + '&enable2025=' + enable2025 + '&name=' + cname;
+      var mapHTML = '<div class="card cms-content-card"><div class="cms-content-body">' +
+        '<iframe class="embed-map" loading="lazy" referrerpolicy="no-referrer" ' +
+        'style="width:100%;height:600px;border:0;border-radius:8px;" src="' + mapUrl + '"></iframe>' +
+        '</div></div>';
+
+      // Render full HTML
+      var html = '<div class="card constituency-header">' +
+        '<h2 class="constituency-title">' + constituency.constituency_name + ' Assembly Election 2025</h2>' +
+        '<div class="constituency-info">' +
+          '<div><strong>District:</strong> ' + constituency.district + '</div>' +
+          '<div><strong>Seat Type:</strong> <span class="badge">' + reserved + '</span></div>' +
+        '</div>' +
+      '</div>' +
+      (!announced ? '<div class="card cms-content-card"><div class="cms-content-body">' + CMS_PRE + '</div></div>' : '') +
+      (announced ? renderYearBlock(2025, r2025, partiesIdx) : '') +
+      (announced ? '<div class="card cms-content-card"><div class="cms-content-body">' + CMS_POST + '</div></div>' : '') +
+      mapHTML +
+      (!announced ? '<div class="card current-mla-card">' +
+        '<h3 class="current-mla-title">' + constituency.constituency_name + ' Current MLA</h3>' +
+        '<p class="mla-name">' + (mla.mla || '-') + '</p>' +
+        (function() {
+          var parts = [];
+          if (mlaParty && (mlaParty.name || mlaParty.code)) parts.push(mlaParty.name || mlaParty.code);
+          if (mla.alliance) parts.push('Alliance: ' + mla.alliance);
+          return parts.length ? '<p class="current-mla-meta">' + parts.join(' • ') + '</p>' : '';
+        })() +
+      '</div>' : '') +
+      '<div class="card">' +
+        '<h3 class="past-results-title">Bihar Assembly Elections ' + constituency.constituency_name + ' Past Results</h3>' +
+        renderEnhancedTrends(r2010, r2015, r2020, (announced ? r2025 : null), partiesIdx) +
+      '</div>' +
+      '<div class="results-container">' +
+        renderYearBlock(2020, r2020, partiesIdx) +
+        renderYearBlock(2015, r2015, partiesIdx) +
+        renderYearBlock(2010, r2010, partiesIdx) +
+      '</div>' +
+      '<div class="disclaimer-footer">' +
+        '<div class="disclaimer-text">' +
+          'This page incorporates information from Wikipedia articles, available under the Creative Commons Attribution-ShareAlike 4.0 License, and data from the Election Commission of India (ECI)' +
+        '</div>' +
+      '</div>';
+
+      hostEl.innerHTML = html;
+      hasRendered = true;
+
+      // Watch for content being cleared and re-render if needed
+      var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.type === 'childList' && hostEl.innerHTML.length < 200 && hasRendered) {
+            console.log('Bihar embed content was cleared, re-rendering...');
+            hasRendered = false;
+            renderAttempts = 0;
+            setTimeout(initEmbed, 100);
+            observer.disconnect();
+          }
+        });
+      });
+      observer.observe(hostEl, { childList: true, subtree: false });
+
+    }).catch(function(err) {
+      console.error('Dynamic embed error:', err);
+      hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Error loading data: ' + err.message + '</div>';
+    });
+
+  } catch(e) {
+    console.error('Dynamic embed initialization error:', e);
+    if (renderAttempts < maxAttempts) {
+      setTimeout(initEmbed, 500);
+    }
+  }
+}
+
+// Start when DOM is ready - multiple triggers for CMS compatibility
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initEmbed);
+} else {
+  // DOM already loaded, try immediately
+  initEmbed();
+}
+
+// Also try after a short delay (for CMS environments that manipulate DOM after load)
+setTimeout(initEmbed, 100);
+setTimeout(initEmbed, 500);
+
+// And on window load as final fallback
+window.addEventListener('load', initEmbed);
+})();`;
+
+      const snippet = `<div id="${hostId}"></div>
+<style>${scopedStyles}</style>
+<script>${dynamicScript}<\/script>`;
+
+      return snippet;
+    }
+
+    // Widget 1: Constituency Header
+    function buildWidget_Header_DynamicEmbed(){
+      const hostId = 'bihar-widget-header';
+      const scopedStyles = buildScopedStylesForId(hostId);
+
+      const dynamicScript = `
+(function() {
+  var hasRendered = false;
+  var renderAttempts = 0;
+  var maxAttempts = 3;
+
+  function initEmbed() {
+    try {
+      renderAttempts++;
+      var parentUrl = '';
+      try {
+        parentUrl = window.parent.location.href;
+      } catch(e) {
+        parentUrl = document.referrer || window.location.href;
+      }
+
+      var hostEl = document.getElementById('${hostId}');
+      if (!hostEl) {
+        if (renderAttempts < maxAttempts) {
+          setTimeout(initEmbed, 500);
+        }
+        return;
+      }
+
+      if (hasRendered && hostEl.innerHTML.length > 200) {
+        return;
+      }
+
+      hostEl.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">Loading...</div>';
+
+      function extractSlug(url) {
+        try {
+          var urlObj = new URL(url);
+          var path = urlObj.pathname;
+          var match = path.match(/\\/([^\\/]+?)(?:-assembly)?-election-\\d{4}/i);
+          if (match && match[1]) return match[1];
+          var parts = path.split('/').filter(function(p){ return p.length > 0; });
+          if (parts.length > 1) {
+            var lastPart = parts[parts.length - 1];
+            var cleaned = lastPart.replace(/-\\d{4}-\\d+$/, '').replace(/-assembly-election.*$/, '').replace(/-election.*$/, '');
+            if (cleaned) return cleaned;
+          }
+          return null;
+        } catch(e) {
+          return null;
+        }
+      }
+
+      var slug = extractSlug(parentUrl);
+      if (!slug) {
+        hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Could not extract constituency from URL</div>';
+        return;
+      }
+
+      function detectDataSource() {
+        var host = window.location.hostname.toLowerCase();
+        if (host.includes('quintype.io') || host.includes('sandbox')) return 'sandbox';
+        return 'github';
+      }
+
+      var dataSource = detectDataSource();
+      var filesConfig = {
+        github: {
+          consolidated: 'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json'
+        },
+        sandbox: {
+          consolidated: 'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated'
+        }
+      };
+
+      var FILES = filesConfig[dataSource];
+
+      fetch(FILES.consolidated).then(function(r){ return r.json(); })
+      .then(function(consolidated) {
+        var constituency = null;
+        for (var i = 0; i < consolidated.length; i++) {
+          if (consolidated[i].slug === slug) {
+            constituency = consolidated[i];
+            break;
+          }
+        }
+        if (!constituency) {
+          var urlLower = parentUrl.toLowerCase();
+          for (var i = 0; i < consolidated.length; i++) {
+            var constSlug = consolidated[i].slug;
+            if (constSlug && urlLower.includes(constSlug)) {
+              constituency = consolidated[i];
+              break;
+            }
+          }
+        }
+
+        if (!constituency) {
+          hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Constituency not found</div>';
+          return;
+        }
+
+        var reserved = constituency.reserved || 'General';
+        var html = '<div class="card constituency-header">' +
+          '<h2 class="constituency-title">' + constituency.constituency_name + ' Assembly Election 2025</h2>' +
+          '<div class="constituency-info">' +
+            '<div><strong>District:</strong> ' + constituency.district + '</div>' +
+            '<div><strong>Seat Type:</strong> <span class="badge">' + reserved + '</span></div>' +
+          '</div>' +
+        '</div>';
+
+        hostEl.innerHTML = html;
+        hasRendered = true;
+      }).catch(function(err) {
+        hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Error loading data</div>';
+      });
+
+    } catch(e) {
+      if (renderAttempts < maxAttempts) {
+        setTimeout(initEmbed, 500);
+      }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEmbed);
+  } else {
+    initEmbed();
+  }
+  setTimeout(initEmbed, 100);
+  setTimeout(initEmbed, 500);
+  window.addEventListener('load', initEmbed);
+})();`;
+
+      const snippet = `<div id="${hostId}"></div>
+<style>${scopedStyles}</style>
+<script>${dynamicScript}<\/script>`;
+      return snippet;
+    }
+
+    // Widget 2: 2025 Results Card (empty if no 2025 data)
+    function buildWidget_2025Results_DynamicEmbed(){
+      const hostId = 'bihar-widget-2025results';
+      const scopedStyles = buildScopedStylesForId(hostId);
+
+      const dynamicScript = `
+(function() {
+  var hasRendered = false;
+  var renderAttempts = 0;
+  var maxAttempts = 3;
+
+  function initEmbed() {
+    try {
+      renderAttempts++;
+      var parentUrl = '';
+      try {
+        parentUrl = window.parent.location.href;
+      } catch(e) {
+        parentUrl = document.referrer || window.location.href;
+      }
+
+      var hostEl = document.getElementById('${hostId}');
+      if (!hostEl) {
+        if (renderAttempts < maxAttempts) {
+          setTimeout(initEmbed, 500);
+        }
+        return;
+      }
+
+      if (hasRendered && hostEl.innerHTML.length > 50) {
+        return;
+      }
+
+      function extractSlug(url) {
+        try {
+          var urlObj = new URL(url);
+          var path = urlObj.pathname;
+          var match = path.match(/\\/([^\\/]+?)(?:-assembly)?-election-\\d{4}/i);
+          if (match && match[1]) return match[1];
+          var parts = path.split('/').filter(function(p){ return p.length > 0; });
+          if (parts.length > 1) {
+            var lastPart = parts[parts.length - 1];
+            var cleaned = lastPart.replace(/-\\d{4}-\\d+$/, '').replace(/-assembly-election.*$/, '').replace(/-election.*$/, '');
+            if (cleaned) return cleaned;
+          }
+          return null;
+        } catch(e) {
+          return null;
+        }
+      }
+
+      var slug = extractSlug(parentUrl);
+      if (!slug) {
+        hostEl.innerHTML = '';
+        return;
+      }
+
+      function detectDataSource() {
+        var host = window.location.hostname.toLowerCase();
+        if (host.includes('quintype.io') || host.includes('sandbox')) return 'sandbox';
+        return 'github';
+      }
+
+      var dataSource = detectDataSource();
+      var filesConfig = {
+        github: {
+          parties: 'https://suhastpml.github.io/Bihar_constituency_page/parties.json',
+          consolidated: 'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json'
+        },
+        sandbox: {
+          parties: 'https://dh-sandbox-web.quintype.io/parties.json',
+          consolidated: 'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated'
+        }
+      };
+
+      var FILES = filesConfig[dataSource];
+
+      Promise.all([
+        fetch(FILES.parties).then(function(r){ return r.json(); }),
+        fetch(FILES.consolidated).then(function(r){ return r.json(); })
+      ]).then(function(results) {
+        var parties = results[0];
+        var consolidated = results[1];
+        var constituency = null;
+
+        for (var i = 0; i < consolidated.length; i++) {
+          if (consolidated[i].slug === slug) {
+            constituency = consolidated[i];
+            break;
+          }
+        }
+        if (!constituency) {
+          var urlLower = parentUrl.toLowerCase();
+          for (var i = 0; i < consolidated.length; i++) {
+            var constSlug = consolidated[i].slug;
+            if (constSlug && urlLower.includes(constSlug)) {
+              constituency = consolidated[i];
+              break;
+            }
+          }
+        }
+
+        if (!constituency) {
+          hostEl.innerHTML = '';
+          return;
+        }
+
+        // Check for 2025 data
+        var wName = constituency.y2025_winner_name;
+        var wParty = constituency.y2025_winner_party;
+        var wVotes = constituency.y2025_winner_votes;
+        var margin = constituency.y2025_margin;
+
+        // Show skeleton when a 2025 winner is not present
+        if (!wName) {
+          var css = '<style>'+
+            '#'+ '${hostId}' + ' .card{position:relative}'+
+            '#'+ '${hostId}' + ' .overlay{position:absolute;inset:0;background:rgba(255,255,255,0.85);display:flex;align-items:center;justify-content:center;text-align:center;border-radius:12px;pointer-events:none;z-index:1}'+
+            '#'+ '${hostId}' + ' .overlay-text{font-size:18px;font-weight:700;color:#6b7280}'+
+          '</style>';
+          var skel = css +
+            '<div class="card election-result">'+
+              '<div class="overlay"><p class="overlay-text">Results not announced yet. Return on result day to see the outcome.</p></div>'+
+              '<h3 class="election-title">Bihar Elections 2025 Results</h3>'+
+              '<div class="candidate-row">'+
+                '<div class="candidate-info"><div>'+
+                  '<div class="candidate-name"><span class="muted">WINNER:</span> <span class="muted">To be announced</span></div>'+
+                  '<div class="candidate-party"><span class="muted">&mdash; &bull; <span class="vote-count">&mdash; votes</span></span></div>'+
+                '</div></div>'+
+                '<div class="bar"><span style="width:40%; background:#e5e7eb"></span></div>'+
+              '</div>'+
+              '<div class="candidate-row">'+
+                '<div class="candidate-info"><div>'+
+                  '<div class="candidate-name"><span class="muted">Runner-up:</span> <span class="muted">To be announced</span></div>'+
+                  '<div class="candidate-party"><span class="muted">&mdash; &bull; <span class="vote-count">&mdash; votes</span></span></div>'+
+                '</div></div>'+
+                '<div class="bar"><span style="width:30%; background:#e5e7eb"></span></div>'+
+              '</div>'+
+              '<div class="margin-info"><span class="margin-text muted">MARGIN: &mdash; votes</span></div>'+
+            '</div>';
+          hostEl.innerHTML = skel;
+          hasRendered = true;
+          return;
+        }
+
+        // Build party index
+        var partiesIdx = {};
+        parties.forEach(function(p) { partiesIdx[p.code] = p; });
+
+        var PARTY_NORMALIZE = { 'JDU': 'JD(U)', 'CPM': 'CPI(M)', 'HAM': 'HAM(S)', 'Ind': 'IND' };
+        function normalizeParty(code) {
+          if (!code) return code;
+          var c = code.trim();
+          return PARTY_NORMALIZE[c] || c;
+        }
+
+        function fmtNumber(n) {
+          return (n == null ? 'N/A' : Number(n).toLocaleString('en-IN'));
+        }
+
+        function enrichParty(code, idx) {
+          var norm = normalizeParty(code || '');
+          var meta = idx[norm] || idx[code] || null;
+          return {
+            code: norm || null,
+            name: meta ? meta.name : null,
+            color: meta ? meta.color : '#888'
+          };
+        }
+
+        var ruName = constituency.y2025_runner_name;
+        var ruParty = constituency.y2025_runner_party;
+        var ruVotes = constituency.y2025_runner_votes;
+
+        var wP = enrichParty(wParty, partiesIdx);
+        var ruP = enrichParty(ruParty, partiesIdx);
+        var wVotesNum = parseInt(String(wVotes || '').replace(/,/g, ''), 10) || 0;
+        var ruVotesNum = parseInt(String(ruVotes || '').replace(/,/g, ''), 10) || 0;
+        var marginNum = parseInt(String(margin || '').replace(/,/g, ''), 10) || Math.max(0, wVotesNum - ruVotesNum);
+        var maxV = Math.max(wVotesNum, ruVotesNum, 1);
+        var wPct = Math.round((wVotesNum / maxV) * 100);
+        var ruPct = Math.round((ruVotesNum / maxV) * 100);
+
+        var html = '<div class="card election-result">' +
+          '<h3 class="election-title">Bihar Elections 2025 Results</h3>' +
+          '<div class="candidate-row">' +
+            '<div class="candidate-info">' +
+              '<div>' +
+                '<div class="candidate-name">WINNER: ' + (wName || '—') + '</div>' +
+                '<div class="candidate-party">' + (wP.name || wP.code || '—') + ' • <span class="vote-count">' + fmtNumber(wVotesNum) + ' votes</span></div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="bar"><span style="width:' + wPct + '%; background:#16a34a"></span></div>' +
+          '</div>' +
+          '<div class="candidate-row">' +
+            '<div class="candidate-info">' +
+              '<div>' +
+                '<div class="candidate-name">Runner-up: ' + (ruName || '—') + '</div>' +
+                '<div class="candidate-party">' + (ruP.name || ruP.code || '—') + ' • <span class="vote-count">' + fmtNumber(ruVotesNum) + ' votes</span></div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="bar"><span style="width:' + ruPct + '%; background:#dc2626"></span></div>' +
+          '</div>' +
+          '<div class="margin-info">' +
+            '<span class="margin-text">MARGIN: ' + fmtNumber(marginNum) + ' votes</span>' +
+          '</div>' +
+        '</div>';
+
+        hostEl.innerHTML = html;
+        hasRendered = true;
+      }).catch(function(err) {
+        hostEl.innerHTML = '';
+      });
+
+    } catch(e) {
+      if (renderAttempts < maxAttempts) {
+        setTimeout(initEmbed, 500);
+      }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEmbed);
+  } else {
+    initEmbed();
+  }
+  setTimeout(initEmbed, 100);
+  setTimeout(initEmbed, 500);
+  window.addEventListener('load', initEmbed);
+})();`;
+
+      const snippet = `<div id="${hostId}"></div>
+<style>${scopedStyles}</style>
+<script>${dynamicScript}<\/script>`;
+      return snippet;
+    }
+
+    // Widget 3: Current MLA (empty if 2025 data exists)
+    function buildWidget_CurrentMLA_DynamicEmbed(){
+  const hostId = 'bihar-widget-currentmla';
+  const scopedStyles = buildScopedStylesForId(hostId);
+
+  const dynamicScript = `
+  (function() {
+  var hasRendered = false;
+  var renderAttempts = 0;
+  var maxAttempts = 3;
+
+  function initEmbed() {
+  try {
+  renderAttempts++;
+  var parentUrl = '';
+  try { parentUrl = window.parent.location.href; } catch(e) { parentUrl = document.referrer || window.location.href; }
+
+        var hostEl = document.getElementById('${hostId}');
+        if (!hostEl) { if (renderAttempts < maxAttempts) setTimeout(initEmbed, 500); return; }
+        if (hasRendered && hostEl.innerHTML.length > 50) return;
+
+        function extractSlug(url) {
+          try {
+            var urlObj = new URL(url);
+            var path = urlObj.pathname;
+            var match = path.match(/\\/([^\\/]+?)(?:-assembly)?-election-\\d{4}/i);
+            if (match && match[1]) return match[1];
+            var parts = path.split('/').filter(function(p){ return p.length > 0; });
+            if (parts.length > 1) {
+              var lastPart = parts[parts.length - 1];
+              var cleaned = lastPart.replace(/-\\d{4}-\\d+$/, '').replace(/-assembly-election.*$/, '').replace(/-election.*$/, '');
+              if (cleaned) return cleaned;
+            }
+            return null;
+          } catch(e) { return null; }
+        }
+
+        var slug = extractSlug(parentUrl);
+        if (!slug) { hostEl.innerHTML = ''; return; }
+
+        function detectDataSource() {
+          var host = window.location.hostname.toLowerCase();
+          if (host.includes('quintype.io') || host.includes('sandbox')) return 'sandbox';
+          return 'github';
+        }
+
+        var dataSource = detectDataSource();
+        var FILES = {
+          github: {
+            parties: 'https://suhastpml.github.io/Bihar_constituency_page/parties.json',
+            consolidated: 'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json'
+          },
+          sandbox: {
+            parties: 'https://dh-sandbox-web.quintype.io/parties.json',
+            consolidated: 'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated'
+          }
+        }[dataSource];
+
+        Promise.all([
+          fetch(FILES.parties).then(function(r){ return r.json(); }),
+          fetch(FILES.consolidated).then(function(r){ return r.json(); })
+        ]).then(function(results) {
+          var parties = results[0];
+          var consolidated = results[1];
+
+          var constituency = null;
+          for (var i = 0; i < consolidated.length; i++) {
+            if (consolidated[i].slug === slug) { constituency = consolidated[i]; break; }
+          }
+          if (!constituency) {
+            var urlLower = parentUrl.toLowerCase();
+            for (var j = 0; j < consolidated.length; j++) {
+              var constSlug = consolidated[j].slug;
+              if (constSlug && urlLower.includes(constSlug)) { constituency = consolidated[j]; break; }
+            }
+          }
+          if (!constituency) { hostEl.innerHTML = ''; return; }
+
+          // Original behavior: hide if 2025 results (winner) exist
+          var has2025Winner = constituency.y2025_winner_name && constituency.y2025_winner_name.trim() !== '';
+          if (has2025Winner) { hostEl.innerHTML = ''; hasRendered = true; return; }
+
+          // Party index
+          var partiesIdx = {};
+          parties.forEach(function(p){ partiesIdx[p.code] = p; });
+
+          var PARTY_NORMALIZE = { 'JDU':'JD(U)', 'CPM':'CPI(M)', 'HAM':'HAM(S)', 'Ind':'IND' };
+          function normalizeParty(code){ if(!code) return code; var c=code.trim(); return PARTY_NORMALIZE[c] || c; }
+          function enrichParty(code, idx){
+            var norm = normalizeParty(code || '');
+            var meta = idx[norm] || idx[code] || null;
+            return { code: norm || null, name: meta ? meta.name : null, color: meta ? meta.color : '#888' };
+          }
+
+          // Current MLA basics from consolidated, alliance derived from parties.json (2020)
+          var mla = {
+            mla: constituency.current_mla_name,
+            party: constituency.current_mla_party
+          };
+          var mlaParty = enrichParty(mla.party, partiesIdx);
+
+          var alliance2020 = (function(){
+            var info = partiesIdx[normalizeParty(mla.party)] || partiesIdx[mla.party] || null;
+            var almap = info && info.alliances || {};
+            var al = (almap && (almap['2020'] || almap[2020])) || (info && (info.alliance_2020 || info.alliance)) || '';
+            return (al && String(al).trim().toUpperCase()) || '';
+          })();
+
+          // Meta chips (match reference)
+          var metaParts = [];
+          if (mlaParty && (mlaParty.name || mlaParty.code)) {
+            var nm = (mlaParty.name || mlaParty.code);
+            var badge = '<span class="timeline-party" style="background: ' + (mlaParty.color || '#6b7280') + '">' + (mlaParty.code || '') + '</span>';
+            metaParts.push(nm + ' ' + badge);
+          }
+          if (alliance2020) {
+            var aBadge = '<span class="timeline-party" style="background: #6b7280">' + alliance2020 + '</span>';
+            metaParts.push(aBadge);
+          }
+          var metaHTML = metaParts.length ? '<p class="current-mla-meta">' + metaParts.join(' • ') + '</p>' : '';
+
+          var html = '<div class="card current-mla-card">' +
+            '<h3 class="current-mla-title">' + constituency.constituency_name + ' Current MLA</h3>' +
+            '<p class="mla-name">' + (mla.mla || '-') + '</p>' +
+            metaHTML +
+          '</div>';
+
+          hostEl.innerHTML = html;
+          hasRendered = true;
+        }).catch(function(){ hostEl.innerHTML = ''; });
+
+      } catch(e) {
+        if (renderAttempts < maxAttempts) { setTimeout(initEmbed, 500); }
+      }
+
+  }
+
+  if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initEmbed);
+  } else {
+  initEmbed();
+  }
+  setTimeout(initEmbed, 100);
+  setTimeout(initEmbed, 500);
+  window.addEventListener('load', initEmbed);
+  })();
+  `;
+
+  return `<div id="${hostId}"></div>
+  <style>${scopedStyles}</style>
+  <script>${dynamicScript}<\/script>`;
+  }
+    // Widget 4: Past Results Timeline (adapts: 2010-2020 or 2010-2025)
+    function buildWidget_Timeline_DynamicEmbed(){
+      const hostId = 'bihar-widget-timeline';
+      const scopedStyles = buildScopedStylesForId(hostId);
+
+      const dynamicScript = `
+(function() {
+  var hasRendered = false;
+  var renderAttempts = 0;
+  var maxAttempts = 3;
+
+  function initEmbed() {
+    try {
+      renderAttempts++;
+      var parentUrl = '';
+      try {
+        parentUrl = window.parent.location.href;
+      } catch(e) {
+        parentUrl = document.referrer || window.location.href;
+      }
+
+      var hostEl = document.getElementById('${hostId}');
+      if (!hostEl) {
+        if (renderAttempts < maxAttempts) {
+          setTimeout(initEmbed, 500);
+        }
+        return;
+      }
+
+      if (hasRendered && hostEl.innerHTML.length > 200) {
+        return;
+      }
+
+      hostEl.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">Loading...</div>';
+
+      function extractSlug(url) {
+        try {
+          var urlObj = new URL(url);
+          var path = urlObj.pathname;
+          var match = path.match(/\\/([^\\/]+?)(?:-assembly)?-election-\\d{4}/i);
+          if (match && match[1]) return match[1];
+          var parts = path.split('/').filter(function(p){ return p.length > 0; });
+          if (parts.length > 1) {
+            var lastPart = parts[parts.length - 1];
+            var cleaned = lastPart.replace(/-\\d{4}-\\d+$/, '').replace(/-assembly-election.*$/, '').replace(/-election.*$/, '');
+            if (cleaned) return cleaned;
+          }
+          return null;
+        } catch(e) {
+          return null;
+        }
+      }
+
+      var slug = extractSlug(parentUrl);
+      if (!slug) {
+        hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Could not extract constituency from URL</div>';
+        return;
+      }
+
+      function detectDataSource() {
+        var host = window.location.hostname.toLowerCase();
+        if (host.includes('quintype.io') || host.includes('sandbox')) return 'sandbox';
+        return 'github';
+      }
+
+      var dataSource = detectDataSource();
+      var filesConfig = {
+        github: {
+          parties: 'https://suhastpml.github.io/Bihar_constituency_page/parties.json',
+          consolidated: 'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json'
+        },
+        sandbox: {
+          parties: 'https://dh-sandbox-web.quintype.io/parties.json',
+          consolidated: 'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated'
+        }
+      };
+
+      var FILES = filesConfig[dataSource];
+
+      Promise.all([
+        fetch(FILES.parties).then(function(r){ return r.json(); }),
+        fetch(FILES.consolidated).then(function(r){ return r.json(); })
+      ]).then(function(results) {
+        var parties = results[0];
+        var consolidated = results[1];
+        var constituency = null;
+
+        for (var i = 0; i < consolidated.length; i++) {
+          if (consolidated[i].slug === slug) {
+            constituency = consolidated[i];
+            break;
+          }
+        }
+        if (!constituency) {
+          var urlLower = parentUrl.toLowerCase();
+          for (var i = 0; i < consolidated.length; i++) {
+            var constSlug = consolidated[i].slug;
+            if (constSlug && urlLower.includes(constSlug)) {
+              constituency = consolidated[i];
+              break;
+            }
+          }
+        }
+
+        if (!constituency) {
+          hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Constituency not found</div>';
+          return;
+        }
+
+        // Build party index
+        var partiesIdx = {};
+        parties.forEach(function(p) { partiesIdx[p.code] = p; });
+
+        var PARTY_NORMALIZE = { 'JDU': 'JD(U)', 'CPM': 'CPI(M)', 'HAM': 'HAM(S)', 'Ind': 'IND' };
+        function normalizeParty(code) {
+          if (!code) return code;
+          var c = code.trim();
+          return PARTY_NORMALIZE[c] || c;
+        }
+
+        function enrichParty(code, idx) {
+          var norm = normalizeParty(code || '');
+          var meta = idx[norm] || idx[code] || null;
+          return {
+            code: norm || null,
+            name: meta ? meta.name : null,
+            color: meta ? meta.color : '#888'
+          };
+        }
+
+        function recFromConsolidated(row, year) {
+          if (!row) return null;
+          var y = String(year);
+          var wName = row['y' + y + '_winner_name'];
+          var wParty = row['y' + y + '_winner_party'];
+          var wVotes = row['y' + y + '_winner_votes'];
+          var margin = row['y' + y + '_margin'];
+          // Only return a record if there's a winner name
+          if (!wName || (typeof wName === 'string' && wName.trim() === '')) return null;
+          return {
+            'Winner': { Candidate: wName || '-', Party: wParty || '-', Votes: wVotes || '0' }
+          };
+        }
+
+        var r2010 = recFromConsolidated(constituency, 2010);
+        var r2015 = recFromConsolidated(constituency, 2015);
+        var r2020 = recFromConsolidated(constituency, 2020);
+        var r2025 = recFromConsolidated(constituency, 2025);
+
+        function partyOf(rec) { return normalizeParty((rec && rec['Winner'] && rec['Winner'].Party) || ''); }
+        function nameOf(rec) { return (rec && rec['Winner'] && rec['Winner'].Candidate) || null; }
+
+        var elections = [
+          { year: '2010', rec: r2010, party: partyOf(r2010), name: nameOf(r2010) },
+          { year: '2015', rec: r2015, party: partyOf(r2015), name: nameOf(r2015) },
+          { year: '2020', rec: r2020, party: partyOf(r2020), name: nameOf(r2020) },
+          { year: '2025', rec: r2025, party: partyOf(r2025), name: nameOf(r2025) }
+        ].filter(function(e) { return e.rec; });
+
+        // If 2025 data exists, reverse to show newest first
+        var has2025 = false;
+        for (var i = 0; i < elections.length; i++) {
+          if (elections[i].year === '2025') {
+            has2025 = true;
+            break;
+          }
+        }
+        if (has2025) {
+          elections.reverse();
+        }
+
+        if (elections.length === 0) {
+          hostEl.innerHTML = '<div class="card"><h3 class="past-results-title">Bihar Assembly Elections ' + constituency.constituency_name + ' Past Results</h3><div class="trends-container"><div class="muted">No election data available</div></div></div>';
+          hasRendered = true;
+          return;
+        }
+
+        var timelineHTML = '';
+        elections.forEach(function(election, index) {
+          var party = enrichParty(election.party, partiesIdx);
+          timelineHTML += '<div class="timeline-year">' +
+            '<div class="timeline-year-badge">' + election.year + '</div>' +
+            '<div class="dott"></div>' +
+            '<div class="timeline-candidate">' +
+              '<div class="timeline-candidate-name">' + (election.name || '—') + '</div>' +
+              '<div class="timeline-party" style="background: ' + party.color + '">' + (party.code || '—') + '</div>' +
+            '</div>' +
+          '</div>';
+
+          if (index < elections.length - 1) {
+            var nextElection = elections[index + 1];
+            var isHold = election.party === nextElection.party;
+            var changeClass = isHold ? 'timeline-hold' : 'timeline-gain';
+            var changeText = isHold ? 'HOLD' : 'GAIN';
+            timelineHTML += '<div class="timeline-connection">' +
+              '<div class="timeline-change ' + changeClass + '">' + changeText + '</div>' +
+            '</div>';
+          }
+        });
+
+        var html = '<div class="card">' +
+          '<h3 class="past-results-title">Bihar Assembly Elections ' + constituency.constituency_name + ' Past Results</h3>' +
+          '<div class="trends-container">' +
+            '<div class="timeline-scroll">' +
+              '<div class="timeline-container">' +
+                '<div class="timeline-line"></div>' +
+                timelineHTML +
+              '</div>' +
+            '</div>' +
+            '<div class="timeline-hint">← Timeline can be scrolled horizontally →</div>' +
+          '</div>' +
+        '</div>';
+
+        hostEl.innerHTML = html;
+        hasRendered = true;
+      }).catch(function(err) {
+        hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Error loading data</div>';
+      });
+
+    } catch(e) {
+      if (renderAttempts < maxAttempts) {
+        setTimeout(initEmbed, 500);
+      }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEmbed);
+  } else {
+    initEmbed();
+  }
+  setTimeout(initEmbed, 100);
+  setTimeout(initEmbed, 500);
+  window.addEventListener('load', initEmbed);
+})();`;
+
+      const snippet = `<div id="${hostId}"></div>
+<style>${scopedStyles}</style>
+<script>${dynamicScript}<\/script>`;
+      return snippet;
+    }
+
+    // Widget 6: Map Iframe (generic; detects constituency from parent URL and passes ?name=)
+    function buildWidget_MapIframe_DynamicEmbed(){
+      const hostId = 'bihar-widget-map-iframe';
+      const scopedStyles = buildScopedStylesForId(hostId);
+
+      const dynamicScript = `
+(function() {
+  var hasRendered = false;
+  var renderAttempts = 0;
+  var maxAttempts = 3;
+
+  function initEmbed() {
+    try {
+      renderAttempts++;
+      var parentUrl = '';
+      try { parentUrl = window.parent.location.href; } catch(e) { parentUrl = document.referrer || window.location.href; }
+
+      var hostEl = document.getElementById('${hostId}');
+      if (!hostEl) {
+        if (renderAttempts < maxAttempts) setTimeout(initEmbed, 500);
+        return;
+      }
+      if (hasRendered && hostEl.querySelector('iframe')) return;
+
+      hostEl.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">Loading map�</div>';
+
+      function extractSlug(url) {
+        try {
+          var urlObj = new URL(url);
+          var path = urlObj.pathname;
+          var match = path.match(/\/([^\/]+?)(?:-assembly)?-election-\d{4}/i);
+          if (match && match[1]) return match[1];
+          var parts = path.split('/').filter(function(p){ return p.length > 0; });
+          if (parts.length > 1) {
+            var lastPart = parts[parts.length - 1];
+            var cleaned = lastPart.replace(/-\d{4}-\d+$/, '').replace(/-assembly-election.*$/, '').replace(/-election.*$/, '');
+            if (cleaned) return cleaned;
+          }
+          return null;
+        } catch(e) { return null; }
+      }
+
+      function detectDataSource() {
+        var host = window.location.hostname.toLowerCase();
+        if (host.includes('quintype.io') || host.includes('sandbox')) return 'sandbox';
+        return 'github';
+      }
+
+      var slug = extractSlug(parentUrl);
+      if (!slug) {
+        hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Could not extract constituency from URL</div>';
+        return;
+      }
+
+      var dataSource = detectDataSource();
+      var filesConfig = {
+        github: { consolidated: 'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json' },
+        sandbox: { consolidated: 'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated' }
+      };
+      var FILES = filesConfig[dataSource];
+
+      fetch(FILES.consolidated).then(function(r){ return r.json(); }).then(function(consolidated){
+        var constituency = null;
+        for (var i = 0; i < consolidated.length; i++) {
+          if (consolidated[i].slug === slug) { constituency = consolidated[i]; break; }
+        }
+        if (!constituency) {
+          var urlLower = parentUrl.toLowerCase();
+          for (var j = 0; j < consolidated.length; j++) {
+            var constSlug = consolidated[j].slug;
+            if (constSlug && urlLower.includes(constSlug)) { constituency = consolidated[j]; break; }
+          }
+        }
+        if (!constituency) {
+          hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Constituency not found</div>';
+          return;
+        }
+
+        var name = encodeURIComponent((constituency.constituency_name || constituency.name || '').toString());
+        var src = (dataSource === 'sandbox')
+          : ('https://dh-sandbox-web.quintype.io/biharmap?enable2025=' + ((constituency && (constituency.y2025_winner_name||constituency.y2025_winner_party||constituency.y2025_winner_votes||constituency.y2025_runner_name||constituency.y2025_runner_party||constituency.y2025_runner_votes)) ? '1':'0') + '&name=' + name)
+          : ('https://suhastpml.github.io/Bihar_constituency_page/map.html?enable2025=' + ((constituency && (constituency.y2025_winner_name||constituency.y2025_winner_party||constituency.y2025_winner_votes||constituency.y2025_runner_name||constituency.y2025_runner_party||constituency.y2025_runner_votes)) ? '1':'0') + '&name=' + name);
+
+        var iframe = document.createElement('iframe');
+        iframe.className = 'embed-map';
+        iframe.loading = 'lazy';
+        iframe.referrerPolicy = 'no-referrer';
+        iframe.style.width = '100%';
+        iframe.style.height = '600px';
+        iframe.style.border = '0';
+        iframe.style.borderRadius = '8px';
+        iframe.src = src;
+
+        hostEl.innerHTML = '';
+        hostEl.appendChild(iframe);
+        hasRendered = true;
+      }).catch(function(){
+        hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Error loading map</div>';
+      });
+    } catch(e) {
+      if (renderAttempts < maxAttempts) setTimeout(initEmbed, 500);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEmbed);
+  } else {
+    initEmbed();
+  }
+  setTimeout(initEmbed, 100);
+  setTimeout(initEmbed, 500);
+  window.addEventListener('load', initEmbed);
+})();`;
+
+      const snippet = `<div id="${hostId}"></div>
+<style>${scopedStyles}</style>
+<script>${dynamicScript}<\/script>`;
+      return snippet;
+    }
+
+    // Widget 5: Historical Results Grid (2020, 2015, 2010 cards)
+    function buildWidget_HistoricalGrid_DynamicEmbed(){
+      const hostId = 'bihar-widget-grid';
+      const scopedStyles = buildScopedStylesForId(hostId);
+
+      const dynamicScript = `
+(function() {
+  var hasRendered = false;
+  var renderAttempts = 0;
+  var maxAttempts = 3;
+
+  function initEmbed() {
+    try {
+      renderAttempts++;
+      var parentUrl = '';
+      try {
+        parentUrl = window.parent.location.href;
+      } catch(e) {
+        parentUrl = document.referrer || window.location.href;
+      }
+
+      var hostEl = document.getElementById('${hostId}');
+      if (!hostEl) {
+        if (renderAttempts < maxAttempts) {
+          setTimeout(initEmbed, 500);
+        }
+        return;
+      }
+
+      if (hasRendered && hostEl.innerHTML.length > 200) {
+        return;
+      }
+
+      hostEl.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">Loading...</div>';
+
+      function extractSlug(url) {
+        try {
+          var urlObj = new URL(url);
+          var path = urlObj.pathname;
+          var match = path.match(/\\/([^\\/]+?)(?:-assembly)?-election-\\d{4}/i);
+          if (match && match[1]) return match[1];
+          var parts = path.split('/').filter(function(p){ return p.length > 0; });
+          if (parts.length > 1) {
+            var lastPart = parts[parts.length - 1];
+            var cleaned = lastPart.replace(/-\\d{4}-\\d+$/, '').replace(/-assembly-election.*$/, '').replace(/-election.*$/, '');
+            if (cleaned) return cleaned;
+          }
+          return null;
+        } catch(e) {
+          return null;
+        }
+      }
+
+      var slug = extractSlug(parentUrl);
+      if (!slug) {
+        hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Could not extract constituency from URL</div>';
+        return;
+      }
+
+      function detectDataSource() {
+        var host = window.location.hostname.toLowerCase();
+        if (host.includes('quintype.io') || host.includes('sandbox')) return 'sandbox';
+        return 'github';
+      }
+
+      var dataSource = detectDataSource();
+      var filesConfig = {
+        github: {
+          parties: 'https://suhastpml.github.io/Bihar_constituency_page/parties.json',
+          consolidated: 'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json'
+        },
+        sandbox: {
+          parties: 'https://dh-sandbox-web.quintype.io/parties.json',
+          consolidated: 'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated'
+        }
+      };
+
+      var FILES = filesConfig[dataSource];
+
+      Promise.all([
+        fetch(FILES.parties).then(function(r){ return r.json(); }),
+        fetch(FILES.consolidated).then(function(r){ return r.json(); })
+      ]).then(function(results) {
+        var parties = results[0];
+        var consolidated = results[1];
+        var constituency = null;
+
+        for (var i = 0; i < consolidated.length; i++) {
+          if (consolidated[i].slug === slug) {
+            constituency = consolidated[i];
+            break;
+          }
+        }
+        if (!constituency) {
+          var urlLower = parentUrl.toLowerCase();
+          for (var i = 0; i < consolidated.length; i++) {
+            var constSlug = consolidated[i].slug;
+            if (constSlug && urlLower.includes(constSlug)) {
+              constituency = consolidated[i];
+              break;
+            }
+          }
+        }
+
+        if (!constituency) {
+          hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Constituency not found</div>';
+          return;
+        }
+
+        // Build party index
+        var partiesIdx = {};
+        parties.forEach(function(p) { partiesIdx[p.code] = p; });
+
+        var PARTY_NORMALIZE = { 'JDU': 'JD(U)', 'CPM': 'CPI(M)', 'HAM': 'HAM(S)', 'Ind': 'IND' };
+        function normalizeParty(code) {
+          if (!code) return code;
+          var c = code.trim();
+          return PARTY_NORMALIZE[c] || c;
+        }
+
+        function fmtNumber(n) {
+          return (n == null ? 'N/A' : Number(n).toLocaleString('en-IN'));
+        }
+
+        function enrichParty(code, idx) {
+          var norm = normalizeParty(code || '');
+          var meta = idx[norm] || idx[code] || null;
+          return {
+            code: norm || null,
+            name: meta ? meta.name : null,
+            color: meta ? meta.color : '#888'
+          };
+        }
+
+        function renderYearBlock(year, rec, idx) {
+          if (!rec) return '<div class="card election-result"><h3 class="election-title">Bihar Elections ' + year + ' Results</h3><div class="muted">Not available</div></div>';
+          var w = rec['Winner'] || {};
+          var ru = rec['Runner up'] || {};
+          var wP = enrichParty(w.Party, idx);
+          var ruP = enrichParty(ru.Party, idx);
+          var wVotes = parseInt(String(w.Votes || '').replace(/,/g, ''), 10) || 0;
+          var ruVotes = parseInt(String(ru.Votes || '').replace(/,/g, ''), 10) || 0;
+          var margin = parseInt(String(rec.Margin || '').replace(/,/g, ''), 10) || Math.max(0, wVotes - ruVotes);
+          var maxV = Math.max(wVotes, ruVotes, 1);
+          var wPct = Math.round((wVotes / maxV) * 100);
+          var ruPct = Math.round((ruVotes / maxV) * 100);
+
+          return '<div class="card election-result">' +
+            '<h3 class="election-title">Bihar Elections ' + year + ' Results</h3>' +
+            '<div class="candidate-row">' +
+              '<div class="candidate-info">' +
+                '<div>' +
+                  '<div class="candidate-name">WINNER: ' + (w.Candidate || '—') + '</div>' +
+                  '<div class="candidate-party">' + (wP.name || wP.code || '—') + ' • <span class="vote-count">' + fmtNumber(wVotes) + ' votes</span></div>' +
+                '</div>' +
+              '</div>' +
+              '<div class="bar"><span style="width:' + wPct + '%; background:#16a34a"></span></div>' +
+            '</div>' +
+            '<div class="candidate-row">' +
+              '<div class="candidate-info">' +
+                '<div>' +
+                  '<div class="candidate-name">Runner-up: ' + (ru.Candidate || '—') + '</div>' +
+                  '<div class="candidate-party">' + (ruP.name || ruP.code || '—') + ' • <span class="vote-count">' + fmtNumber(ruVotes) + ' votes</span></div>' +
+                '</div>' +
+              '</div>' +
+              '<div class="bar"><span style="width:' + ruPct + '%; background:#dc2626"></span></div>' +
+            '</div>' +
+            '<div class="margin-info">' +
+              '<span class="margin-text">MARGIN: ' + fmtNumber(margin) + ' votes</span>' +
+            '</div>' +
+          '</div>';
+        }
+
+        function recFromConsolidated(row, year) {
+          if (!row) return null;
+          var y = String(year);
+          var wName = row['y' + y + '_winner_name'];
+          var wParty = row['y' + y + '_winner_party'];
+          var wVotes = row['y' + y + '_winner_votes'];
+          var ruName = row['y' + y + '_runner_name'];
+          var ruParty = row['y' + y + '_runner_party'];
+          var ruVotes = row['y' + y + '_runner_votes'];
+          var margin = row['y' + y + '_margin'];
+          // Only return a record if there's a winner name
+          if (!wName || (typeof wName === 'string' && wName.trim() === '')) return null;
+          return {
+            'Winner': { Candidate: wName || '-', Party: wParty || '-', Votes: wVotes || '0' },
+            'Runner up': { Candidate: ruName || '-', Party: ruParty || '-', Votes: ruVotes || '0' },
+            'Margin': margin || '0'
+          };
+        }
+
+        var r2010 = recFromConsolidated(constituency, 2010);
+        var r2015 = recFromConsolidated(constituency, 2015);
+        var r2020 = recFromConsolidated(constituency, 2020);
+
+        var html = '<div class="results-container">' +
+          renderYearBlock(2020, r2020, partiesIdx) +
+          renderYearBlock(2015, r2015, partiesIdx) +
+          renderYearBlock(2010, r2010, partiesIdx) +
+        '</div>';
+
+        hostEl.innerHTML = html;
+        hasRendered = true;
+      }).catch(function(err) {
+        hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Error loading data</div>';
+      });
+
+    } catch(e) {
+      if (renderAttempts < maxAttempts) {
+        setTimeout(initEmbed, 500);
+      }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEmbed);
+  } else {
+    initEmbed();
+  }
+  setTimeout(initEmbed, 100);
+  setTimeout(initEmbed, 500);
+  window.addEventListener('load', initEmbed);
+})();`;
+
+      const snippet = `<div id="${hostId}"></div>
+<style>${scopedStyles}</style>
+<script>${dynamicScript}<\/script>`;
+      return snippet;
+    }
+
+    function buildDivOnlySnippet(state){
+      const seatNo = state && state.seatNo;
+      const announced = !!(state && state.announced);
+      const ac = String(seatNo).padStart(3,'0');
+      const enable2025 = announced ? '1' : '0';
+      const output = document.getElementById('output');
+      const clone = output ? output.cloneNode(true) : document.createElement('div');
+      const map = clone.querySelector('#mapEmbed');
+      if (map){
+        const iframe = document.createElement('iframe');
+        iframe.className = 'embed-map';
+        iframe.loading = 'lazy';
+        iframe.referrerPolicy = 'no-referrer';
+        iframe.style.width = '100%';
+        iframe.style.height = '600px';
+        iframe.style.border = '0';
+        iframe.style.borderRadius = '8px';
+        const cname = encodeURIComponent((state && state.name) || '');
+        iframe.src = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac}&enable2025=${enable2025}&name=${cname}`;
+        map.innerHTML = '';
+        map.appendChild(iframe);
+      }
+      const hostId = `bihar-embed-${ac}`;
+      const scopedStyles = buildScopedStylesForId(hostId);
+      const snippet = `<div id="${hostId}">\n  <style>${scopedStyles}</style>\n  ${clone.innerHTML}\n</div>`;
+      return snippet;
+    }
+
+    // Static widget builders (crawlable HTML)
+    function buildStaticHeaderHTML(state){
+      const seatNo = state && state.seatNo;
+      if (!seatNo) return '';
+      const data = window.__lastRenderData;
+      if (!data) return '';
+
+      const base = data.byNo(seatNo);
+      if (!base) return '';
+
+      const reserved = base.reserved || 'General';
+      const hostId = `bihar-static-header-${String(seatNo).padStart(3,'0')}`;
+      const scopedStyles = buildScopedStylesForId(hostId);
+
+      const html = `<div id="${hostId}">
+  <style>${scopedStyles}</style>
+  <div class="card constituency-header">
+    <h2 class="constituency-title">${base.name} Assembly Election 2025</h2>
+    <div class="constituency-info">
+      <div><strong>District:</strong> ${base.district}</div>
+      <div><strong>Seat Type:</strong> <span class="badge">${reserved}</span></div>
+    </div>
+  </div>
+</div>`;
+      return html;
+    }
+
+    function buildStatic2025ResultsHTML(state){
+      const seatNo = state && state.seatNo;
+      if (!seatNo) return '';
+      const data = window.__lastRenderData;
+      if (!data || !data.consolidatedByNo) return '';
+
+      const row = data.consolidatedByNo.get(seatNo);
+      if (!row) return '';
+
+      const hostId = `bihar-static-2025-${String(seatNo).padStart(3,'0')}`;
+      const scopedStyles = buildScopedStylesForId(hostId);
+
+      const hasWinner2025 = !!row.y2025_winner_name;
+      if (!hasWinner2025) {
+        const html = `<div id="${hostId}">
+  <style>${scopedStyles}
+  #${hostId} .card{position:relative}
+  #${hostId} .overlay{position:absolute;inset:0;background:rgba(255,255,255,0.85);display:flex;align-items:center;justify-content:center;text-align:center;border-radius:12px;pointer-events:none;z-index:1}
+  #${hostId} .overlay-text{font-size:18px;font-weight:700;color:#6b7280}
+  </style>
+  <div class="card election-result">
+    <div class="overlay"><p class="overlay-text">Results not announced yet. Return on result day to see the outcome.</p></div>
+    <h3 class="election-title">Bihar Elections 2025 Results</h3>
+    <div class="candidate-row">
+      <div class="candidate-info"><div>
+        <div class="candidate-name"><span class="muted">WINNER:</span> <span class="muted">To be announced</span></div>
+        <div class="candidate-party"><span class="muted">&mdash; &bull; <span class="vote-count">&mdash; votes</span></span></div>
+      </div></div>
+      <div class="bar"><span style="width:40%; background:#e5e7eb"></span></div>
+    </div>
+    <div class="candidate-row">
+      <div class="candidate-info"><div>
+        <div class="candidate-name"><span class="muted">Runner-up:</span> <span class="muted">To be announced</span></div>
+        <div class="candidate-party"><span class="muted">&mdash; &bull; <span class="vote-count">&mdash; votes</span></span></div>
+      </div></div>
+      <div class="bar"><span style="width:30%; background:#e5e7eb"></span></div>
+    </div>
+    <div class="margin-info"><span class="margin-text muted">MARGIN: &mdash; votes</span></div>
+  </div>
+</div>`;
+        return html;
+      }
+
+      const rec = {
+        'Winner': { Candidate: row.y2025_winner_name || '-', Party: row.y2025_winner_party || '-', Votes: row.y2025_winner_votes || 0 },
+        'Runner up': { Candidate: row.y2025_runner_name || '-', Party: row.y2025_runner_party || '-', Votes: row.y2025_runner_votes || 0 },
+        'Margin': row.y2025_margin || 0
+      };
+      const card = renderYearBlock(2025, rec, data.partiesIdx);
+      const html = `<div id="${hostId}">
+  <style>${scopedStyles}</style>
+  ${card}
+</div>`;
+      return html;
+    }
+
+
+    async function exportEmbed(){
+      try {
+        const state = window.__lastRender;
+        if (!state || !state.seatNo){
+          alert("Load a constituency first.");
+          return;
+        }
+        const ac = String(state.seatNo).padStart(3,"0");
+        const snippet = buildDivOnlySnippet(state);
+        try {
+          await navigator.clipboard.writeText(snippet);
+          const status = document.getElementById("status");
+          if (status) status.textContent = `Copied DIV-only embed snippet for AC ${ac} to clipboard`;
+        } catch (e){
+          const ok = window.prompt("Copy the embed code below:", snippet);
+          const status = document.getElementById("status");
+          if (status) status.textContent = ok !== null ? `Embed snippet ready to copy for AC ${ac}` : `Copy cancelled`;
+        }
+      } catch (e){ console.error(e); alert("Failed to copy embed code"); }
+    }
+
+    async function exportDynamicEmbed(){
+      try {
+        const snippet = buildDynamicEmbedSnippet();
+        try {
+          await navigator.clipboard.writeText(snippet);
+          const status = document.getElementById('status');
+          if (status) status.textContent = 'Copied dynamic embed snippet to clipboard (works for all constituencies)';
+        } catch (e){
+          // Fallback prompt copy
+          const ok = window.prompt('Copy the dynamic embed code below:', snippet);
+          const status = document.getElementById('status');
+          if (status) status.textContent = ok !== null ? 'Dynamic embed snippet ready to copy' : 'Copy cancelled';
+        }
+
+      } catch (e){ console.error(e); alert('Failed to copy dynamic embed code'); }
+    }
+
+    async function exportHeaderWidget(){
+      try {
+        const snippet = buildWidget_Header_DynamicEmbed();
+        try {
+          await navigator.clipboard.writeText(snippet);
+          const status = document.getElementById('status');
+          if (status) status.textContent = 'Copied Header Widget embed to clipboard';
+        } catch (e){
+          const ok = window.prompt('Copy the Header Widget embed code below:', snippet);
+          const status = document.getElementById('status');
+          if (status) status.textContent = ok !== null ? 'Header Widget ready to copy' : 'Copy cancelled';
+        }
+      } catch (e){ console.error(e); alert('Failed to copy widget code'); }
+    }
+
+    async function export2025Widget(){
+      try {
+        const snippet = buildWidget_2025Results_DynamicEmbed();
+        try {
+          await navigator.clipboard.writeText(snippet);
+          const status = document.getElementById('status');
+          if (status) status.textContent = 'Copied 2025 Results Widget embed to clipboard (shows only when 2025 data exists)';
+        } catch (e){
+          const ok = window.prompt('Copy the 2025 Results Widget embed code below:', snippet);
+          const status = document.getElementById('status');
+          if (status) status.textContent = ok !== null ? '2025 Results Widget ready to copy' : 'Copy cancelled';
+        }
+      } catch (e){ console.error(e); alert('Failed to copy widget code'); }
+    }
+
+    async function exportMLAWidget(){
+      try {
+        const snippet = buildWidget_CurrentMLA_DynamicEmbed();
+        try {
+          await navigator.clipboard.writeText(snippet);
+          const status = document.getElementById('status');
+          if (status) status.textContent = 'Copied Current MLA Widget embed to clipboard (hides when 2025 data exists)';
+        } catch (e){
+          const ok = window.prompt('Copy the Current MLA Widget embed code below:', snippet);
+          const status = document.getElementById('status');
+          if (status) status.textContent = ok !== null ? 'Current MLA Widget ready to copy' : 'Copy cancelled';
+        }
+      } catch (e){ console.error(e); alert('Failed to copy widget code'); }
+    }
+
+    async function exportTimelineWidget(){
+      try {
+        const snippet = buildWidget_Timeline_DynamicEmbed();
+        try {
+          await navigator.clipboard.writeText(snippet);
+          const status = document.getElementById('status');
+          if (status) status.textContent = 'Copied Timeline Widget embed to clipboard (adapts to include 2025 when data exists)';
+        } catch (e){
+          const ok = window.prompt('Copy the Timeline Widget embed code below:', snippet);
+          const status = document.getElementById('status');
+          if (status) status.textContent = ok !== null ? 'Timeline Widget ready to copy' : 'Copy cancelled';
+        }
+      } catch (e){ console.error(e); alert('Failed to copy widget code'); }
+    }
+
+    async function exportGridWidget(){
+      try {
+        const snippet = buildWidget_HistoricalGrid_DynamicEmbed();
+        try {
+          await navigator.clipboard.writeText(snippet);
+          const status = document.getElementById('status');
+          if (status) status.textContent = 'Copied Historical Grid Widget embed to clipboard (2020, 2015, 2010 results)';
+        } catch (e){
+          const ok = window.prompt('Copy the Historical Grid Widget embed code below:', snippet);
+          const status = document.getElementById('status');
+          if (status) status.textContent = ok !== null ? 'Historical Grid Widget ready to copy' : 'Copy cancelled';
+        }
+      } catch (e){ console.error(e); alert('Failed to copy widget code'); }
+    }
+
+
+    async function exportMapWidget(){
+      try {
+        const snippet = buildWidget_MapIframe_DynamicEmbed();
+        try {
+          await navigator.clipboard.writeText(snippet);
+          const status = document.getElementById('status');
+          if (status) status.textContent = 'Copied Map Iframe Widget embed to clipboard (generic)';
+        } catch (e){
+          const ok = window.prompt('Copy the Map Iframe Widget embed code below:', snippet);
+          const status = document.getElementById('status');
+          if (status) status.textContent = ok !== null ? 'Map Iframe Widget ready to copy' : 'Copy cancelled';
+        }
+      } catch (e){ console.error(e); alert('Failed to copy widget code'); }
+    }
+    async function exportStaticHeader(){
+      try {
+        const state = window.__lastRender;
+        if (!state || !state.seatNo){
+          alert('Load a constituency first.');
+          return;
+        }
+        const html = buildStaticHeaderHTML(state);
+        if (!html){
+          alert('Unable to generate static Header widget. Make sure constituency data is loaded.');
+          return;
+        }
+        await navigator.clipboard.writeText(html);
+        document.getElementById('status').textContent = 'Copied static Header widget to clipboard (crawlable HTML)';
+
+      } catch (e){
+        console.error(e);
+        alert('Failed to copy static widget code');
+      }
+    }
+
+    async function exportStatic2025(){
+      try {
+        const state = window.__lastRender;
+        if (!state || !state.seatNo){
+          alert('Load a constituency first.');
+          return;
+        }
+        const html = buildStatic2025ResultsHTML(state);
+        if (!html || html.startsWith('<!--')){
+          alert('No 2025 results data available for this constituency.');
+          return;
+        }
+        await navigator.clipboard.writeText(html);
+        document.getElementById('status').textContent = 'Copied static 2025 Results widget to clipboard (crawlable HTML)';
+      } catch (e){
+        console.error(e);
+        alert('Failed to copy static widget code');
+      }
+    }
+
+    async function exportStaticMLA(){
+      try {
+        const state = window.__lastRender;
+        if (!state || !state.seatNo){
+          alert('Load a constituency first.');
+          return;
+        }
+        const html = buildStaticMLAHTML(state);
+        if (!html || html.startsWith('<!--')){
+          alert('Current MLA widget not available (may be hidden due to 2025 results).');
+          return;
+        }
+        await navigator.clipboard.writeText(html);
+
+        document.getElementById('status').textContent = 'Copied static Current MLA widget to clipboard (crawlable HTML)';
+      } catch (e){
+        console.error(e);
+        alert('Failed to copy static widget code');
+      }
+    }
+
+    async function exportStaticTimeline(){
+      try {
+        const state = window.__lastRender;
+        if (!state || !state.seatNo){
+          alert('Load a constituency first.');
+          return;
+        }
+        const html = buildStaticTimelineHTML(state);
+        if (!html){
+          alert('Unable to generate static Timeline widget. Make sure constituency data is loaded.');
+          return;
+        }
+        await navigator.clipboard.writeText(html);
+        document.getElementById('status').textContent = 'Copied static Timeline widget to clipboard (crawlable HTML)';
+      } catch (e){
+        console.error(e);
+        alert('Failed to copy static widget code');
+      }
+    }
+
+    async function exportStaticGrid(){
+      try {
+        const state = window.__lastRender;
+        if (!state || !state.seatNo){
+          alert('Load a constituency first.');
+          return;
+        }
+        const html = buildStaticGridHTML(state);
+        if (!html){
+          alert('Unable to generate static Historical Grid widget. Make sure constituency data is loaded.');
+          return;
+        }
+        await navigator.clipboard.writeText(html);
+        document.getElementById('status').textContent = 'Copied static Historical Grid widget to clipboard (crawlable HTML)';
+      } catch (e){
+        console.error(e);
+        alert('Failed to copy static widget code');
+      }
+    }
+
+    (async function init(){
+      try {
+        // Default data source toggle based on host/query
+        (function setDefaultSource(){
+          const sourceT = document.getElementById('sourceToggle');
+          const qp = new URLSearchParams(location.search);
+          const hostIsGh = (location.hostname || '').toLowerCase().includes('github.io');
+          let useLocalDefault = hostIsGh ? true : false;
+          const qps = qp.get('source');
+          if (qps === 'gh' || qps === 'local') useLocalDefault = true;
+          if (qps === 'sandbox') useLocalDefault = false;
+          if (sourceT) sourceT.checked = useLocalDefault;
+        })();
+        const data = await loadAll();
+
+
+
+        const input = document.getElementById('seatNo');
+        const btn = document.getElementById('loadBtn');
+        const toggle = document.getElementById('resultsToggle');
+        const exportBtn = document.getElementById('exportBtn');
+        const exportDynamicBtn = document.getElementById('exportDynamicBtn');
+        const go = ()=>{
+          const val = parseInt(input.value,10);
+          if (!Number.isFinite(val) || val < 1 || val > 243){
+            document.getElementById('output').innerHTML = '<div class="error">Enter a valid constituency number (1-243)</div>';
+            return;
+          }
+          renderSeat(val, data);
+        };
+        btn.addEventListener('click', go);
+        input.addEventListener('keydown', (e)=>{ if (e.key==='Enter') go(); });
+        // Toggle is auto-managed and disabled; retain handler if enabled via dev override.
+        if (toggle) toggle.addEventListener('change', go);
+        if (exportBtn) exportBtn.addEventListener('click', exportEmbed);
+        // Enable dynamic embed button immediately (doesn't need a constituency loaded)
+        if (exportDynamicBtn) {
+          exportDynamicBtn.disabled = false;
+          exportDynamicBtn.addEventListener('click', exportDynamicEmbed);
+        }
+        // Enable all widget buttons immediately (don't need a constituency loaded)
+        const exportHeaderWidgetBtn = document.getElementById('exportHeaderWidget');
+        if (exportHeaderWidgetBtn) {
+          exportHeaderWidgetBtn.addEventListener('click', exportHeaderWidget);
+        }
+        const export2025WidgetBtn = document.getElementById('export2025Widget');
+        if (export2025WidgetBtn) {
+          export2025WidgetBtn.addEventListener('click', export2025Widget);
+        }
+        const exportMLAWidgetBtn = document.getElementById('exportMLAWidget');
+        if (exportMLAWidgetBtn) {
+          exportMLAWidgetBtn.addEventListener('click', exportMLAWidget);
+        }
+        const exportTimelineWidgetBtn = document.getElementById('exportTimelineWidget');
+        if (exportTimelineWidgetBtn) {
+          exportTimelineWidgetBtn.addEventListener('click', exportTimelineWidget);
+        }
+        const exportGridWidgetBtn = document.getElementById('exportGridWidget');
+        if (exportGridWidgetBtn) {
+          exportGridWidgetBtn.addEventListener('click', exportGridWidget);
+        }
+        const exportMapWidgetBtn = document.getElementById('exportMapWidget');
+        if (exportMapWidgetBtn) {
+          exportMapWidgetBtn.addEventListener('click', exportMapWidget);
+        }
+        // Wire up static export buttons
+        const exportStaticHeaderBtn = document.getElementById('exportStaticHeader');
+        if (exportStaticHeaderBtn) {
+          exportStaticHeaderBtn.addEventListener('click', exportStaticHeader);
+        }
+        const exportStatic2025Btn = document.getElementById('exportStatic2025');
+        if (exportStatic2025Btn) {
+          exportStatic2025Btn.addEventListener('click', exportStatic2025);
+        }
+        const exportStaticMLABtn = document.getElementById('exportStaticMLA');
+        if (exportStaticMLABtn) {
+          exportStaticMLABtn.addEventListener('click', exportStaticMLA);
+        }
+        const exportStaticTimelineBtn = document.getElementById('exportStaticTimeline');
+        if (exportStaticTimelineBtn) {
+          exportStaticTimelineBtn.addEventListener('click', exportStaticTimeline);
+        }
+        const exportStaticGridBtn = document.getElementById('exportStaticGrid');
+        if (exportStaticGridBtn) {
+          exportStaticGridBtn.addEventListener('click', exportStaticGrid);
+        }
+        const sourceTNow = document.getElementById('sourceToggle');
+        if (sourceTNow) sourceTNow.addEventListener('change', ()=>{
+          const sp = new URLSearchParams(location.search);
+          sp.set('source', sourceTNow.checked ? 'gh' : 'sandbox');
+          location.search = sp.toString();
+        });
+      } catch (e){
+        document.getElementById('status').textContent = 'Failed to load data';
+        document.getElementById('output').innerHTML = '<div class="error">Error loading files. If opened directly as file://, please serve over http:// with a local server.</div>';
+        console.error(e);
+      }
+    })();
+  </script>
+</body>
+</html>
+
+
+
+
+
+

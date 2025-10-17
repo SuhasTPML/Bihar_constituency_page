@@ -4,6 +4,18 @@ Overview
 - `index.html`: Constituency viewer with results by year and trends.
 - `map.html`: Interactive Bihar assembly map with search, color modes, and details panel.
 
+CSV vs JSON Approaches
+- `widget-embeds- csv hosted/` (CSV-hosted widgets)
+  - Pasteable DIV+SCRIPT snippets for CMS pages; fetch directly from published Google Sheets CSVs.
+  - Uses Parties CSV (per-year alliances), Results CSV (2010/2015/2020/2025), and Alliances CSV (alliance → color overrides).
+  - Resolves constituency from the parent page URL (slug/name in URL), with fallbacks.
+  - Includes 2025 Results, Current MLA, Historical Grid/Timeline, and a D3 Map page (`map csv.html`) plus an iframe wrapper (`map iframe.html`).
+  - Best when you want zero backend work and instant updates from Sheets.
+
+- `widget-embeds-json hosted/` (JSON-hosted widgets)
+  - Dynamic widgets that fetch `parties.json` and `bihar_election_results_consolidated.json` from GitHub Pages or your sandbox domain, with environment detection and fallbacks.
+  - Prefer when you want faster, stable loads and controlled CORS by hosting JSON on an allowed origin.
+
 Data Sources
 - `parties.json`: Party metadata and alliances per year (2010/2015/2020/2025), with `code`, `name`, `color`.
 - `bihar_election_results_consolidated.json`: Consolidated perâ€‘constituency results (2010/2015/2020/2025) plus current MLA fields.
@@ -15,6 +27,11 @@ Hosted JSON (GitHub Pages)
 - geojson: https://suhastpml.github.io/Bihar_constituency_page/bihar_ac_all.geojson
 
 Both `index.html` and `map.html` load these from GitHub Pages with a local fallback if the network source fails (no-store caching).
+
+CSV-hosted widget data
+- Parties CSV: Published Google Sheet with columns including `code`, `name`, `color`, and per-year alliances (`alliance_2010/2015/2020/2025`).
+- Results CSV: Published Google Sheet where each row maps to an AC with winner/runner fields for 2010/2015/2020/2025.
+- Alliances CSV: Published Google Sheet with `alliance` and a color column (e.g., `alliance_colour_code`), used as overrides for consistent alliance palettes.
 
 Endâ€‘User Guide
 - Viewer (`index.html`)
@@ -54,6 +71,7 @@ Local Development
 Notes
 - Party `IND` (independent) is gray by design. To change a seatâ€™s color in Party modes, update `yYYYY_winner_party` in the consolidated JSON.
 - If explicit margin is missing in the data, the viewer computes it as `winner_votes - runner_up_votes`.
+ - CSV widgets show a pre-results overlay when 2025 winner is missing; this is by design. Brief flashes can occur due to retry logic if CSVs are slow.
 
 ## Embed in CMS
 

@@ -537,9 +537,10 @@
         case 'party-2025':
           return partyColors.get(row.y2025_winner_party) || getHistoricalAllianceColor(row.y2025_winner_party, '2025');
         case 'alliance-2020':
-          return allianceColors.get(normalizeAllianceKey(row.current_mla_alliance)) || '#f3f4f6';
+          const ally20 = resolveAllianceForRow(row, 2020);
+          return ally20 === 'NA' ? '#f3f4f6' : (allianceColors.get(ally20) || '#f3f4f6');
         case 'party-2020':
-          return partyColors.get(row.current_mla_party) || allianceColors.get(row.current_mla_alliance) || '#f3f4f6';
+          return partyColors.get(row.current_mla_party) || allianceColors.get(resolveAllianceForRow(row, 2020)) || '#f3f4f6';
         case 'reserved':
           const status = row.reserved || 'GEN';
           const reservedColors = { 'GEN': '#f9fafb', 'SC': '#dbeafe', 'ST': '#dcfce7', 'NA': '#f3f4f6' };
@@ -597,6 +598,20 @@
         || info.alliance
         || 'NA';
       return normalizeAllianceKey(a) || 'NA';
+    }
+
+    // Prefer explicit row alliance; else derive from party/year
+    function resolveAllianceForRow(row, year){
+      if (!row) return 'NA';
+      if (year === 2020) {
+        const explicit = normalizeAllianceKey(row.current_mla_alliance);
+        if (explicit) return explicit;
+        return resolveAllianceForYear(row.current_mla_party, 2020);
+      }
+      if (year === 2025) return resolveAllianceForYear(row.y2025_winner_party, 2025);
+      if (year === 2015) return resolveAllianceForYear(row.y2015_winner_party, 2015);
+      if (year === 2010) return resolveAllianceForYear(row.y2010_winner_party, 2010);
+      return 'NA';
     }
 
     function ensureAllianceColor(a, hex){
@@ -765,10 +780,13 @@
               color = partyInfo2025?.color || getHistoricalOriginalColor(row.y2025_winner_party, '2025');
               break;
             case 'alliance-2020':
-              color = allianceColors.get(normalizeAllianceKey(row.current_mla_alliance)) || '#f3f4f6';
+              {
+                const ally20 = resolveAllianceForRow(row, 2020);
+                color = ally20 === 'NA' ? '#f3f4f6' : (allianceColors.get(ally20) || '#f3f4f6');
+              }
               break;
             case 'party-2020':
-              color = partyColors.get(row.current_mla_party) || allianceColors.get(normalizeAllianceKey(row.current_mla_alliance)) || '#f3f4f6';
+              color = partyColors.get(row.current_mla_party) || allianceColors.get(resolveAllianceForRow(row, 2020)) || '#f3f4f6';
               break;
             case 'alliance-2015':
               color = getHistoricalAllianceColor(row.y2015_winner_party, '2015');
@@ -872,7 +890,7 @@
         } else {
           mlaName = electionRow.current_mla_name || 'Not available';
           party = electionRow.current_mla_party || 'Unknown';
-          alliance = electionRow.current_mla_alliance || 'Unknown';
+          alliance = resolveAllianceForRow(electionRow, 2020) || 'Unknown';
         }
 
         const mlaLabel = ENABLE_2025_MODES ? 'Winner' : 'Current MLA';
@@ -1305,7 +1323,8 @@
         // Direct CSV endpoints
         const PARTIES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTkIPquNELhk-ox7P7qIrBu4WhxOAGb94ILzfSwEAJ-OMAXV9Dpz4k0RlZH5Hc8F0DJPUHP2ALDNfIb/pub?gid=2137025522&single=true&output=csv';
         const RESULTS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Owt5cYAhwo6k6ggprd7Pp2kT3RiV5-5XsSUFVSXG4oOu3Cc64emjWWMjSruwXfi_33Z24S4muAOY/pub?gid=1572654813&single=true&output=csv';
-        const ALLIANCES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRiy0B0zY2ej1u0orjS8L1_TWWKC5ld5Ccaq4yALRV0IqtB8RdGdP8fI6mdYQCQgNftRR8slvwKmjJp/pub?output=csv';
+        // Use the same explicit sheet selection as Current MLA widget
+        const ALLIANCES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRiy0B0zY2ej1u0orjS8L1_TWWKC5ld5Ccaq4yALRV0IqtB8RdGdP8fI6mdYQCQgNftRR8slvwKmjJp/pub?gid=0&single=true&output=csv';
 
         function parseCsv(text){
     var lines = text.replace(/\r\n?/g,'\n').split('\n');
@@ -1351,9 +1370,13 @@
         // Build alliances override map from CSV (columns: alliance,color)
         const alliancesOverride = {};
         for (const r of alliancesRows){
+          // Align with Current MLA widget: accept alliance label in `alliance` and color in `alliance_colour_code`
           const key = String(r.alliance || r.label || '').trim().toUpperCase();
-          const hex = String(r.color || r.colour || '').trim();
-          if (key && hex) alliancesOverride[key] = hex;
+          const hexRaw = (r.alliance_colour_code || r.alliance_color_code || r.color || r.colour || '').toString().trim();
+          if (!key || !hexRaw) continue;
+          const hex6 = to6Hex(hexRaw);
+          if (!isValidHexColor(hex6)) continue;
+          alliancesOverride[key] = hex6;
         }
 
         // Normalize parties CSV to expected structure

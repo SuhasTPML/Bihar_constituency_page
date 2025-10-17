@@ -341,4 +341,18 @@ Automatically enables all static buttons when a constituency is successfully loa
 - Confirm CMS capabilities for `<style>` and `<script>` in HTML blocks.
 - Test static widgets in actual CMS environment (Quintype).
 - Consider adding bulk export functionality if many constituencies need static updates.
-- Optionally add a configuration toggle to choose CSS-only timeline hint behavior in strict CMS environments.
+ - Optionally add a configuration toggle to choose CSS-only timeline hint behavior in strict CMS environments.
+
+## CSV vs JSON widget approaches (summary)
+
+- CSV-hosted widgets (`widget-embeds- csv hosted/`)
+  - Pasteable DIV+SCRIPT widgets that fetch from published Google Sheets (Parties, Results, Alliances CSVs).
+  - Pros: instant editorial updates from Sheets; no JSON hosting required; matches current CMS embed workflow.
+  - Cons: depends on Google Sheets availability; CSV parsing on-page; ensure CMS allows inline `<style>` and `<script>`.
+
+- JSON-hosted widgets (`widget-embeds-json hosted/`)
+  - Widgets fetch from `parties.json` and `bihar_election_results_consolidated.json` (GitHub Pages or sandbox), with environment detection and fallbacks.
+  - Pros: faster and more predictable loads; fewer parsing edge cases; easier CORS control.
+  - Cons: requires republishing JSON to reflect data updates unless automated.
+
+Recommendation: Use CSV widgets for live 2025 embeds and JSON widgets for stable historical content. Both approaches can be mixed per block.
