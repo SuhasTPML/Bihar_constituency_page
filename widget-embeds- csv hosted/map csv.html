@@ -1308,20 +1308,37 @@
         const ALLIANCES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRiy0B0zY2ej1u0orjS8L1_TWWKC5ld5Ccaq4yALRV0IqtB8RdGdP8fI6mdYQCQgNftRR8slvwKmjJp/pub?output=csv';
 
         function parseCsv(text){
-          const lines = text.replace(/\r\n?/g,'\n').split('\n');
-          if (!lines.length) return [];
-          const header = lines.shift().split(',').map(s=>s.trim());
-          const out = [];
-          for (const line of lines){
-            if (!line) continue;
-            const re = /\s*(?:\"([^\"]*)\"|([^,]*))\s*(?:,|$)/g; let m; const row=[];
-            while((m=re.exec(line))){ row.push(m[1]!=null?m[1]:m[2]); if(m[0].slice(-1)!==',') break; }
-            const obj={}; for(let i=0;i<header.length;i++){ obj[header[i]] = row[i]===undefined? '' : row[i]; }
-            out.push(obj);
-          }
-          return out;
+    var lines = text.replace(/\r\n?/g,'\n').split('\n');
+    if (!lines.length) return [];
+    var header = lines.shift().split(',').map(function(s){return s.trim();});
+    var rows = [];
+    lines.forEach(function(line){
+      if (!line) return;
+      var cells = [];
+      // CMS-safe CSV parser - character by character to avoid regex quote issues
+      var QUOTE = '"';
+      var COMMA = ',';
+      var cell = '';
+      var inQuotes = false;
+      for (var i = 0; i < line.length; i++) {
+        var ch = line.charAt(i);
+        if (ch === QUOTE) {
+          inQuotes = !inQuotes;
+        } else if (ch === COMMA && !inQuotes) {
+          cells.push(cell.trim());
+          cell = '';
+        } else {
+          cell += ch;
         }
-
+      }
+      cells.push(cell.trim());
+      if (!cells.length) return;
+      var obj = {};
+      for (var i=0;i<header.length;i++){ obj[header[i]] = cells[i]===undefined? '' : cells[i]; }
+      rows.push(obj);
+    });
+    return rows;
+  }
         const [partiesText, resultsText, alliancesText] = await Promise.all([
           fetch(PARTIES_CSV).then(r=>r.text()),
           fetch(RESULTS_CSV).then(r=>r.text()),
