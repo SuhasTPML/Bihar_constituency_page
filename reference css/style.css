@@ -1,0 +1,1021 @@
+body, html {
+ height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+p {
+    font-size: 16px;
+    font-family: "Roboto Slab", serif;
+}
+strong {font-weight: 700;}
+h1, h2, h3{
+    font-family: "Playfair Display", serif;
+}
+.no-border {
+    border: none !important;
+}
+.action-button {
+    background: #0091AC !important;
+}
+#moreDetailsBtn{
+    background: #0091AC !important;
+}
+
+#content {
+    margin: 0 auto;
+    width: 80%;
+    padding-top: 20px;
+
+}
+.header {
+    margin: 0 auto;
+    width: 80%;
+   
+}
+.header_mobile{
+    display: none; 
+    float: left;
+}
+#bihar-embed-021 {
+    width: 70%;
+    float: left;
+}
+.right {
+   
+    float: left;
+    width: 28.5%;
+    height: auto;
+    margin-left: 20px;
+}
+.right img{
+    margin-bottom: 20px
+    
+}
+img {width: 100%;}
+
+
+.smalltext {
+    font-size: 12px;
+    color: #999;
+    text-align: left;
+    float: left;
+    padding: 10px 0 0 0;
+    width: 100%;
+}
+
+
+.card.election-result {
+    box-shadow: 0px 0px 6px #0000001f;
+    padding: 20px !important;
+    border: 1px solid #ddd;
+}
+
+.vote-count
+ {
+
+    padding: 5px 0;
+    float: left;
+}
+.border-map {
+    padding: 10px !important;
+    border: 1px solid #ddd;
+}
+.img-adv-body {
+    width: 300px;
+    margin: 0 auto;
+    padding: 20px 0;
+    margin-bottom: 50px;
+}
+
+.tag {
+    padding: 5px 10px;
+    margin-right: 10px;
+    float: left;
+    border-radius: 50px;
+    text-align: center;
+}
+.ind{
+    background-color: #408CD9; color: #fff;
+}
+.bjp {
+    background-color: #FF9933; color: #fff;
+}
+
+.rjd {
+    background-color: #00611D; color: #fff;
+}
+
+
+
+
+/* Mobile */
+
+@media (max-width: 767px) {
+
+    #content {
+            margin: 0 auto;
+            width: auto;
+            /* padding-top: 20px; */
+            padding: 0 20px;
+        }
+    
+    .header {
+        margin: 0 auto;
+        width: 100%;
+       
+    }
+    .header_desk{display: none !important;}
+    .header_mobile{
+        display: block; float: left; width: 100%;
+    }
+    .header_mobile img{
+         width: 100%;
+    }
+    #bihar-embed-021 {
+        width: 100%;
+        float: left;
+    }
+    #bihar-embed-021 .constituency-header{ margin-top: 20px;}
+    #bihar-embed-021 .constituency-title {font-size: 36px}
+    #bihar-embed-021 .past-results-title{font-size: 20px}
+    .right {
+
+        float: left;
+        width: 100%;
+        height: auto;
+        margin-left: 0px;
+    }
+    .right img{
+        margin-bottom: 20px
+
+    }
+    img {width: 100%;}
+
+
+    .smalltext {
+        font-size: 12px;
+        color: #999;
+        text-align: left;
+        float: left;
+        padding: 10px 0 0 0;
+        width: 100%;
+    }
+
+
+    .card.election-result {
+        box-shadow: 0px 0px 6px #0000001f;
+        padding: 20px !important;
+        border: 1px solid #ddd;
+    }
+
+    .vote-count
+     {
+
+        padding: 5px 0;
+        float: left;
+    }
+    .border-map {
+        padding: 10px !important;
+        border: 1px solid #ddd;
+    }
+    .img-adv-body {
+        width: 300px;
+        margin: 0 auto;
+        padding: 20px 0;
+        margin-bottom: 50px;
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+#bihar-embed-021 {
+    --bg: #FFFFFF;
+    --card: #FFFFFF;
+    --text: #000000;
+    --muted: #5B6064;
+    --border: #E5E7EB;
+    --primary: #0091AC;
+    --primary-dark: #0091AC;
+    --header-bg: #0091AC;
+    --header-text: #FFFFFF;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+    --radius: 12px;
+}
+
+#bihar-embed-021 * {
+    box-sizing: border-box;
+}
+
+#bihar-embed-021 {
+    margin: 0px;
+    font: 16px / 1.5 "Roboto Slab", "Roboto Serif", Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+#bihar-embed-021 .container {
+    max-width: 1120px;
+    margin: 0px auto;
+    padding: 0px 16px;
+}
+
+#bihar-embed-021 .main-header {
+    display: none !important;
+}
+
+#bihar-embed-021 .header-content {
+    max-width: 1120px;
+    margin: 0px auto;
+    padding: 0px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#bihar-embed-021 .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+#bihar-embed-021 .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+#bihar-embed-021 .menu-icon,
+#bihar-embed-021 .search-icon,
+#bihar-embed-021 .account-icon {
+    cursor: pointer;
+    font-size: 18px;
+}
+
+#bihar-embed-021 .site-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0px;
+    letter-spacing: 0.5px;
+}
+
+#bihar-embed-021 .search-section {
+    padding: 24px 0px 16px;
+}
+
+#bihar-embed-021 .search-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+#bihar-embed-021 .search-controls label {
+    font-weight: 500;
+    color: var(--text);
+}
+
+#bihar-embed-021 input[type="number"] {
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    width: 260px;
+    font-size: 16px;
+    min-height: 48px;
+    background: rgb(255, 255, 255);
+}
+
+#bihar-embed-021 input[type="number"]::placeholder {
+    color: var(--muted);
+    opacity: 1;
+}
+
+#bihar-embed-021 input[type="number"]:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: rgba(0, 145, 172, 0.1) 0px 0px 0px 2px;
+}
+
+#bihar-embed-021 .primary-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    background: var(--primary);
+    color: rgb(255, 255, 255);
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    min-height: 48px;
+}
+
+#bihar-embed-021 .primary-btn:hover {
+    background: var(--primary-dark);
+}
+
+#bihar-embed-021 .helper-text {
+    color: rgb(153, 153, 153);
+    font-size: 16px;
+    margin-bottom: 8px;
+    font-family: "Roboto Slab", serif;
+}
+
+#bihar-embed-021 .status-text {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+#bihar-embed-021 .card {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0;
+    margin-bottom: 16px;
+}
+
+#bihar-embed-021 .constituency-header {
+    margin-bottom: 24px;
+    padding-bottom: 15px;
+    border-radius: 0px
+}
+
+#bihar-embed-021 .constituency-title {
+    font-family: "Playfair Display", serif;
+    font-size: 44px;
+    font-weight: 700;
+    margin: 0px 0px 8px;
+    color: var(--text);
+    line-height: 1.1;
+}
+
+#bihar-embed-021 .constituency-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+#bihar-embed-021 .current-mla-card {
+    margin-bottom: 16px;
+}
+
+#bihar-embed-021 .current-mla-title {
+    font-family: "Roboto Slab", serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 21px;
+    color: rgb(0, 0, 0);
+    letter-spacing: 0px;
+    margin: 0px 0px 6px;
+}
+
+#bihar-embed-021 .mla-name {
+    font-family: "Roboto Slab", serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 21px;
+    color: rgb(0, 0, 0);
+    margin: 0px;
+}
+
+#bihar-embed-021 .mla-party {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+#bihar-embed-021 .mla-alliance {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 2px;
+}
+
+#bihar-embed-021 .current-mla-meta {
+    font-family: "Roboto Slab", serif;
+    font-size: 14px;
+    line-height: 18px;
+    color: rgb(91, 96, 100);
+    margin: 4px 0px 0px;
+}
+
+#bihar-embed-021 .cms-content-card {
+    margin-bottom: 16px;
+    padding-bottom: 15px;
+    border-radius: 0px;
+}
+
+#bihar-embed-021 .cms-content-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0px 0px 12px;
+    letter-spacing: 0.5px;
+    color: var(--text);
+}
+
+#bihar-embed-021 .cms-content-body {
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 15px;
+}
+
+#bihar-embed-021 .cms-placeholder {
+    color: var(--muted);
+    font-style: italic;
+    background: rgb(248, 250, 252);
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px dashed var(--border);
+}
+
+#bihar-embed-021 .map-section-title {
+    font-family: "Playfair Display", serif;
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0px 0px 6px;
+    color: rgb(0, 0, 0);
+    line-height: 1.15;
+}
+
+#bihar-embed-021 .map-helper {
+    color: rgb(0, 0, 0);
+    font-size: 16px;
+    margin: 0px 0px 12px;
+    font-family: "Roboto Slab", serif;
+}
+
+#bihar-embed-021 .past-results-title {
+    font-family: "Playfair Display", serif;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 36px;
+    margin: 0px 0px 12px;
+    color: rgb(0, 0, 0);
+}
+
+#bihar-embed-021 .results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+#bihar-embed-021 .muted {
+    color: var(--muted);
+}
+
+#bihar-embed-021 .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgb(238, 242, 255);
+    border: 1px solid rgb(229, 231, 235);
+    font-size: 12px;
+}
+
+#bihar-embed-021 .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    color: rgb(255, 255, 255);
+    font-size: 12px;
+}
+
+#bihar-embed-021 .kv {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 6px 12px;
+}
+
+#bihar-embed-021 .section-title {
+    font-weight: 600;
+    margin: 0px 0px 8px;
+}
+
+#bihar-embed-021 .vote-bars {
+    margin-top: 8px;
+}
+
+#bihar-embed-021 .bar {
+    height: 15px;
+    border-radius: 999px;
+    background: rgb(229, 231, 235);
+    position: relative;
+    margin-bottom: 6px;
+}
+
+#bihar-embed-021 .bar > span {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    bottom: 0px;
+    border-radius: 999px;
+}
+
+#bihar-embed-021 .bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+#bihar-embed-021 .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+#bihar-embed-021 .hr {
+    height: 1px;
+    background: var(--border);
+    margin: 12px 0px;
+}
+
+#bihar-embed-021 .note {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+#bihar-embed-021 .error {
+    color: rgb(185, 28, 28);
+}
+
+#bihar-embed-021 .disclaimer-footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+}
+
+#bihar-embed-021 .disclaimer-text {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.7;
+    font-weight: 400;
+    text-align: left;
+}
+
+#bihar-embed-021 .trends-container {
+    margin: 20px 0px;
+}
+
+#bihar-embed-021 .timeline-scroll {
+    overflow-x: auto;
+    padding: 20px 0px;
+    scroll-behavior: smooth;
+}
+
+#bihar-embed-021 .timeline-container {
+    display: flex;
+    align-items: center;
+    min-width: max-content;
+    padding: 0px 20px;
+    gap: 0px;
+    position: relative;
+}
+
+#bihar-embed-021 .timeline-year {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    min-width: 170px;
+    padding: 0px 10px;
+}
+
+#bihar-embed-021 .timeline-year-badge {
+    background: var(--primary);
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+    box-shadow: rgba(0, 145, 172, 0.3) 0px 2px 8px;
+    position: relative;
+    z-index: 2;
+}
+#bihar-embed-021 .dott {
+    width: 15px;
+    height: 15px;
+    background: #0091AC;
+    margin: 0 auto;
+    border-radius: 50px;
+    border: 2px solid #fff;
+}
+#bihar-embed-021 .timeline-candidate {
+    text-align: center;
+    margin-bottom: 8px;
+    margin-top: 30px;
+}
+
+#bihar-embed-021 .timeline-candidate-name {
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+
+#bihar-embed-021 .timeline-party {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 4px;
+}
+
+#bihar-embed-021 .timeline-connection {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    min-width: 100px;
+    position: relative;
+}
+
+#bihar-embed-021 .timeline-line {
+    width: 100%;
+    height: 2px;
+    background: #0091AC;
+    position: absolute;
+    margin: 10px 0px;
+    left: 0;
+    top: 52px;
+}
+
+#bihar-embed-021 .timeline-line::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -4px;
+    transform: translateY(-50%);
+    width: 0px;
+    height: 0px;
+    border-left: 8px solid var(--border);
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+}
+
+#bihar-embed-021 .timeline-change {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
+}
+
+#bihar-embed-021 .timeline-hold {
+    background: rgb(220, 252, 231);
+    color: rgb(22, 163, 74);
+}
+
+#bihar-embed-021 .timeline-gain {
+    background: rgb(254, 243, 199);
+    color: rgb(217, 119, 6);
+}
+
+#bihar-embed-021 .timeline-hint {
+    display: none;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    font-style: italic;
+}
+
+#bihar-embed-021 .election-result {
+    margin-bottom: 16px;
+}
+
+#bihar-embed-021 .election-title {
+    font-family: "Playfair Display", serif;
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 36px;
+    margin: 0px 0px 12px;
+    color: var(--text);
+}
+
+#bihar-embed-021 .candidate-row {
+    margin-bottom: 16px;
+}
+
+#bihar-embed-021 .candidate-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+#bihar-embed-021 .candidate-name {
+    font-family: "Roboto Slab", serif;
+    font-weight: 400;
+    font-size: 16px; padding-bottom: 8px;
+}
+
+#bihar-embed-021 .candidate-party {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+#bihar-embed-021 .vote-count {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-weight: 600;
+}
+
+#bihar-embed-021 .margin-info {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+#bihar-embed-021 .margin-text {
+    font-family: "Roboto Slab", serif;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+@media (max-width: 767px) {
+    #bihar-embed-021 .timeline-scroll {
+        padding: 16px 0px;
+        scroll-snap-type: x mandatory;
+    }
+
+    #bihar-embed-021 .timeline-container {
+        padding: 0px 16px;
+    }
+
+    #bihar-embed-021 .timeline-year {
+        min-width: 100px;
+        padding: 0px 8px;
+        scroll-snap-align: center;
+    }
+
+    #bihar-embed-021 .timeline-year-badge {
+        font-size: 14px;
+        padding: 6px 12px;
+        margin-bottom: 12px;
+    }
+
+    #bihar-embed-021 .timeline-candidate-name {
+        font-size: 12px;
+    }
+
+    #bihar-embed-021 .timeline-party {
+        font-size: 11px;
+        padding: 3px 8px;
+    }
+
+    #bihar-embed-021 .timeline-connection {
+        min-width: 80px;
+    }
+
+    #bihar-embed-021 .timeline-line {
+           top: 41px;
+    }
+
+    #bihar-embed-021 .timeline-change {
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+
+    #bihar-embed-021 .timeline-hint {
+        display: block;
+    }
+}
+
+@media (min-width: 768px) {
+    #bihar-embed-021 .container {
+        padding: 0px 24px;
+    }
+
+    #bihar-embed-021 .search-controls {
+        gap: 16px;
+    }
+
+    #bihar-embed-021 .results-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    #bihar-embed-021 .constituency-title {
+        font-size: 28px;
+    }
+}
+
+@media (min-width: 1024px) {
+    #bihar-embed-021 .results-container {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    #bihar-embed-021 .header-content {
+        padding: 0px 24px;
+    }
+
+    #bihar-embed-021 .constituency-title {
+        font-size: 32px;
+    }
+}
+
+@keyframes slide-in-one-tap {
+    0% {
+        transform: translateY(80px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+#bihar-embed-021 .trust-hide-gracefully {
+    opacity: 0;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .hidden {
+    display: none;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .semibold {
+    font-weight: 500;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .binance-plex {
+    font-family: Binance;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .rounded-full {
+    border-radius: 50%;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .flex {
+    display: flex;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .flex-col {
+    flex-direction: column;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .items-center {
+    align-items: center;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .space-between {
+    justify-content: space-between;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .justify-center {
+    justify-content: center;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .w-full {
+    width: 100%;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .box {
+    transition: 0.5s cubic-bezier(0, 0, 0, 1.43);
+    animation: 0.5s cubic-bezier(0, 0, 0, 1.43) 0s 1 normal none running slide-in-one-tap;
+    width: 384px;
+    border-radius: 15px;
+    background: rgb(255, 255, 255);
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 2px 4px 0px;
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    z-index: 1020;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .header {
+    gap: 15px;
+    border-bottom: 1px solid rgb(230, 230, 230);
+    padding: 10px 18px;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .header .left-items {
+    gap: 15px;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .header .title {
+    color: rgb(30, 35, 41);
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 28px;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .header .subtitle {
+    color: rgb(71, 77, 87);
+    font-size: 14px;
+    line-height: 20px;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .header .close {
+    color: rgb(30, 35, 41);
+    cursor: pointer;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .body {
+    padding: 9px 18px;
+    gap: 10px;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .body .right-items {
+    gap: 10px;
+    width: 100%;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .body .right-items .wallet-title {
+    color: rgb(30, 35, 41);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 20px;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .body .right-items .wallet-subtitle {
+    color: rgb(71, 77, 87);
+    font-size: 14px;
+    line-height: 20px;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .connect-indicator {
+    gap: 15px;
+    padding: 8px 0px;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .connect-indicator .flow-icon {
+    color: rgb(71, 77, 87);
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .loading-color {
+    color: rgb(255, 255, 255);
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .button {
+    border-radius: 50px;
+    outline: transparent solid 2px;
+    outline-offset: 2px;
+    background-color: rgb(5, 0, 255);
+    border-color: rgb(229, 231, 235);
+    cursor: pointer;
+    text-align: center;
+    height: 45px;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .button .button-text {
+    color: rgb(255, 255, 255);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 20px;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .footer {
+    margin: 20px 30px;
+}
+
+#bihar-embed-021 .trust-wallet-one-tap .check-icon {
+    color: rgb(255, 255, 255);
+}
+
+@font-face {
+    font-family: Binance;
+    src: url("chrome-extension://egjidjbpglichdcondbcbdnbeeppgdph/fonts/BinancePlex-Regular.otf") format("opentype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: Binance;
+    src: url("chrome-extension://egjidjbpglichdcondbcbdnbeeppgdph/fonts/BinancePlex-Medium.otf") format("opentype");
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: Binance;
+    src: url("chrome-extension://egjidjbpglichdcondbcbdnbeeppgdph/fonts/BinancePlex-SemiBold.otf") format("opentype");
+    font-weight: 600;
+    font-style: normal;
+}
+
+#bihar-embed-021 ._8mqQwQ {
+    display: none;
+}
+
+#bihar-embed-021 ._1TWLMK.icF5zO {
+    opacity: 0.01;
+}
+
