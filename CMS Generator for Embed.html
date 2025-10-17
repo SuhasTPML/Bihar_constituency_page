@@ -841,11 +841,12 @@
           const enable2025 = announced ? '1' : '0';
           const host = (location.hostname||'').toLowerCase();
           const isSandbox = host.includes('quintype.io') || host.includes('sandbox');
-          const ghRemote = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac}&enable2025=${enable2025}`;
-          const local = `./map.html?ac=${ac}&enable2025=${enable2025}`;
+          const cname = encodeURIComponent((base && base.name) || '');
+          const ghRemote = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac}&enable2025=${enable2025}&name=${cname}`;
+          const local = `./map.html?ac=${ac}&enable2025=${enable2025}&name=${cname}`;
           let target = ghRemote;
           if (isSandbox) {
-            const sandboxUrl = `https://dh-sandbox-web.quintype.io/biharmap?ac=${ac}&enable2025=${enable2025}`;
+            const sandboxUrl = `https://dh-sandbox-web.quintype.io/biharmap?ac=${ac}&enable2025=${enable2025}&name=${cname}`;
             try {
               const head = await fetch(sandboxUrl, { method: 'HEAD' });
               if (head && head.ok) target = sandboxUrl;
@@ -898,7 +899,8 @@
         iframe.style.height = '600px';
         iframe.style.border = '0';
         iframe.style.borderRadius = '8px';
-        iframe.src = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac}&enable2025=${enable2025}`;
+        const cname = encodeURIComponent((state && state.name) || '');
+        iframe.src = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac}&enable2025=${enable2025}&name=${cname}`;
         map.innerHTML = '';
         map.appendChild(iframe);
       }
@@ -1287,7 +1289,8 @@
       // Build map iframe
       var ac = String(constituency.no).padStart(3, '0');
       var enable2025 = announced ? '1' : '0';
-      var mapUrl = 'https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=' + ac + '&enable2025=' + enable2025;
+      var cname = encodeURIComponent((constituency.constituency_name || constituency.name || '').toString());
+      var mapUrl = 'https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=' + ac + '&enable2025=' + enable2025 + '&name=' + cname;
       var mapHTML = '<div class="card cms-content-card"><div class="cms-content-body">' +
         '<iframe class="embed-map" loading="lazy" referrerpolicy="no-referrer" ' +
         'style="width:100%;height:600px;border:0;border-radius:8px;" src="' + mapUrl + '"></iframe>' +
@@ -2433,7 +2436,8 @@ window.addEventListener('load', initEmbed);
         iframe.style.height = '600px';
         iframe.style.border = '0';
         iframe.style.borderRadius = '8px';
-        iframe.src = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac}&enable2025=${enable2025}`;
+        const cname = encodeURIComponent((state && state.name) || '');
+        iframe.src = `https://suhastpml.github.io/Bihar_constituency_page/map.html?ac=${ac}&enable2025=${enable2025}&name=${cname}`;
         map.innerHTML = '';
         map.appendChild(iframe);
       }

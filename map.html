@@ -1399,6 +1399,19 @@
         if (initialAc && electionData.has(initialAc)) {
           // Suppress URL update on initial load to prevent double history entry
           selectByKey(initialAc, true);
+        } else {
+          // Fallback: allow selecting by constituency name via ?name=
+          const initialName = (getQueryParam('name') || '').trim();
+          if (initialName) {
+            const norm = s => String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+            // searchData names are already cleaned of reserved suffixes
+            const match = searchData.find(it => norm(it.name) === norm(initialName) || norm(it.label) === norm(initialName));
+            if (match && match.key) {
+              selectByKey(match.key, true);
+              // Reflect resolved AC into URL for consistency
+              setQueryParam('ac', match.key);
+            }
+          }
         }
 
         wrapEl.classList.remove('loading');
