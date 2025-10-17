@@ -47,15 +47,20 @@
       }
 
       var slug = extractSlug(parentUrl);
+      console.log('[Bihar Widget] Parent URL:', parentUrl);
+      console.log('[Bihar Widget] Extracted slug:', slug);
       if (!slug) {
+        console.log('[Bihar Widget] No slug found, hiding widget');
         hostEl.innerHTML = '';
         return;
       }
 
       // Direct CSV sources (no environment switching)
-      // Same-origin proxy routes (recommended for CSP)
-      var PARTIES_CSV = '/Bihar_parties_csv';
-      var RESULTS_CSV = '/Bihar_results_csv';
+      // Google Sheets published CSV URLs
+      var PARTIES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTkIPquNELhk-ox7P7qIrBu4WhxOAGb94ILzfSwEAJ-OMAXV9Dpz4k0RlZH5Hc8F0DJPUHP2ALDNfIb/pub?gid=2137025522&single=true&output=csv';
+      var RESULTS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Owt5cYAhwo6k6ggprd7Pp2kT3RiV5-5XsSUFVSXG4oOu3Cc64emjWWMjSruwXfi_33Z24S4muAOY/pub?gid=1572654813&single=true&output=csv';
+
+      console.log('[Bihar Widget] Fetching CSV data...');
 
       function parseCsv(text){
         var lines = text.replace(/\r\n?/g,'\n').split('\n');
@@ -82,6 +87,10 @@
         loadCsvJson(PARTIES_CSV),
         loadCsvJson(RESULTS_CSV)
       ]).then(function(results) {
+        console.log('[Bihar Widget] CSV data loaded successfully');
+        console.log('[Bihar Widget] Parties count:', (results[0]||[]).length);
+        console.log('[Bihar Widget] Results count:', (results[1]||[]).length);
+
         // Map parties CSV into expected structure
         var parties = (results[0]||[]).map(function(p){
           var alliances = { '2010': p.alliance_2010||p.alliance||'', '2015': p.alliance_2015||p.alliance||'', '2020': p.alliance_2020||p.alliance||'', '2025': p.alliance_2025||p.alliance||'' };
@@ -89,18 +98,26 @@
         });
         var consolidated = results[1]||[];
         var constituency = null;
+        var urlLower = parentUrl.toLowerCase();
 
+        console.log('[Bihar Widget] Searching for constituency in URL:', urlLower);
+
+        // Match by checking if constituency name is in the URL
         for (var i = 0; i < consolidated.length; i++) {
-          if (consolidated[i].slug === slug) {
+          var constName = (consolidated[i].constituency_name || '').toLowerCase().replace(/\s+/g, '-');
+          if (constName && urlLower.includes(constName)) {
+            console.log('[Bihar Widget] Found match! Constituency:', consolidated[i].constituency_name, '| Slug:', consolidated[i].slug);
             constituency = consolidated[i];
             break;
           }
         }
+
+        // Fallback: exact slug match
         if (!constituency) {
-          var urlLower = parentUrl.toLowerCase();
+          console.log('[Bihar Widget] No name match, trying exact slug match...');
           for (var i = 0; i < consolidated.length; i++) {
-            var constSlug = consolidated[i].slug;
-            if (constSlug && urlLower.includes(constSlug)) {
+            if (consolidated[i].slug === slug) {
+              console.log('[Bihar Widget] Found slug match:', consolidated[i].constituency_name);
               constituency = consolidated[i];
               break;
             }
@@ -108,6 +125,7 @@
         }
 
         if (!constituency) {
+          console.log('[Bihar Widget] No constituency match found, hiding widget');
           hostEl.innerHTML = '';
           return;
         }
@@ -213,9 +231,11 @@
           '</div>' +
         '</div>';
 
+        console.log('[Bihar Widget] Rendering widget for:', constituency.constituency_name);
         hostEl.innerHTML = html;
         hasRendered = true;
       }).catch(function(err) {
+        console.error('[Bihar Widget] Error loading data:', err);
         hostEl.innerHTML = '';
       });
 
