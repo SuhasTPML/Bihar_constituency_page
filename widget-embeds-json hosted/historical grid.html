@@ -81,18 +81,21 @@
         var parties = results[0];
         var consolidated = results[1];
         var constituency = null;
+        var urlLower = parentUrl.toLowerCase();
 
+        // Primary: Match by constituency name in URL
         for (var i = 0; i < consolidated.length; i++) {
-          if (consolidated[i].slug === slug) {
+          var constName = (consolidated[i].constituency_name || '').toLowerCase().replace(/\s+/g, '-');
+          if (constName && urlLower.includes(constName)) {
             constituency = consolidated[i];
             break;
           }
         }
+
+        // Fallback: Exact slug match
         if (!constituency) {
-          var urlLower = parentUrl.toLowerCase();
           for (var i = 0; i < consolidated.length; i++) {
-            var constSlug = consolidated[i].slug;
-            if (constSlug && urlLower.includes(constSlug)) {
+            if (consolidated[i].slug === slug) {
               constituency = consolidated[i];
               break;
             }

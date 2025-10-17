@@ -61,14 +61,18 @@
           var consolidated = results[1];
 
           var constituency = null;
+          var urlLower = parentUrl.toLowerCase();
+
+          // Primary: Match by constituency name in URL
           for (var i = 0; i < consolidated.length; i++) {
-            if (consolidated[i].slug === slug) { constituency = consolidated[i]; break; }
+            var constName = (consolidated[i].constituency_name || '').toLowerCase().replace(/\s+/g, '-');
+            if (constName && urlLower.includes(constName)) { constituency = consolidated[i]; break; }
           }
+
+          // Fallback: Exact slug match
           if (!constituency) {
-            var urlLower = parentUrl.toLowerCase();
             for (var j = 0; j < consolidated.length; j++) {
-              var constSlug = consolidated[j].slug;
-              if (constSlug && urlLower.includes(constSlug)) { constituency = consolidated[j]; break; }
+              if (consolidated[j].slug === slug) { constituency = consolidated[j]; break; }
             }
           }
           if (!constituency) { hostEl.innerHTML = ''; return; }
