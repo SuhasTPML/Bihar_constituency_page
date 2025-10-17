@@ -35,6 +35,14 @@
         var slug = extractSlug(parentUrl);
         if (!slug) { hostEl.innerHTML = ''; return; }
 
+        var PARTIES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTkIPquNELhk-ox7P7qIrBu4WhxOAGb94ILzfSwEAJ-OMAXV9Dpz4k0RlZH5Hc8F0DJPUHP2ALDNfIb/pub?gid=2137025522&single=true&output=csv';
+        var RESULTS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Owt5cYAhwo6k6ggprd7Pp2kT3RiV5-5XsSUFVSXG4oOu3Cc64emjWWMjSruwXfi_33Z24S4muAOY/pub?gid=1572654813&single=true&output=csv';
+        function parseCsv(text){ var lines=text.replace(/
+?/g,'
+').split('
+'); if(!lines.length) return []; var header=lines.shift().split(',').map(function(s){return s.trim();}); var out=[]; lines.forEach(function(line){ if(!line) return; var re=/\s*(?:"([^"]*)"|([^,]*))\s*(?:,|$)/g,m,row=[]; while((m=re.exec(line))){ row.push(m[1]!=null?m[1]:m[2]); if(m[0].slice(-1)!==',') break; } var obj={}; for(var i=0;i<header.length;i++){ obj[header[i]]=row[i]===undefined? '' : row[i]; } out.push(obj); }); return out; }
+        function loadCsvJson(url){ return fetch(url).then(function(r){ return r.text(); }).then(parseCsv); }
+
         function detectDataSource() {
           var host = window.location.hostname.toLowerCase();
           if (host.includes('quintype.io') || host.includes('sandbox')) return 'sandbox';

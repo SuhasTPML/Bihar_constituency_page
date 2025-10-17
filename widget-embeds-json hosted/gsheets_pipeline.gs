@@ -42,8 +42,8 @@ function onOpen() {
   ui.createMenu('Bihar Data')
     .addSubMenu(
       ui.createMenu('Export (Copy JSON)')
-        .addItem('Parties → JSON (copy)', 'exportPartiesJsonCopy')
-        .addItem('Results → JSON (copy)', 'exportResultsJsonCopy')
+        .addItem('Parties → JSON (copy)', 'exportPartiesJsonCopyPrompt')
+        .addItem('Results → JSON (copy)', 'exportResultsJsonCopyPrompt')
         .addItem('Alliances → JSON (copy)', 'exportAlliancesJsonCopyPrompt')
     )
     .addSubMenu(
@@ -526,8 +526,8 @@ function _writeTableToSheet(sheet, header, rows) {
 
 /* ========== Export: Sheets → JSON (copy dialog) ========== */
 
-function exportPartiesJsonCopy() {
-  const sheet = _getSheetOrThrow(CONFIG.PARTIES_SHEET_NAME);
+function exportPartiesJsonFromSheet(sheetName) {
+  const sheet = _getSheetOrThrow(sheetName || CONFIG.PARTIES_SHEET_NAME);
   const rows = _sheetToObjects(sheet);
 
   // Map rows to schema with per-year alliances
@@ -552,8 +552,8 @@ function exportPartiesJsonCopy() {
   _showJsonCopyDialog('Parties JSON', json);
 }
 
-function exportResultsJsonCopy() {
-  const sheet = _getSheetOrThrow(CONFIG.RESULTS_SHEET_NAME);
+function exportResultsJsonFromSheet(sheetName) {
+  const sheet = _getSheetOrThrow(sheetName || CONFIG.RESULTS_SHEET_NAME);
   const rows = _sheetToObjects(sheet);
 
   // Keep all fields; reorder to canonical order for readability
@@ -563,6 +563,67 @@ function exportResultsJsonCopy() {
 
   const json = JSON.stringify(out, null, 2);
   _showJsonCopyDialog('Results JSON', json);
+}
+
+// Backward-compatible wrappers
+function exportPartiesJsonCopy(){ return exportPartiesJsonFromSheet(CONFIG.PARTIES_SHEET_NAME); }
+function exportResultsJsonCopy(){ return exportResultsJsonFromSheet(CONFIG.RESULTS_SHEET_NAME); }
+
+// Sheet-picking prompts (like alliances)
+function exportPartiesJsonCopyPrompt(){
+  const ss = _getSpreadsheet();
+  const sheets = ss.getSheets().map(s => s.getName());
+  const html = HtmlService.createHtmlOutput(
+    `<!doctype html><html><head><meta charset="utf-8">
+     <style>body{font:14px system-ui,Segoe UI,Arial;margin:16px} select,button{font:14px;padding:6px 8px}</style>
+     </head><body>
+       <h3>Choose sheet to export parties from</h3>
+       <label>Sheet: <select id="sheet"></select></label>
+       <div style="margin-top:8px"><button id="go">Export</button> <button id="cancel">Cancel</button></div>
+       <script>
+         const opts = ${JSON.stringify(sheets)};
+         const sel = document.getElementById('sheet');
+         for(const n of opts){ const o=document.createElement('option'); o.value=o.textContent=n; sel.appendChild(o); }
+         sel.value = ${JSON.stringify(CONFIG.PARTIES_SHEET_NAME)};
+         document.getElementById('go').onclick = ()=>{
+           const name = sel.value;
+           google.script.run.withSuccessHandler(()=>google.script.host.close())
+             .withFailureHandler(e=>alert('Error: '+e.message))
+             .exportPartiesJsonFromSheet(name);
+         };
+         document.getElementById('cancel').onclick = ()=>google.script.host.close();
+       </script>
+     </body></html>`
+  ).setWidth(420).setHeight(220);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Export Parties (choose sheet)');
+}
+
+function exportResultsJsonCopyPrompt(){
+  const ss = _getSpreadsheet();
+  const sheets = ss.getSheets().map(s => s.getName());
+  const html = HtmlService.createHtmlOutput(
+    `<!doctype html><html><head><meta charset="utf-8">
+     <style>body{font:14px system-ui,Segoe UI,Arial;margin:16px} select,button{font:14px;padding:6px 8px}</style>
+     </head><body>
+       <h3>Choose sheet to export results from</h3>
+       <label>Sheet: <select id="sheet"></select></label>
+       <div style="margin-top:8px"><button id="go">Export</button> <button id="cancel">Cancel</button></div>
+       <script>
+         const opts = ${JSON.stringify(sheets)};
+         const sel = document.getElementById('sheet');
+         for(const n of opts){ const o=document.createElement('option'); o.value=o.textContent=n; sel.appendChild(o); }
+         sel.value = ${JSON.stringify(CONFIG.RESULTS_SHEET_NAME)};
+         document.getElementById('go').onclick = ()=>{
+           const name = sel.value;
+           google.script.run.withSuccessHandler(()=>google.script.host.close())
+             .withFailureHandler(e=>alert('Error: '+e.message))
+             .exportResultsJsonFromSheet(name);
+         };
+         document.getElementById('cancel').onclick = ()=>google.script.host.close();
+       </script>
+     </body></html>`
+  ).setWidth(420).setHeight(220);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Export Results (choose sheet)');
 }
 
 /* ========== Import: JSON (paste) → Sheet ========== */

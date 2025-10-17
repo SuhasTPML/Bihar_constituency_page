@@ -52,32 +52,42 @@
         return;
       }
 
-      function detectDataSource() {
-        var host = window.location.hostname.toLowerCase();
-        if (host.includes('quintype.io') || host.includes('sandbox')) return 'sandbox';
-        return 'github';
+      // Direct CSV sources (no environment switching)
+      // Same-origin proxy routes (recommended for CSP)
+      var PARTIES_CSV = '/Bihar_parties_csv';
+      var RESULTS_CSV = '/Bihar_results_csv';
+
+      function parseCsv(text){
+        var lines = text.replace(/\r\n?/g,'\n').split('\n');
+        if (!lines.length) return [];
+        var header = lines.shift().split(',').map(function(s){return s.trim();});
+        var rows = [];
+        lines.forEach(function(line){
+          if (!line) return;
+          var cells = [];
+          // simple CSV parser supporting quoted values with commasn+          var re = /\s*(?:\"([^\"]*)\"|([^,]*))\s*(?:,|$)/g, m, row=[];
+          while((m=re.exec(line))){ row.push(m[1]!=null?m[1]:m[2]); if (m[0].slice(-1)!==',') break; }
+          cells = row;
+          if (!cells.length) return;
+          var obj = {};
+          for (var i=0;i<header.length;i++){ obj[header[i]] = cells[i]===undefined? '' : cells[i]; }
+          rows.push(obj);
+        });
+        return rows;
       }
 
-      var dataSource = detectDataSource();
-      var filesConfig = {
-        github: {
-          parties: 'https://suhastpml.github.io/Bihar_constituency_page/parties.json',
-          consolidated: 'https://suhastpml.github.io/Bihar_constituency_page/bihar_election_results_consolidated.json'
-        },
-        sandbox: {
-          parties: 'https://dh-sandbox-web.quintype.io/parties.json',
-          consolidated: 'https://dh-sandbox-web.quintype.io/bihar_election_results_consolidated'
-        }
-      };
-
-      var FILES = filesConfig[dataSource];
+      function loadCsvJson(url){ return fetch(url).then(function(r){return r.text();}).then(parseCsv); }
 
       Promise.all([
-        fetch(FILES.parties).then(function(r){ return r.json(); }),
-        fetch(FILES.consolidated).then(function(r){ return r.json(); })
+        loadCsvJson(PARTIES_CSV),
+        loadCsvJson(RESULTS_CSV)
       ]).then(function(results) {
-        var parties = results[0];
-        var consolidated = results[1];
+        // Map parties CSV into expected structure
+        var parties = (results[0]||[]).map(function(p){
+          var alliances = { '2010': p.alliance_2010||p.alliance||'', '2015': p.alliance_2015||p.alliance||'', '2020': p.alliance_2020||p.alliance||'', '2025': p.alliance_2025||p.alliance||'' };
+          return { code: p.code, name: p.name, color: p.color, alliances: alliances, alliance: p.alliance||'' };
+        });
+        var consolidated = results[1]||[];
         var constituency = null;
 
         for (var i = 0; i < consolidated.length; i++) {
