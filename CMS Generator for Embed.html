@@ -2238,8 +2238,8 @@ window.addEventListener('load', initEmbed);
 
         var name = encodeURIComponent((constituency.constituency_name || constituency.name || '').toString());
         var src = (dataSource === 'sandbox')
-          ? ('https://dh-sandbox-web.quintype.io/biharmap?name=' + name)
-          : ('https://suhastpml.github.io/Bihar_constituency_page/map.html?name=' + name);
+          : ('https://dh-sandbox-web.quintype.io/biharmap?enable2025=' + ((constituency && (constituency.y2025_winner_name||constituency.y2025_winner_party||constituency.y2025_winner_votes||constituency.y2025_runner_name||constituency.y2025_runner_party||constituency.y2025_runner_votes)) ? '1':'0') + '&name=' + name)
+          : ('https://suhastpml.github.io/Bihar_constituency_page/map.html?enable2025=' + ((constituency && (constituency.y2025_winner_name||constituency.y2025_winner_party||constituency.y2025_winner_votes||constituency.y2025_runner_name||constituency.y2025_runner_party||constituency.y2025_runner_votes)) ? '1':'0') + '&name=' + name);
 
         var iframe = document.createElement('iframe');
         iframe.className = 'embed-map';

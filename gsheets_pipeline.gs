@@ -18,29 +18,23 @@ const CONFIG = {
   ALLIANCES_IMPORT_SHEET_NAME: 'Alliances (from JSON)',
 };
 
-// Canonical results key order (as per Python scripts)
+// Canonical results key order (trimmed to only required fields)
 const RESULTS_PREFERRED_KEYS = [
   'no','constituency_name','slug','district','reserved',
-  'lok_sabha_no','lok_sabha',
   // 2010
   'y2010_winner_name','y2010_winner_party','y2010_winner_votes',
   'y2010_runner_name','y2010_runner_party','y2010_runner_votes',
-  'y2010_margin',
   // 2015
   'y2015_winner_name','y2015_winner_party','y2015_winner_votes',
   'y2015_runner_name','y2015_runner_party','y2015_runner_votes',
-  'y2015_margin',
   // 2020
   'y2020_winner_name','y2020_winner_party','y2020_winner_votes',
   'y2020_runner_name','y2020_runner_party','y2020_runner_votes',
-  'y2020_margin',
   // 2025 placeholders
   'y2025_winner_name','y2025_winner_party','y2025_winner_votes',
   'y2025_runner_name','y2025_runner_party','y2025_runner_votes',
-  'y2025_margin',
   // current
-  'current_mla_name','current_mla_party','current_mla_alliance','current_remarks',
- 'diff_party_vs_2020','diff_name_vs_2020',
+  'current_mla_name','current_mla_party',
 ];
 
 function onOpen() {
@@ -48,8 +42,8 @@ function onOpen() {
   ui.createMenu('Bihar Data')
     .addSubMenu(
       ui.createMenu('Export (Copy JSON)')
-        .addItem('Parties → JSON (copy)', 'exportPartiesJsonCopy')
-        .addItem('Results → JSON (copy)', 'exportResultsJsonCopy')
+        .addItem('Parties → JSON (copy)', 'exportPartiesJsonCopyPrompt')
+        .addItem('Results → JSON (copy)', 'exportResultsJsonCopyPrompt')
         .addItem('Alliances → JSON (copy)', 'exportAlliancesJsonCopyPrompt')
     )
     .addSubMenu(
@@ -107,8 +101,7 @@ function seed2025From2020() {
   const i25rn = c('y2025_runner_name');
   const i25rp = c('y2025_runner_party');
   const i25rv = c('y2025_runner_votes');
-  const i25m  = c('y2025_margin');
-  const required = [i20n,i20p,i25n,i25p,i25wv,i25rn,i25rp,i25rv,i25m].every(i => i >= 0);
+  const required = [i20n,i20p,i25n,i25p,i25wv,i25rn,i25rp,i25rv].every(i => i >= 0);
   if (!required) throw new Error('Required 2020/2025 columns not found.');
 
   let changed = 0;
@@ -127,7 +120,6 @@ function seed2025From2020() {
     row[i25rn] = '';
     row[i25rp] = '';
     row[i25rv] = '';
-    row[i25m]  = '';
   }
   sh.getRange(2, 1, rows.length, header.length).setValues(rows);
   SpreadsheetApp.getUi().alert(`Seeded ${changed} rows with 2025 placeholders from 2020 winners.`);
@@ -141,7 +133,7 @@ function clear2025Placeholders() {
   const rows = values.slice(1);
   const cols = [
     'y2025_winner_name','y2025_winner_party','y2025_winner_votes',
-    'y2025_runner_name','y2025_runner_party','y2025_runner_votes','y2025_margin'
+    'y2025_runner_name','y2025_runner_party','y2025_runner_votes'
   ].map(n => header.indexOf(n));
   if (cols.some(i => i < 0)) throw new Error('Missing 2025 result columns.');
   for (let r = 0; r < rows.length; r++) {
@@ -250,7 +242,7 @@ function openSet2025BulkDialog(){
           <div class="col"><label>Runner party <input id="y2025_runner_party" type="text"></label></div>
           <div class="col"><label>Runner votes <input id="y2025_runner_votes" type="number" min="0" step="1"></label></div>
         </div>
-        <label>Margin <input id="y2025_margin" type="number" min="0" step="1"></label>
+        
         <label><input id="overwrite_results" type="checkbox"> Overwrite existing values (unchecked = fill blanks only)</label>
       </fieldset>
 
@@ -277,7 +269,6 @@ function openSet2025BulkDialog(){
               y2025_runner_name: document.getElementById('y2025_runner_name').value.trim(),
               y2025_runner_party: document.getElementById('y2025_runner_party').value.trim(),
               y2025_runner_votes: document.getElementById('y2025_runner_votes').value.trim(),
-              y2025_margin: document.getElementById('y2025_margin').value.trim(),
               overwrite: document.getElementById('overwrite_results').checked
             },
             parties: {
@@ -303,7 +294,7 @@ function set2025FieldsBulk(payload){
   if (rVals.length) {
     const header = rVals[0].map(h => String(h||'').trim());
     const rows = rVals.slice(1);
-    const fields = ['y2025_winner_name','y2025_winner_party','y2025_winner_votes','y2025_runner_name','y2025_runner_party','y2025_runner_votes','y2025_margin'];
+    const fields = ['y2025_winner_name','y2025_winner_party','y2025_winner_votes','y2025_runner_name','y2025_runner_party','y2025_runner_votes'];
     const idx = Object.fromEntries(fields.map(f => [f, header.indexOf(f)]));
     if (Object.values(idx).some(i => i < 0)) throw new Error('Missing one or more 2025 result columns');
     const overwrite = !!payload.results.overwrite;
@@ -316,7 +307,7 @@ function set2025FieldsBulk(payload){
         const cur = String(row[i] || '').trim();
         if (overwrite || cur === '') {
           // Cast numeric fields
-          if (f.endsWith('_votes') || f === 'y2025_margin') {
+          if (f.endsWith('_votes')) {
             const n = Number(v.replace(/[,\s]/g, ''));
             row[i] = Number.isFinite(n) ? n : v; // fallback to text if not numeric
           } else {
@@ -535,8 +526,8 @@ function _writeTableToSheet(sheet, header, rows) {
 
 /* ========== Export: Sheets → JSON (copy dialog) ========== */
 
-function exportPartiesJsonCopy() {
-  const sheet = _getSheetOrThrow(CONFIG.PARTIES_SHEET_NAME);
+function exportPartiesJsonFromSheet(sheetName) {
+  const sheet = _getSheetOrThrow(sheetName || CONFIG.PARTIES_SHEET_NAME);
   const rows = _sheetToObjects(sheet);
 
   // Map rows to schema with per-year alliances
@@ -561,8 +552,8 @@ function exportPartiesJsonCopy() {
   _showJsonCopyDialog('Parties JSON', json);
 }
 
-function exportResultsJsonCopy() {
-  const sheet = _getSheetOrThrow(CONFIG.RESULTS_SHEET_NAME);
+function exportResultsJsonFromSheet(sheetName) {
+  const sheet = _getSheetOrThrow(sheetName || CONFIG.RESULTS_SHEET_NAME);
   const rows = _sheetToObjects(sheet);
 
   // Keep all fields; reorder to canonical order for readability
@@ -572,6 +563,67 @@ function exportResultsJsonCopy() {
 
   const json = JSON.stringify(out, null, 2);
   _showJsonCopyDialog('Results JSON', json);
+}
+
+// Backward-compatible wrappers
+function exportPartiesJsonCopy(){ return exportPartiesJsonFromSheet(CONFIG.PARTIES_SHEET_NAME); }
+function exportResultsJsonCopy(){ return exportResultsJsonFromSheet(CONFIG.RESULTS_SHEET_NAME); }
+
+// Sheet-picking prompts (like alliances)
+function exportPartiesJsonCopyPrompt(){
+  const ss = _getSpreadsheet();
+  const sheets = ss.getSheets().map(s => s.getName());
+  const html = HtmlService.createHtmlOutput(
+    `<!doctype html><html><head><meta charset="utf-8">
+     <style>body{font:14px system-ui,Segoe UI,Arial;margin:16px} select,button{font:14px;padding:6px 8px}</style>
+     </head><body>
+       <h3>Choose sheet to export parties from</h3>
+       <label>Sheet: <select id="sheet"></select></label>
+       <div style="margin-top:8px"><button id="go">Export</button> <button id="cancel">Cancel</button></div>
+       <script>
+         const opts = ${JSON.stringify(sheets)};
+         const sel = document.getElementById('sheet');
+         for(const n of opts){ const o=document.createElement('option'); o.value=o.textContent=n; sel.appendChild(o); }
+         sel.value = ${JSON.stringify(CONFIG.PARTIES_SHEET_NAME)};
+         document.getElementById('go').onclick = ()=>{
+           const name = sel.value;
+           google.script.run.withSuccessHandler(()=>google.script.host.close())
+             .withFailureHandler(e=>alert('Error: '+e.message))
+             .exportPartiesJsonFromSheet(name);
+         };
+         document.getElementById('cancel').onclick = ()=>google.script.host.close();
+       </script>
+     </body></html>`
+  ).setWidth(420).setHeight(220);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Export Parties (choose sheet)');
+}
+
+function exportResultsJsonCopyPrompt(){
+  const ss = _getSpreadsheet();
+  const sheets = ss.getSheets().map(s => s.getName());
+  const html = HtmlService.createHtmlOutput(
+    `<!doctype html><html><head><meta charset="utf-8">
+     <style>body{font:14px system-ui,Segoe UI,Arial;margin:16px} select,button{font:14px;padding:6px 8px}</style>
+     </head><body>
+       <h3>Choose sheet to export results from</h3>
+       <label>Sheet: <select id="sheet"></select></label>
+       <div style="margin-top:8px"><button id="go">Export</button> <button id="cancel">Cancel</button></div>
+       <script>
+         const opts = ${JSON.stringify(sheets)};
+         const sel = document.getElementById('sheet');
+         for(const n of opts){ const o=document.createElement('option'); o.value=o.textContent=n; sel.appendChild(o); }
+         sel.value = ${JSON.stringify(CONFIG.RESULTS_SHEET_NAME)};
+         document.getElementById('go').onclick = ()=>{
+           const name = sel.value;
+           google.script.run.withSuccessHandler(()=>google.script.host.close())
+             .withFailureHandler(e=>alert('Error: '+e.message))
+             .exportResultsJsonFromSheet(name);
+         };
+         document.getElementById('cancel').onclick = ()=>google.script.host.close();
+       </script>
+     </body></html>`
+  ).setWidth(420).setHeight(220);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Export Results (choose sheet)');
 }
 
 /* ========== Import: JSON (paste) → Sheet ========== */
