@@ -519,6 +519,55 @@
       return '#' + toHex(blend(r)) + toHex(blend(g)) + toHex(blend(b));
     }
 
+    // Leading helpers and hatch patterns (for 2025 live view)
+    function _nonEmpty(v){ if(v==null) return false; const s=String(v).trim(); return s!=='' && !/^(-|NA)$/i.test(s); }
+    function _hasWinner2025(row){ return row && _nonEmpty(row.y2025_winner_name) && _nonEmpty(row.y2025_winner_party); }
+    function _hasLeading2025(row){ return row && _nonEmpty(row.y2025_leading_name) && _nonEmpty(row.y2025_leading_party); }
+
+    const _patternCache = new Map();
+    let _defs = null;
+    function _ensureDefs(){ if(!_defs){ _defs = d3.select('svg').append('defs'); } }
+    function _makeHatchPattern(baseHex){
+      const key = String(baseHex||'').toLowerCase();
+      if (_patternCache.has(key)) return _patternCache.get(key);
+      _ensureDefs();
+      const id = 'lead-' + key.replace('#','');
+      const p = _defs.append('pattern')
+        .attr('id', id)
+        .attr('patternUnits', 'userSpaceOnUse')
+        .attr('width', 8)
+        .attr('height', 8);
+      p.append('rect').attr('x',0).attr('y',0).attr('width',8).attr('height',8).attr('fill', baseHex);
+      p.append('rect').attr('x',0).attr('y',4).attr('width',8).attr('height',1).attr('fill','rgba(0,0,0,0.12)');
+      const url = `url(#${id})`;
+      _patternCache.set(key, url);
+      return url;
+    }
+
+    function getPaintForMode(acNo, mode){
+      const row = electionData.get(acNo);
+      if (!row) return '#f3f4f6';
+      if (mode === 'alliance-2025' || mode === 'party-2025'){
+        const hasW = _hasWinner2025(row);
+        const hasL = _hasLeading2025(row);
+        const party = hasW ? row.y2025_winner_party : (hasL ? row.y2025_leading_party : null);
+        if (!party) return '#f3f4f6';
+        if (mode === 'alliance-2025'){
+          const allyKey = resolveAllianceForYear(party, 2025);
+          const orig = allyKey === 'NA' ? '#e5e7eb' : (allianceColors.get(allyKey) || '#e5e7eb');
+          const pastel = pastelizeColor(orig, hasL && !hasW ? 0.5 : 0.25);
+          return (hasL && !hasW) ? _makeHatchPattern(pastel) : pastel;
+        } else {
+          const info = partyData.get(party);
+          const orig = (info && info.color) || '#888';
+          const pastel = pastelizeColor(orig, hasL && !hasW ? 0.5 : 0.25);
+          return (hasL && !hasW) ? _makeHatchPattern(pastel) : pastel;
+        }
+      }
+      // Fallback to existing colors for non-2025 modes
+      return getColorForMode(acNo, mode);
+    }
+
     function getColorForMode(acNo, mode) {
       // Try cache first for performance
       const cacheKey = `${mode}_${acNo}`;
@@ -878,10 +927,24 @@
 
       if (electionRow) {
         const cleanName = (n)=> String(n||'').replace(/\s*\((SC|ST|GEN|General)\)\s*$/i, '');
-        let mlaName, party, alliance;
+        let mlaName, party, alliance, mlaLabel;
         if (ENABLE_2025_MODES) {
-          mlaName = electionRow.y2025_winner_name || 'Not available';
-          party = electionRow.y2025_winner_party || 'Unknown';
+          // Winner-else-Leading logic
+          const hasW = _hasWinner2025(electionRow);
+          const hasL = _hasLeading2025(electionRow);
+          if (hasW) {
+            mlaName = electionRow.y2025_winner_name || 'Not available';
+            party = electionRow.y2025_winner_party || 'Unknown';
+            mlaLabel = 'Winner';
+          } else if (hasL) {
+            mlaName = electionRow.y2025_leading_name || 'Not available';
+            party = electionRow.y2025_leading_party || 'Unknown';
+            mlaLabel = 'Leading';
+          } else {
+            mlaName = 'Not available';
+            party = 'Unknown';
+            mlaLabel = 'Result';
+          }
           const info = partyData.get(party);
           const alliances = info && (info.alliances || null);
           alliance = (alliances && (alliances['2025'] || alliances[2025]))
@@ -891,9 +954,8 @@
           mlaName = electionRow.current_mla_name || 'Not available';
           party = electionRow.current_mla_party || 'Unknown';
           alliance = resolveAllianceForRow(electionRow, 2020) || 'Unknown';
+          mlaLabel = 'Current MLA';
         }
-
-        const mlaLabel = ENABLE_2025_MODES ? 'Winner' : 'Current MLA';
 
         // Get colors for party and alliance
         const partyColor = partyColors.get(party) || '#f3f4f6';
@@ -1019,7 +1081,7 @@
         .attr('class', 'ac')
         .attr('data-key', d => featureKey(d.properties))
         .attr('d', d => path(d))
-        .attr('fill', d => getColorForMode(featureKey(d.properties), currentColorMode))
+        .attr('fill', d => getPaintForMode(featureKey(d.properties), currentColorMode))
         .attr('stroke', '#1f77b4') // Set default stroke color
         .on('click', (ev, d) => selectByKey(featureKey(d.properties)));
     }
@@ -1214,7 +1276,7 @@
     // Color mode change handler
     colorModeEl.addEventListener('change', () => {
       currentColorMode = colorModeEl.value;
-      g.selectAll('path').attr('fill', d => getColorForMode(featureKey(d.properties), currentColorMode));
+      g.selectAll('path').attr('fill', d => getPaintForMode(featureKey(d.properties), currentColorMode));
       updateLegend();
     });
 
@@ -1239,10 +1301,17 @@
           }
           if (!alliance) {
             // Resolve via party mapping as fallback
-            const party = (year === 2025) ? row.y2025_winner_party
-                        : (year === 2015) ? row.y2015_winner_party
-                        : (year === 2010) ? row.y2010_winner_party
-                        : row.current_mla_party;
+            // For 2025: use Winner-else-Leading logic
+            let party;
+            if (year === 2025) {
+              const hasW = _hasWinner2025(row);
+              const hasL = _hasLeading2025(row);
+              party = hasW ? row.y2025_winner_party : (hasL ? row.y2025_leading_party : null);
+            } else {
+              party = (year === 2015) ? row.y2015_winner_party
+                    : (year === 2010) ? row.y2010_winner_party
+                    : row.current_mla_party;
+            }
             const info = partyData.get(party);
             const alliances = info && (info.alliances || null);
             alliance = (alliances && (alliances[String(year)] || alliances[year]))
@@ -1263,10 +1332,17 @@
         // Show top parties only for party mode
         const partyCount = new Map();
         for (const [key, row] of electionData) {
-          const party = mode === 'party-2025' ? row.y2025_winner_party :
-                       mode === 'party-2020' ? row.current_mla_party :
-                       mode === 'party-2015' ? row.y2015_winner_party :
-                       mode === 'party-2010' ? row.y2010_winner_party : null;
+          let party;
+          if (mode === 'party-2025') {
+            // Winner-else-Leading logic for 2025
+            const hasW = _hasWinner2025(row);
+            const hasL = _hasLeading2025(row);
+            party = hasW ? row.y2025_winner_party : (hasL ? row.y2025_leading_party : null);
+          } else {
+            party = mode === 'party-2020' ? row.current_mla_party :
+                    mode === 'party-2015' ? row.y2015_winner_party :
+                    mode === 'party-2010' ? row.y2010_winner_party : null;
+          }
           if (party) partyCount.set(party, (partyCount.get(party) || 0) + 1);
         }
 
@@ -1281,10 +1357,26 @@
         legendItems = topParties;
       }
 
-      legendEl.innerHTML = legendItems
+      let legendHTML = legendItems
         .map(item => `<span style="margin-right: 15px;"><span style="color: ${item.color}; font-size: 16px;">■</span> ${item.label}</span>`)
         .join('');
 
+      // Add leading indicator note for 2025 modes
+      if (mode.includes('2025')) {
+        // Check if any seat has leading data
+        let hasAnyLeading = false;
+        for (const [key, row] of electionData) {
+          if (_hasLeading2025(row) && !_hasWinner2025(row)) {
+            hasAnyLeading = true;
+            break;
+          }
+        }
+        if (hasAnyLeading) {
+          legendHTML += `<span style="margin-left: 15px; margin-right: 15px; font-style: italic; color: #666;">▤ Striped = Leading (live)</span>`;
+        }
+      }
+
+      legendEl.innerHTML = legendHTML;
       legendEl.style.display = 'block';
     }
 
@@ -1427,12 +1519,40 @@
         // Load election data first
         const dataLoaded = await loadElectionData();
 
-        // Load GeoJSON from selected remote (with local fallback)
-        const geoResponse = await loadWithFallback(
-          `${REMOTE_BASE}/bihar_ac_all.geojson`,
-          './bihar_ac_all.geojson',
-          'constituency map data'
-        );
+        // Load GeoJSON - try sandbox first, with GitHub Pages and local fallbacks
+        const sandboxGeoUrl = 'https://dh-sandbox-web.quintype.io/bihar_ac_all.geojson';
+        let geoResponse;
+        try {
+          console.log(`🌐 Loading constituency map data from sandbox: ${sandboxGeoUrl}`);
+          geoResponse = await fetch(sandboxGeoUrl, { cache: 'no-store' });
+          if (!geoResponse.ok) {
+            throw new Error(`HTTP ${geoResponse.status}: ${geoResponse.statusText}`);
+          }
+          console.log(`✅ Successfully loaded constituency map data from sandbox`);
+        } catch (error) {
+          console.warn(`⚠️ Sandbox failed for constituency map data:`, error.message);
+          console.log(`🔄 Falling back to GitHub Pages: ${REMOTE_BASE}/bihar_ac_all.geojson`);
+          try {
+            geoResponse = await fetch(`${REMOTE_BASE}/bihar_ac_all.geojson`, { cache: 'no-store' });
+            if (!geoResponse.ok) {
+              throw new Error(`HTTP ${geoResponse.status}: ${geoResponse.statusText}`);
+            }
+            console.log(`✅ Successfully loaded constituency map data from GitHub Pages`);
+          } catch (ghError) {
+            console.warn(`⚠️ GitHub Pages also failed for constituency map data:`, ghError.message);
+            console.log(`🔄 Falling back to local file: ./bihar_ac_all.geojson`);
+            try {
+              geoResponse = await fetch('./bihar_ac_all.geojson', { cache: 'no-store' });
+              if (!geoResponse.ok) {
+                throw new Error(`HTTP ${geoResponse.status}: ${geoResponse.statusText}`);
+              }
+              console.log(`✅ Successfully loaded constituency map data from local file`);
+            } catch (localError) {
+              console.error(`❌ All sources failed for constituency map data (sandbox, GitHub Pages, local)`);
+              throw new Error(`Failed to load constituency map data from all sources`);
+            }
+          }
+        }
         const geoData = await geoResponse.json();
         biharData = geoData;
         projection = d3.geoMercator().fitSize([width, height], biharData);
@@ -1445,7 +1565,7 @@
 
         if (dataLoaded) {
           // Update colors now that data is loaded
-          g.selectAll('path').attr('fill', d => getColorForMode(featureKey(d.properties), currentColorMode));
+          g.selectAll('path').attr('fill', d => getPaintForMode(featureKey(d.properties), currentColorMode));
           updateLegend();
         }
 

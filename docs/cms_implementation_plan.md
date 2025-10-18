@@ -75,9 +75,45 @@ Phased Plan (execution order)
 - Phase B: 2025 Results widget (CSV) — Completed
   - Implemented parsing and stage rendering with “Leading: Name (Party)” (no votes/margins) and pre-results/after states.
   - Final state does not show any “Earlier leading” note.
+  - Leading phase now matches final layout footprint to avoid height shifts:
+    - LEADING row styled like final (name + party chip), with inline “(awaiting final result)”.
+    - Runner-up row uses neutral placeholders without extra dash lines.
+    - Margin block removed in leading phase.
+    - Prominent live banner: “Live update: Check back later for winners.” (aria-live), styled for emphasis.
+    - Party chips are flat (no shadow), consistent with timeline pill style.
   - File: `widget-embeds- csv hosted leading/2025 results.html`
 - Phase C: Map (CSV)
   - Implement 2025 coloring/legend using Winner else Leading; bottom-sheet label “Leading …”; optional “2025 Live” chip.
+  - Leading visual differentiation (feasible):
+    - Pastelize colors for leading seats more strongly than winners.
+    - Add horizontal hatch lines over leading constituencies.
+    - Legend note: “Striped = Leading (live)”.
+
+Phase C details — Leading visuals (feasibility + approach)
+- Feasibility: Yes. The current map already pastelizes party/alliance palettes. We can further pastelize for leading and overlay stripes using SVG patterns without heavy DOM cost.
+- Pastelization strategy:
+  - Winners: keep existing pastelizeColor mix (≈ 0.25).
+  - Leading: use stronger mix (≈ 0.45–0.5) to make the base fill lighter.
+- Horizontal lines (hatching) strategy:
+  - Add a single <defs> section in the SVG with reusable stripe patterns.
+  - Pattern shape: horizontal lines every 6–8px, 1px height, low‑contrast line color (e.g., rgba(0,0,0,0.12)) over transparent, with a base rect filled by the seat’s pastel color.
+  - Implementation: for leading seats, set fill to `url(#lead-<hash>)` where each pattern id is derived from the computed pastel color (pattern cache to avoid duplicates).
+  - Use `patternUnits="userSpaceOnUse"` so line spacing stays consistent across zoom.
+- Coloring logic changes:
+  - Add `isLeading(row)` helper: winner absent AND leading present.
+  - Update `getColorForMode(acNo, mode)` → `getPaintForMode(...)` that returns either a hex (winners) or pattern URL (leading), while preserving existing alliance/party selection.
+  - Keep stroke color logic unchanged (still uses original non‑pastel color for selected stroke).
+- Legend + UI:
+  - Legend continues to compute counts from the same source as fill (winner else leading).
+  - Add a small legend suffix or chip: “Striped = Leading (live)”.
+  - Keep the existing optional “2025 Live” chip near the color selector when any seat uses leading.
+- Bottom sheet:
+  - When leading is used: show “Leading: Name (Party, Alliance)” (no votes/margins).
+  - When winner exists: show final details (unchanged).
+- Performance & QA:
+  - Patterns are cached by color; worst‑case count is bounded by unique party/alliance colors.
+  - Verify zoom/selection: stripes remain crisp; stroke sits above fill.
+  - Test all-leading, mixed, all-final datasets; ensure `enable2025` and dataset‑level gating still apply.
 
 1) Data schema and validation
 - Columns (Results CSV): `y2025_leading_name`, `y2025_leading_party` (required). We will not add or use leading vote or margin columns.
