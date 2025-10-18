@@ -407,7 +407,7 @@
     <div class="controls-description">Tap on a constituency to view details, or search by number/name/district.</div>
     <div class="controls-main">
       <div class="controls-search">
-        <input id="acSearch" type="search" placeholder="Search constituency by number, name, or district..." />
+        <input id="acSearch" type="search" placeholder="Search constituency by number, name, or district..." autocomplete="off" />
         <div id="dropdown" class="dropdown"></div>
       </div>
       <div class="controls-options">
@@ -544,6 +544,25 @@
       return url;
     }
 
+    // Vertical lines pattern for constituencies with no 2025 data (neither winner nor leading)
+    let _noDataPattern = null;
+    function _makeNoDataPattern(){
+      if (_noDataPattern) return _noDataPattern;
+      _ensureDefs();
+      const id = 'no-data-vertical';
+      const p = _defs.append('pattern')
+        .attr('id', id)
+        .attr('patternUnits', 'userSpaceOnUse')
+        .attr('width', 8)
+        .attr('height', 8);
+      // Black base
+      p.append('rect').attr('x',0).attr('y',0).attr('width',8).attr('height',8).attr('fill', '#000000');
+      // Vertical white line
+      p.append('rect').attr('x',4).attr('y',0).attr('width',1).attr('height',8).attr('fill','rgba(255,255,255,0.4)');
+      _noDataPattern = `url(#${id})`;
+      return _noDataPattern;
+    }
+
     function getPaintForMode(acNo, mode){
       const row = electionData.get(acNo);
       if (!row) return '#f3f4f6';
@@ -551,7 +570,8 @@
         const hasW = _hasWinner2025(row);
         const hasL = _hasLeading2025(row);
         const party = hasW ? row.y2025_winner_party : (hasL ? row.y2025_leading_party : null);
-        if (!party) return '#f3f4f6';
+        // If no winner AND no leading, return vertical lines pattern
+        if (!party) return _makeNoDataPattern();
         if (mode === 'alliance-2025'){
           const allyKey = resolveAllianceForYear(party, 2025);
           const orig = allyKey === 'NA' ? '#e5e7eb' : (allianceColors.get(allyKey) || '#e5e7eb');
@@ -1052,7 +1072,10 @@
         div.addEventListener('mouseleave', () => {
           div.style.backgroundColor = '';
         });
-        div.addEventListener('click', () => {
+        // Use mousedown instead of click to fire before blur
+        div.addEventListener('mousedown', (e) => {
+          e.preventDefault(); // Prevent blur from firing
+          console.log('🔍 Dropdown item clicked:', item.label, 'key:', item.key);
           searchEl.value = item.label;
           selectByKey(item.key);
           dropdownEl.style.display = 'none';
@@ -1361,18 +1384,27 @@
         .map(item => `<span style="margin-right: 15px;"><span style="color: ${item.color}; font-size: 16px;">■</span> ${item.label}</span>`)
         .join('');
 
-      // Add leading indicator note for 2025 modes
+      // Add leading and no-data indicator notes for 2025 modes
       if (mode.includes('2025')) {
-        // Check if any seat has leading data
+        // Check if any seat has leading data or no data
         let hasAnyLeading = false;
+        let hasAnyNoData = false;
         for (const [key, row] of electionData) {
-          if (_hasLeading2025(row) && !_hasWinner2025(row)) {
+          const hasW = _hasWinner2025(row);
+          const hasL = _hasLeading2025(row);
+          if (hasL && !hasW) {
             hasAnyLeading = true;
-            break;
           }
+          if (!hasW && !hasL) {
+            hasAnyNoData = true;
+          }
+          if (hasAnyLeading && hasAnyNoData) break; // Found both, can stop
         }
         if (hasAnyLeading) {
-          legendHTML += `<span style="margin-left: 15px; margin-right: 15px; font-style: italic; color: #666;">▤ Striped = Leading (live)</span>`;
+          legendHTML += `<span style="margin-left: 15px; margin-right: 15px; font-style: italic; color: #666;">▤ Horizontal stripes = Leading (live)</span>`;
+        }
+        if (hasAnyNoData) {
+          legendHTML += `<span style="margin-left: 15px; margin-right: 15px; font-style: italic; color: #666;">║ Vertical stripes = Awaiting results</span>`;
         }
       }
 
