@@ -447,14 +447,8 @@
     const REMOTE_BASE = DATA_SOURCE === 'sandbox'
       ? 'https://dh-sandbox-web.quintype.io'
       : 'https://suhastpml.github.io/Bihar_constituency_page';
-    const ENABLE_2025_MODES = (() => {
-      try {
-        const p = new URLSearchParams(location.search).get('enable2025');
-        if (p === '1' || (p||'').toLowerCase() === 'true') return true;
-        if (p === '0' || (p||'').toLowerCase() === 'false') return false;
-      } catch {}
-      return true; // default enabled (use ?enable2025=0 to disable)
-    })();
+    // ENABLE_2025_MODES will be determined after data loads (see computeEnable2025)
+    let ENABLE_2025_MODES = false; // Start with false, will be updated after CSV load
     const svg = d3.select('#svg');
     const g = d3.select('#zoomlayer');
     const labelLayer = g.append('g').attr('id','labelLayer');
@@ -476,7 +470,7 @@
     let colorCache = new Map(); // Pre-computed color combinations
     let featureByAc = new Map(); // Cached feature lookup by AC key
     let centroidCache = new Map(); // Pre-computed centroids for each AC
-    let currentColorMode = ENABLE_2025_MODES ? 'alliance-2025' : 'alliance-2020';
+    let currentColorMode = 'alliance-2020'; // Will be updated after data loads
 
     let biharData = null;
     let projection, path;
@@ -523,6 +517,25 @@
     function _nonEmpty(v){ if(v==null) return false; const s=String(v).trim(); return s!=='' && !/^(-|NA)$/i.test(s); }
     function _hasWinner2025(row){ return row && _nonEmpty(row.y2025_winner_name) && _nonEmpty(row.y2025_winner_party); }
     function _hasLeading2025(row){ return row && _nonEmpty(row.y2025_leading_name) && _nonEmpty(row.y2025_leading_party); }
+
+    // Dataset-level 2025 enablement: enable if at least one seat has 2025 data (winner or leading)
+    function computeEnable2025(){
+      // Check for URL override first
+      try {
+        const p = new URLSearchParams(location.search).get('enable2025');
+        if (p === '1' || (p||'').toLowerCase() === 'true') return true;
+        if (p === '0' || (p||'').toLowerCase() === 'false') return false;
+      } catch {}
+      // Auto-detect: enable if ANY seat has winner OR leading data
+      for (const [key, row] of electionData) {
+        if (_hasWinner2025(row) || _hasLeading2025(row)) {
+          console.log('✅ 2025 mode auto-enabled: Found at least one constituency with 2025 data');
+          return true;
+        }
+      }
+      console.log('ℹ️ 2025 mode disabled: No constituencies have 2025 data yet');
+      return false;
+    }
 
     const _patternCache = new Map();
     let _defs = null;
@@ -915,6 +928,7 @@
         );
         colorModeEl.innerHTML = opts.map(o=>`<option value="${o.v}">${o.t}</option>`).join('');
         colorModeEl.value = ENABLE_2025_MODES ? 'alliance-2025' : 'alliance-2020';
+        currentColorMode = colorModeEl.value;
       }
 
       // Wire up event handlers
@@ -1593,6 +1607,8 @@
         draw(biharData.features);
         cacheFeatures(biharData.features); // Pre-compute feature lookups and centroids
         populateSearch(biharData.features);
+        // Compute dataset-driven 2025 enablement
+        ENABLE_2025_MODES = computeEnable2025();
         createMapControls();
 
         if (dataLoaded) {
