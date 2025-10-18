@@ -1,358 +1,148 @@
-# Bihar Constituency Pages — CMS Implementation Plan
-
-## Overview
-
-- Goal: Publish one CMS story per constituency using a self-contained, static embed of the preview generated from `Generator.html` (with pre/post-results modes), while keeping the map as an internal iframe with a fixed `ac` param.
-- Output: A DIV-only embed snippet (scoped CSS under a unique container id) pasted into the CMS “HTML” element. No external runtime dependencies beyond the map iframe.
-
-## Two Sheet States (Content Columns Order)
-
-Maintain two tabs/sheets to reflect the two rendering modes. Both share base metadata columns, then state-specific content columns in a strict order.
-
-Base Metadata Columns (placed first, common to both tabs)
-1. Constituency Name
-2. OG
-3. NOT FOR USE
-4. Template
-5. Author
-6. Tags
-7. Keywords
-8. Primary Section
-9. Secondary Section
-10. Hero Image URL
-11. Published URL
-
-Pre-Results Tab (Before 2025 results are declared)
-- Generator mode: `?announced=0` before loading a seat.
-- Append these Content Columns after the base metadata:
-12. Body Copy
-13. Map Iframe (Pre-Results) — use `enable2025=0`
-14. Current MLA Embed Code
-15. Past Results Timeline Embed Code
-16. Actual Past Results Embed Code (2010/2015/2020 cards)
-
-Post-Results Tab (After official 2025 results data available)
-- Generator mode: default (or `?announced=1`).
-- Append these Content Columns after the base metadata:
-12. 2025 Results Embed Code
-13. Body Copy
-14. Map Iframe (Post-Results) — use `enable2025=1`
-15. Past Results Timeline Embed Code
-16. Actual Past Results Embed Code (2010/2015/2020 cards)
-
-## Authoring Workflow
-
-1. Open `Generator.html` in the browser.
-2. Choose data source if needed (`source=gh` recommended) and optionally force pre-results with `?announced=0`.
-3. Enter constituency number and click `Load`.
-4. Click `Export Embed` to copy the DIV-only embed snippet to clipboard.
-5. Create a new story in the CMS (Quintype) and fill the sheet per the state (Pre or Post) using the content blocks columns below.
-6. For each content block, paste the specific embed code (map, MLA, timeline, results) into the corresponding column.
-7. Save, preview, and publish.
-
-Notes
-- Pre-results: use `Generator.html?announced=0` before loading a seat; export will omit the 2025 block and set `enable2025=0` inside the map iframe.
-- Post-results: default mode when 2025 data exists; export will include 2025 block and set `enable2025=1`.
-- The embed uses a unique wrapper id and scoped CSS to avoid style interference with the parent page.
-- If the CMS sanitizes `<style>` tags, request an allowlist for the story’s HTML element. Fallback option: we can provide a “style-inlined” variant on request (heavier markup).
-
-## Sheet Fields (to share with Quintype)
-
-Provide a Google Sheet with the following columns in this exact order:
-
-1. Constituency Name
-2. OG
-3. NOT FOR USE
-4. Template
-5. Author
-6. Headline
-7. Sub-headline
-8. Body Copy
-9. Tags
-10. Keywords
-11. Primary Section
-12. Secondary Section
-13. Hero Image URL
-14. Published URL
-
-Field Guidance
-- Constituency Name: Exact display name (matches consolidated data where possible).
-- OG: Open Graph title/description notes or overrides.
-- NOT FOR USE: Internal flag; leave blank or “No”.
-- Template: Use the standard constituency story template.
-- Author: CMS author name/ID.
-- Headline: See “Two Sheet States” for pre/post suggestions.
-- Sub-headline: See “Two Sheet States” for pre/post suggestions.
-- Body Copy: Optional intro/context. Keep short; the embed conveys main info.
-- Tags/Keywords: SEO and internal tagging.
-- Content Blocks (see Two Sheet States): Paste individual blocks rather than a single full embed.
-- Primary/Secondary Section: CMS section slugs (e.g., “Elections”, “Bihar”).
-- Hero Image URL: Optional image; should be neutral if results not declared.
-- Published URL: Filled by the desk after publish.
-
-Preset Rows (recommended usage)
-- Pre-Results preset: Fill row per “Pre-Results” guidance; paste pre-results embed; keep Hero neutral; omit explicit 2025 outcomes.
-- Post-Results preset: Duplicate the pre-results row when results arrive, update headline/sub-headline/body for outcome, replace Embed Code with post-results embed.
-
-## Embed Code Placement
-
-- CMS Element: Use “HTML” elements (or equivalent raw HTML blocks) for each content block.
-- Placement: Recommended order follows the sheet columns for the chosen state.
-- Do not wrap inside additional containers that add overflow or padding which could clip the timeline.
-
-## Pre/Post-Results Handling
-
-- Pre-results stories: Force pre-results via `?announced=0` in `Generator.html` before loading and exporting. This shows context, MLA info, map, and past results without 2025.
-- Post-results stories: Default mode if 2025 is present in data; export then includes 2025 results, margin block, and updated CMS sections.
-
-## Obtaining Each Content Block from Generator
-
-Run `Generator.html`, load the constituency, then use these selectors to copy specific blocks (open DevTools console and run the snippet to copy to clipboard):
-
-- Map Iframe (Pre/Post)
-  - Selector: `#mapEmbed iframe`
-  - Snippet: `navigator.clipboard.writeText(document.querySelector('#mapEmbed iframe').outerHTML)`
-  - Ensure `enable2025=0` for pre, `1` for post.
-
-- Current MLA Embed Code (Pre only)
-  - Selector: `.current-mla-card`
-  - Snippet: `navigator.clipboard.writeText(document.querySelector('.current-mla-card').outerHTML)`
-
-- 2025 Results Embed Code (Post only)
-  - Find the card where the title contains 2025:
-  - Snippet:
-    ```js
-    (()=>{
-      const card = [...document.querySelectorAll('.election-result')]
-        .find(n => n.querySelector('.election-title')?.textContent.includes('2025'));
-      if (card) navigator.clipboard.writeText(card.outerHTML);
-    })();
-    ```
-
-- Past Results Timeline Embed Code
-  - Selector: `.trends-container`
-  - Snippet: `navigator.clipboard.writeText(document.querySelector('.trends-container').outerHTML)`
-
-- Actual Past Results Embed Code (2010/2015/2020)
-  - Selector: `.results-container`
-  - Snippet: `navigator.clipboard.writeText(document.querySelector('.results-container').outerHTML)`
-
-Notes
-- If your browser blocks clipboard writes from the console, select the node in the Elements panel, right-click → Copy → Copy outerHTML.
-- For pre vs post variants, re-load with `?announced=0` or `?announced=1` before copying blocks.
-
-## Validation Checklist
-
-- Verify the map loads with the correct fixed `ac` parameter (zero-padded, e.g., `021`).
-- Confirm the “timeline scroll” hint appears per rules:
-  - Mobile: Always shown.
-  - Desktop: Shown when 4 timeline years are present; hidden for 3.
-- Confirm styles do not affect, or get affected by, the parent page (scoped CSS inside the embed).
-- Test both pre-results and post-results variants for 2–3 constituencies.
-
-## Maintenance Notes
-
-- Data updates (parties, alliances, consolidated results) automatically reflect in `Generator.html` preview; export a fresh embed if content changes.
-- If Quintype restricts `<style>` tags:
-  - Option A: Ask for an allowlist for the HTML block on this series.
-  - Option B: Request a “style-inlined” export variant.
-
-## Support
-
-- For adjustments (font loading, color overrides, layout tweaks), open an issue or share edits to `Generator.html`. We can regenerate consistent embeds in bulk as needed.
-
-## Feasibility Overview
-
-- Feasible: The plan to populate CMS stories using discrete content blocks (map, current MLA, 2025 results, timeline, actual past results) is feasible.
-- Styles: Each block must include scoped styles in a `<style>` tag targeting a unique container id to avoid relying on global CSS.
-- Minimal JS: Only the past results timeline hint logic needs a small inline script to implement “mobile always, desktop show only for 4 years”. All other blocks are pure HTML/CSS (map is an iframe).
-
-## Block Export Strategy
-
-- Provide per-block exports from `Generator.html` via dedicated “Copy Block” buttons that produce:
-  - A container `<div id="...">` with a unique id for the block and constituency.
-  - A scoped `<style>` with selectors rewritten to target that id only.
-  - The block’s static HTML markup.
-  - For the timeline block only: a tiny inline script to toggle the hint according to current rules.
-- Keep the existing full-page DIV-only export for teams who prefer a single embed.
-
-## CMS Sanitization Considerations
-
-- If CMS allows `<style>` and `<iframe>` in HTML blocks, the plan works as-is.
-- If CMS blocks `<script>` tags:
-  - Timeline hint falls back to CSS-only: “always show on mobile,” and pick one desktop policy (always show or always hide). Document the chosen fallback per environment.
-- If CMS blocks `<style>` in content blocks, request an allowlist for this project. As a fallback, we can provide a style-inlined variant (converts CSS into `style="..."` on each element) at the cost of heavier markup.
-
-## Implementation Steps in Generator (next changes)
-
-1) Add "Copy Block" buttons with handlers:
-   - Map (Pre) — copies iframe with `enable2025=0`
-   - Map (Post) — copies iframe with `enable2025=1`
-   - Current MLA (Pre)
-   - 2025 Results (Post)
-   - Past Results Timeline
-   - Actual Past Results (2010/2015/2020)
-2) Each handler builds a scoped block:
-   - Wrap content in a unique container id.
-   - Rewrite selectors to that id.
-   - Inject inline script only for the timeline hint (if scripts allowed).
-3) QA: Verify copied block renders correctly when pasted into a blank HTML page and in the target CMS preview.
-
-## ✅ Static Widget Exporters Implementation (COMPLETED)
-
-**Overview**: Added 5 static (crawlable) widget exporters to `CMS Generator for Embed.html` that generate pre-rendered HTML for SEO/crawlability. This provides an Option A solution where static HTML is pasted into CMS and is immediately crawlable by search engines.
-
-**Implementation Details** (Commit: 46b1247):
-
-### 1. User Interface (Lines 325-340)
-Added 5 new static export buttons in a dedicated section:
-- **Header (Static)** - Purple button - Exports constituency header with district/seat info
-- **2025 Results (Static)** - Pink button - Exports winner/runner-up with vote bars (only when 2025 data exists)
-- **Current MLA (Static)** - Purple button - Exports current MLA card (hides when 2025 data exists)
-- **Timeline (Static)** - Teal button - Exports election timeline (auto-reverses when 2025 present)
-- **Historical Grid (Static)** - Orange button - Exports 2020/2015/2010 results grid
-
-All buttons start disabled and enable only after a constituency is loaded.
-
-### 2. Static Builder Functions (Lines 2391-2615)
-Five builder functions that generate standalone HTML with scoped CSS:
-
-**`buildStaticHeaderHTML(state)`** - Generates constituency header
-- Shows constituency name, district, and seat type (General/SC/ST)
-- Uses unique ID: `bihar-static-header-{seatNo}`
-- Returns empty string if no data
-
-**`buildStatic2025ResultsHTML(state)`** - Generates 2025 results card
-- Shows winner/runner-up with vote counts and percentage bars
-- Displays victory margin
-- Returns HTML comment `<!-- No 2025 data available -->` if no 2025 data
-- Uses unique ID: `bihar-static-2025-{seatNo}`
-
-**`buildStaticMLAHTML(state)`** - Generates current MLA card
-- Shows incumbent MLA name, party, and term info
-- Returns HTML comment `<!-- Current MLA hidden when 2025 results exist -->` if 2025 data present
-- Uses unique ID: `bihar-static-mla-{seatNo}`
-
-**`buildStaticTimelineHTML(state)`** - Generates election timeline
-- Shows historical election results in vertical timeline format
-- **Auto-reverses order when 2025 data exists** (newest→oldest)
-- Uses existing `renderEnhancedTrends()` function
-- Uses unique ID: `bihar-static-timeline-{seatNo}`
-
-**`buildStaticGridHTML(state)`** - Generates historical grid
-- Shows 2020, 2015, and 2010 results in card format
-- Uses existing `renderYearBlock()` function
-- Uses unique ID: `bihar-static-grid-{seatNo}`
-
-### 3. Data Storage (Line 854)
-```javascript
-window.__lastRenderData = data; // Store data for static exporters
-```
-Stores constituency data globally when `renderSeat()` is called, allowing static builders to access the same data source.
-
-### 4. Export Handler Functions (Lines 2791-2889)
-Five async handler functions that:
-- Validate that a constituency is loaded
-- Call corresponding builder function
-- Check for empty/comment results and show appropriate alerts
-- Copy generated HTML to clipboard
-- Update status message with success confirmation
-
-**Error Handling**:
-- `exportStatic2025()` - Alerts if no 2025 data available
-- `exportStaticMLA()` - Alerts if hidden due to 2025 results
-- All handlers show clear error if no constituency loaded
-
-### 5. Event Listeners (Lines 2950-2969)
-Wired up click event listeners for all 5 static export buttons in the `init()` function.
-
-### 6. Auto-Enable Buttons (Lines 858-861)
-```javascript
-// Enable static export buttons
-['exportStaticHeader','exportStatic2025','exportStaticMLA','exportStaticTimeline','exportStaticGrid'].forEach(id=>{
-  const btn = document.getElementById(id);
-  if (btn) btn.disabled = false;
-});
-```
-Automatically enables all static buttons when a constituency is successfully loaded.
-
-### How It Works
-
-1. **User loads constituency** (e.g., seat #21 - Patna Sahib)
-2. **Static buttons become enabled** automatically
-3. **User clicks any static widget button** (e.g., "Timeline (Static)")
-4. **Pre-rendered HTML is copied to clipboard** with scoped CSS
-5. **User pastes into CMS HTML block** - content displays immediately
-6. **Search engines can crawl** the content (no JavaScript required)
-
-### Key Benefits
-
-✅ **SEO Crawlable**: Search engines see actual HTML content in source, not empty divs
-✅ **Self-contained**: Each widget has scoped CSS with unique IDs to prevent conflicts
-✅ **No JavaScript Required**: Works without client-side code execution
-✅ **Modular**: Each widget can be embedded independently
-✅ **Timeline Intelligence**: Automatically reverses order when 2025 data exists
-✅ **Conditional Rendering**: 2025 Results shows only with data, MLA hides when 2025 exists
-✅ **Standalone**: Works exactly like existing "Export Embed" button
-
-### Workflow Example
-
-```
-1. Open CMS Generator for Embed.html
-2. Enter constituency number (e.g., 21) and click Load
-3. Click "Header (Static)" → Copies to clipboard
-4. Paste into CMS HTML block → Header appears
-5. Click "Timeline (Static)" → Copies to clipboard
-6. Paste into CMS HTML block → Timeline appears
-7. Click "Historical Grid (Static)" → Copies to clipboard
-8. Paste into CMS HTML block → Grid appears
-9. Save and publish CMS page
-10. Search engines can now crawl all widget content
-```
-
-### Technical Notes
-
-- **Scoped CSS**: Uses `buildScopedStylesForId()` to generate CSS that only affects the specific widget
-- **Unique IDs**: Each widget uses format `bihar-static-{widgetType}-{seatNo}` (e.g., `bihar-static-timeline-021`)
-- **Data Access**: Reads from `window.__lastRenderData` set during `renderSeat()`
-- **Reuses Existing Functions**: Leverages `renderYearBlock()`, `renderEnhancedTrends()`, and other existing rendering functions
-- **Timeline Reversal Logic**: Checks for 2025 data existence and reverses array if found
-
-### Comparison: Static vs Dynamic Widgets
-
-| Feature | Static Widgets | Dynamic Widgets |
-|---------|---------------|-----------------|
-| **SEO Crawlable** | ✅ Yes (HTML in source) | ❌ No (JS-generated) |
-| **JavaScript Required** | ❌ No | ✅ Yes |
-| **Load Time** | ✅ Instant | ⏱️ Requires fetch |
-| **Updates with JSON** | ❌ Must regenerate | ✅ Auto-updates |
-| **CMS Workflow** | Load → Export → Paste | Paste once (works everywhere) |
-| **Use Case** | SEO-critical pages | Flexible embeds |
-
-### Maintenance
-
-- **Data updates**: When JSON files change, regenerate static widgets by loading constituency and re-exporting
-- **Bulk regeneration**: Can be scripted if needed (load each constituency and export programmatically)
-- **No breaking changes**: Static widgets work independently of dynamic widget updates
-
-## Next Steps
-
-- ✅ **Static widget exporters implemented and tested** (Commit: 46b1247)
-- Confirm CMS capabilities for `<style>` and `<script>` in HTML blocks.
-- Test static widgets in actual CMS environment (Quintype).
-- Consider adding bulk export functionality if many constituencies need static updates.
- - Optionally add a configuration toggle to choose CSS-only timeline hint behavior in strict CMS environments.
-
-## CSV vs JSON widget approaches (summary)
-
-- CSV-hosted widgets (`widget-embeds- csv hosted/`)
-  - Pasteable DIV+SCRIPT widgets that fetch from published Google Sheets (Parties, Results, Alliances CSVs).
-  - Pros: instant editorial updates from Sheets; no JSON hosting required; matches current CMS embed workflow.
-  - Cons: depends on Google Sheets availability; CSV parsing on-page; ensure CMS allows inline `<style>` and `<script>`.
-
-- JSON-hosted widgets (`widget-embeds-json hosted/`)
-  - Widgets fetch from `parties.json` and `bihar_election_results_consolidated.json` (GitHub Pages or sandbox), with environment detection and fallbacks.
-  - Pros: faster and more predictable loads; fewer parsing edge cases; easier CORS control.
-  - Cons: requires republishing JSON to reflect data updates unless automated.
-
-Recommendation: Use CSV widgets for live 2025 embeds and JSON widgets for stable historical content. Both approaches can be mixed per block.
+# Bihar Constituency Pages — CMS Implementation (Final)
+
+## Approach
+- Use the CSV-hosted widgets only, from `widget-embeds- csv hosted/`.
+- Widgets are constituency-agnostic: they resolve the constituency from the parent page URL where they are embedded (slug/name in URL), with fallbacks.
+- The same embed code is used across all constituency pages; no per-seat customization is required.
+- JSON-hosted widgets, dynamic script embeds, and static exporters are out of scope for CMS.
+
+## Data Sources (Google Sheets CSV)
+- Parties CSV: code, name, color, alliance_2010/2015/2020/2025 (published as CSV).
+- Results CSV: per-constituency rows for 2010/2015/2020/2025 winner/runner and votes (published as CSV).
+- Alliances CSV: alliance name and color overrides (published as CSV).
+Widgets already point to the published CSV endpoints.
+
+## Constituency Resolution
+- Primary: derive slug from the parent page URL (e.g., `valmiki-nagar-assembly-election-2025-1400072` → `valmiki-nagar`).
+- Fallbacks supported by widgets:
+  - Query string: `?ac=021` or `?name=valmiki-nagar` where applicable.
+  - If unmatched, widgets show a clear message prompting to provide `ac` or a valid slug in URL.
+
+## Leading Support (2025 Live Staging) — CSV Widgets
+We will implement “leading (name/party)” in the CSV widgets (map and 2025 results) and we will not show any leading vote counts or leading margins.
+
+Data additions in Results CSV
+- Required: `y2025_leading_name`, `y2025_leading_party`.
+- Note: We will not parse or display leading votes or margins.
+Existing winner fields remain: `y2025_winner_name`, `y2025_winner_party`, `y2025_winner_votes`, `y2025_margin`.
+
+Stage detection (per seat)
+- Before: no leading and no winner → show pre-results state.
+- During (live): leading present, winner absent → render “Leading”.
+- Mixed live: both present → Winner takes precedence; Leading can be shown as secondary where useful.
+- After (final): winner present, leading absent → final state.
+Treat "-", "NA", and empty as absent.
+
+Global enablement (dataset level)
+- Enable 2025 color modes only if every seat has either a valid Leading (name+party) or a valid Winner (name+party).
+- If any seat has neither, default to 2020 modes and show pre-results overlay in the 2025 Results widget.
+
+Widget behavior
+- 2025 Results (CSV: `widget-embeds- csv hosted/2025 results.html`)
+  - Parse leading columns and compute stage.
+  - During: show “Leading: <Name> (<Party>)” and a short “Check back later for winners.” message. Do not show leading votes or margin.
+  - After: render current Winner/Runner layout (unchanged).
+  - Mixed: treat as After; optionally show a small “Earlier leading: …” (name/party only).
+  - Accessibility: add `aria-live="polite"` for the live status line (optional).
+
+- Map (CSV: `widget-embeds- csv hosted/map csv.html`)
+  - Parse leading columns alongside winners.
+  - In 2025 modes: for each seat choose Winner if present; otherwise choose Leading for fill color and legend counts.
+  - Bottom sheet: when using leading, show “Leading: <Name> (<Party>, <Alliance>)”. Do not show leading votes or margin.
+  - Optionally show a small “2025 Live” chip near the color selector when any seat is using Leading.
+  - `enable2025` continues to gate visibility; dataset-level rule above governs defaulting.
+  - Optional QA flag: `forceLive=1` to prefer leading when both exist.
+
+## Embedding in CMS
+- Use the CSV widget files in `widget-embeds- csv hosted/` (Results 2025, Current MLA, Timeline, Historical Grid, Map).
+- Paste their provided embed snippet into CMS raw/HTML blocks.
+- No per-seat parameters needed for normal usage; widgets auto-resolve seat from parent URL.
+- Optional overrides: `?ac=` or `?name=` for specific cases.
+
+## Acceptance Criteria / QA
+- When only leading is present, both the 2025 Results widget and the map reflect leading consistently (labels, colors, legend) without showing leading votes/margins.
+- When winner data arrives, both switch to final automatically with no regressions.
+- 2010/2015/2020 views remain unchanged.
+
+## Detailed Plan: Leading Implementation (CSV)
+
+Phased Plan (execution order)
+- Phase A: Sheets + Apps Script — Completed
+  - Use `widget-embeds- csv hosted/gsheets_pipeline.gs` to seed dummy leading data.
+  - Every action opens a sheet selector (results/parties as appropriate) before running.
+  - New menu items under “2025 Placeholders”: “Seed 2025 Leading (from 2020 winners)” and “Clear 2025 Leading (name/party)”.
+  - Columns `y2025_leading_name` and `y2025_leading_party` are ensured if missing; seeding populates blanks from 2020 winners.
+- Phase B: 2025 Results widget (CSV)
+  - Implement parsing and stage rendering with “Leading: Name (Party)” (no votes/margins) and pre-results/after states.
+- Phase C: Map (CSV)
+  - Implement 2025 coloring/legend using Winner else Leading; bottom-sheet label “Leading …”; optional “2025 Live” chip.
+
+1) Data schema and validation
+- Columns (Results CSV): `y2025_leading_name`, `y2025_leading_party` (required). We will not add or use leading vote or margin columns.
+- Normalization: trim, treat `"-"`, `"NA"`, `""` as absent.
+- Party code normalization: reuse existing map of party codes → names/colors; default color for unknown codes.
+
+2) Parser changes (CSV widgets)
+- Files: `widget-embeds- csv hosted/2025 results.html`, `widget-embeds- csv hosted/map csv.html`.
+- Extend CSV row-to-object mapping to include the new leading fields.
+- Helper: `parseLeading(row)` → `{ name, party } | null` (no votes/margin).
+
+3) Stage detection (per seat)
+- Helper: `stageForRow(row)` returns one of `before | live | mixed | final`:
+  - `before`: no `winner` and no `leading`.
+  - `live`: leading present, winner absent.
+  - `mixed`: both present (winner takes precedence in UI).
+  - `final`: winner present, leading absent.
+
+4) Dataset-level enablement for 2025 modes
+- Compute once after CSV load: `canEnable2025 = every(row => hasWinner(row) || hasLeading(row))`.
+- If `false`, hide 2025 modes in map and show pre-results overlay in the 2025 Results widget.
+- Keep honoring `enable2025` query flag; staging logic sits behind it.
+
+5) Coloring and legend (map csv.html)
+- Seat coloring in 2025 modes:
+  - For each seat: use Winner party if available, otherwise Leading party.
+  - Alliance resolution: same path (party → alliances CSV overrides) for both Winner/Leading.
+- Legend counts: compute from the same source as fill (Winner first, else Leading) to keep legend aligned with map fills.
+- UI chip: show a small `2025 Live` indicator near the color selector if any seat used Leading.
+
+6) Bottom sheet details (map csv.html)
+- When 2025 modes are active:
+  - Winner present → show current behavior (winner details, party, alliance).
+  - Winner absent and Leading present → show label `Leading:` and render `Name (Party, Alliance)`; do not show leading votes or margin.
+- Ensure copy switches back to `Winner` automatically when winner data appears.
+
+7) 2025 Results widget (2025 results.html)
+- Compute `stage = stageForRow(row)` and render:
+  - `before`: show existing pre-results overlay.
+  - `live`: show `Leading: <Name> (<Party>)` and a short subtext `Check back later for winners.` Do not show leading votes or margin.
+  - `final` or `mixed`: render the Winner/Runner layout (unchanged for final); optional small `Earlier leading: …` (name/party only) for mixed.
+- Accessibility: add `aria-live="polite"` to the live status line to announce changes.
+
+8) URL flags and overrides
+- Continue to support `enable2025` to show/hide 2025 modes.
+- Add optional `forceLive=1` (QA only): prefer Leading even when Winner exists; do not ship this surfaced in UI.
+- Existing overrides (`?ac=`, `?name=`) keep working; they do not affect staging.
+
+9) Edge cases and resilience
+- Unknown party codes: fall back to neutral color and `code` label; alliance `Unknown`.
+- Missing alliance override: derive from party alliances map; if absent, keep neutral styling.
+- Data glitches: if both leading and winner are malformed, fall back to `before` stage for that seat.
+- Independent (`IND`) color stays gray by design.
+- Leading vote counts/margins, if present in source data, are ignored and never displayed.
+
+10) QA checklist
+- Datasets: craft samples with (a) all-leading, no-winner; (b) mixed; (c) all-final; (d) some missing both (to verify 2025 disabled).
+- Verify: map fills, legend counts, bottom-sheet labeling (no leading vote/margin), and the `2025 Live` chip conditions.
+- Verify 2025 Results widget renders the proper state texts and switches automatically when data changes (no leading vote/margin).
+- Mobile/desktop layouts; keyboard focus for chip/toggles; `aria-live` announcements.
+
+11) Performance and code hygiene
+- Parse CSV once; build per-seat objects with both winner and leading.
+- Avoid repeated string parsing in render loops; precompute normalized values.
+- Guard DOM updates (only update changed parts to avoid jank on live updates).
+
+12) Rollout
+- Add columns in Sheets; publish updated CSVs.
+- Implement widget changes; deploy.
+- Editorial note: no per-seat parameters required; widgets resolve seat from page URL; 2025 behavior auto-detected from data.
