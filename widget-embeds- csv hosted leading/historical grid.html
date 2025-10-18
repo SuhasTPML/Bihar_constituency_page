@@ -1,0 +1,254 @@
+﻿<div id="bihar-widget-grid"></div>
+<style>#bihar-widget-grid {--bg: #FFFFFF; --card: #FFFFFF; --text: #000000; --muted: #5B6064; --border: #E5E7EB; --primary: #0EA5E9; --primary-dark: #0284C7; --header-bg: #0EA5E9; --header-text: #FFFFFF; --shadow-sm: 0 1px 2px rgba(0,0,0,0.06); --shadow-md: 0 8px 24px rgba(0,0,0,0.06); --radius: 12px;}#bihar-widget-grid * {box-sizing: border-box;}#bihar-widget-grid {margin: 0px; font: 16px / 1.5 "Roboto Slab", "Roboto Serif", Georgia, serif; background: var(--bg); color: var(--text);}#bihar-widget-grid .container {max-width: 1120px; margin: 0px auto; padding: 0px 16px;}#bihar-widget-grid .main-header {display: none !important;}#bihar-widget-grid .header-content {max-width: 1120px; margin: 0px auto; padding: 0px 16px; display: flex; justify-content: space-between; align-items: center;}#bihar-widget-grid .header-left {display: flex; align-items: center; gap: 16px;}#bihar-widget-grid .header-right {display: flex; align-items: center; gap: 16px;}#bihar-widget-grid .menu-icon, #bihar-widget-grid .search-icon, #bihar-widget-grid .account-icon {cursor: pointer; font-size: 18px;}#bihar-widget-grid .site-title {font-size: 18px; font-weight: 600; margin: 0px; letter-spacing: 0.5px;}#bihar-widget-grid .search-section {padding: 24px 0px 16px;}#bihar-widget-grid .search-controls {display: flex; gap: 12px; align-items: center; margin-bottom: 8px; flex-wrap: wrap;}#bihar-widget-grid .search-controls label {font-weight: 500; color: var(--text);}#bihar-widget-grid input[type="number"] {padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; width: 260px; font-size: 16px; min-height: 48px; background: rgb(255, 255, 255);}#bihar-widget-grid input[type="number"]::placeholder {color: var(--muted); opacity: 1;}#bihar-widget-grid input[type="number"]:focus {outline: none; border-color: var(--primary); box-shadow: rgba(0, 145, 172, 0.1) 0px 0px 0px 2px;}#bihar-widget-grid .primary-btn {padding: 12px 20px; border: none; border-radius: 10px; background: var(--primary); color: rgb(255, 255, 255); cursor: pointer; font-size: 16px; font-weight: 600; min-height: 48px;}#bihar-widget-grid .primary-btn:hover {background: var(--primary-dark);}#bihar-widget-grid .helper-text {color: rgb(153, 153, 153); font-size: 16px; margin-bottom: 8px; font-family: "Roboto Slab", serif;}#bihar-widget-grid .status-text {color: var(--muted); font-size: 14px;}#bihar-widget-grid .card {background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px;}#bihar-widget-grid .constituency-header {margin-bottom: 24px;}#bihar-widget-grid .constituency-title {font-family: "Playfair Display", serif; font-size: 44px; font-weight: 700; margin: 0px 0px 8px; color: var(--text); line-height: 1.1;}#bihar-widget-grid .constituency-info {display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;}#bihar-widget-grid .current-mla-card {margin-bottom: 16px;}#bihar-widget-grid .current-mla-title {font-family: "Playfair Display", serif; font-size: 22px; font-weight: 600; line-height: 36px; margin: 0px 0px 12px; color: var(--text);}#bihar-widget-grid .mla-name {font-family: "Roboto Slab", serif; font-size: 16px; font-weight: 400; line-height: 21px; color: rgb(0, 0, 0); margin: 0px;}#bihar-widget-grid .mla-party {color: var(--muted); font-size: 14px;}#bihar-widget-grid .mla-alliance {color: var(--muted); font-size: 14px; margin-top: 2px;}#bihar-widget-grid .current-mla-meta {font-family: "Roboto Slab", serif; font-size: 14px; line-height: 18px; color: rgb(91, 96, 100); margin: 4px 0px 0px;}#bihar-widget-grid .cms-content-card {margin-bottom: 16px;}#bihar-widget-grid .cms-content-title {font-size: 16px; font-weight: 600; margin: 0px 0px 12px; letter-spacing: 0.5px; color: var(--text);}#bihar-widget-grid .cms-content-body {color: var(--text); line-height: 1.6; font-size: 15px;}#bihar-widget-grid .cms-placeholder {color: var(--muted); font-style: italic; background: rgb(248, 250, 252); padding: 12px; border-radius: 6px; border: 1px dashed var(--border);}#bihar-widget-grid .map-section-title {font-family: "Playfair Display", serif; font-size: 32px; font-weight: 600; margin: 0px 0px 6px; color: rgb(0, 0, 0); line-height: 1.15;}#bihar-widget-grid .map-helper {color: rgb(0, 0, 0); font-size: 16px; margin: 0px 0px 12px; font-family: "Roboto Slab", serif;}#bihar-widget-grid .past-results-title {font-family: "Playfair Display", serif; font-size: 22px; font-weight: 600; line-height: 36px; margin: 0px 0px 12px; color: var(--text);}#bihar-widget-grid .results-container {display: flex; flex-direction: column; gap: 16px;}#bihar-widget-grid .muted {color: var(--muted);}#bihar-widget-grid .badge {display: inline-block; padding: 2px 8px; border-radius: 999px; background: rgb(238, 242, 255); border: 1px solid rgb(229, 231, 235); font-size: 12px;}#bihar-widget-grid .pill {display: inline-block; padding: 2px 8px; border-radius: 999px; color: rgb(255, 255, 255); font-size: 12px;}#bihar-widget-grid .kv {display: grid; grid-template-columns: 140px 1fr; gap: 6px 12px;}#bihar-widget-grid .section-title {font-weight: 600; margin: 0px 0px 8px;}#bihar-widget-grid .vote-bars {margin-top: 8px;}#bihar-widget-grid .bar {height: 8px; border-radius: 999px; background: rgb(229, 231, 235); position: relative; margin-bottom: 6px;}#bihar-widget-grid .bar > span {position: absolute; left: 0px; top: 0px; bottom: 0px; border-radius: 999px;}#bihar-widget-grid .bar-label {display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;}#bihar-widget-grid .mono {font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;}#bihar-widget-grid .hr {height: 1px; background: var(--border); margin: 12px 0px;}#bihar-widget-grid .note {font-size: 12px; color: var(--muted);}#bihar-widget-grid .error {color: rgb(185, 28, 28);}#bihar-widget-grid .disclaimer-footer {margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); text-align: center;}#bihar-widget-grid .disclaimer-text {color: var(--muted); font-size: 11px; line-height: 1.4; font-weight: 400;}#bihar-widget-grid .trends-container {margin: 20px 0px;}#bihar-widget-grid .timeline-scroll {overflow-x: auto; padding: 20px 0px; scroll-behavior: smooth;}#bihar-widget-grid .timeline-container {display: flex; align-items: center; min-width: max-content; padding: 0px 20px; gap: 0px; position: relative;}#bihar-widget-grid .timeline-year {display: flex; flex-direction: column; align-items: center; position: relative; min-width: 170px; padding: 0px 10px;}#bihar-widget-grid .timeline-year-badge {background: var(--primary); color: white; font-weight: 700; font-size: 16px; padding: 8px 16px; border-radius: 20px; margin-bottom: 16px; box-shadow: rgba(0, 145, 172, 0.3) 0px 2px 8px; position: relative; z-index: 2;}#bihar-widget-grid .dott {width: 15px; height: 15px; background: rgb(0, 145, 172); margin: 0px auto; border-radius: 50px; border: 2px solid rgb(255, 255, 255);}#bihar-widget-grid .timeline-candidate {text-align: center; margin-bottom: 8px; margin-top: 30px;}#bihar-widget-grid .timeline-candidate-name {font-weight: 600; font-size: 18px; color: var(--text); margin-bottom: 4px;}#bihar-widget-grid .timeline-party {display: inline-block; padding: 4px 10px; border-radius: 12px; color: white; font-size: 12px; font-weight: 600; box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 4px;}#bihar-widget-grid .timeline-connection {display: flex; align-items: center; flex-direction: column; min-width: 100px; position: relative;}#bihar-widget-grid .timeline-line {width: 100%; height: 2px; background: rgb(0, 145, 172); position: absolute; margin: 10px 0px; left: 0px; top: 52px;}#bihar-widget-grid .timeline-line::before {content: ""; position: absolute; top: 50%; right: -4px; transform: translateY(-50%); width: 0px; height: 0px; border-left: 8px solid var(--border); border-top: 4px solid transparent; border-bottom: 4px solid transparent;}#bihar-widget-grid .timeline-change {display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 8px;}#bihar-widget-grid .timeline-hold {background: rgb(220, 252, 231); color: rgb(22, 163, 74);}#bihar-widget-grid .timeline-gain {background: rgb(254, 243, 199); color: rgb(217, 119, 6);}#bihar-widget-grid .timeline-hint {display: none; text-align: center; color: var(--muted); font-size: 12px; margin-top: 8px; margin-bottom: 4px; font-style: italic;}#bihar-widget-grid .election-result {margin-bottom: 16px;}#bihar-widget-grid .election-title {font-family: "Playfair Display", serif; font-size: 22px; font-weight: 600; line-height: 36px; margin: 0px 0px 12px; color: var(--text);}#bihar-widget-grid #bihar-embed-021 .current-mla-title {font-family: "Playfair Display", serif; font-size: 22px; font-weight: 600; line-height: 36px; margin: 0px 0px 12px; color: var(--text);}#bihar-widget-grid #bihar-dynamic-embed .current-mla-title {font-family: "Playfair Display", serif; font-size: 22px; font-weight: 600; line-height: 36px; margin: 0px 0px 12px; color: var(--text);}#bihar-widget-grid .candidate-row {margin-bottom: 16px;}#bihar-widget-grid .candidate-info {display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;}#bihar-widget-grid .candidate-name {font-family: "Roboto Slab", serif; font-weight: 400; font-size: 16px; padding-bottom: 8px;}#bihar-widget-grid .candidate-party {color: var(--muted); font-size: 14px;}#bihar-widget-grid .vote-count {font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 600;}#bihar-widget-grid .margin-info {margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);}#bihar-widget-grid .margin-text {font-family: "Roboto Slab", serif; font-weight: 700; font-size: 12px;}@media (max-width: 767px){#bihar-widget-grid .current-mla-title {font-size: 20px;}#bihar-widget-grid #bihar-embed-021 .current-mla-title {font-size: 20px;}#bihar-widget-grid #bihar-dynamic-embed .current-mla-title {font-size: 20px;}#bihar-widget-grid .timeline-scroll {padding: 16px 0px; scroll-snap-type: x mandatory;}#bihar-widget-grid .timeline-container {padding: 0px 16px;}#bihar-widget-grid .timeline-year {min-width: 100px; padding: 0px 8px; scroll-snap-align: center;}#bihar-widget-grid .timeline-year-badge {font-size: 14px; padding: 6px 12px; margin-bottom: 12px;}#bihar-widget-grid .timeline-candidate-name {font-size: 12px;}#bihar-widget-grid .timeline-party {font-size: 11px; padding: 3px 8px;}#bihar-widget-grid .timeline-connection {min-width: 80px;}#bihar-widget-grid .timeline-line {top: 41px;}#bihar-widget-grid .timeline-change {font-size: 10px; padding: 3px 6px;}#bihar-widget-grid .timeline-hint {display: block;}}@media (min-width: 768px){#bihar-widget-grid .container {padding: 0px 24px;}#bihar-widget-grid .search-controls {gap: 16px;}#bihar-widget-grid .results-container {display: grid; grid-template-columns: 1fr 1fr; gap: 20px;}#bihar-widget-grid .constituency-title {font-size: 28px;}}@media (min-width: 1024px){#bihar-widget-grid .results-container {grid-template-columns: 1fr 1fr 1fr;}#bihar-widget-grid .header-content {padding: 0px 24px;}#bihar-widget-grid .constituency-title {font-size: 32px;}}</style>
+<script>
+(function() {
+  var hasRendered = false;
+  var renderAttempts = 0;
+  var maxAttempts = 3;
+
+  function initEmbed() {
+    try {
+      renderAttempts++;
+      var parentUrl = '';
+      try {
+        parentUrl = window.parent.location.href;
+      } catch(e) {
+        parentUrl = document.referrer || window.location.href;
+      }
+
+      var hostEl = document.getElementById('bihar-widget-grid');
+      if (!hostEl) {
+        if (renderAttempts < maxAttempts) {
+          setTimeout(initEmbed, 500);
+        }
+        return;
+      }
+
+      if (hasRendered && hostEl.innerHTML.length > 200) {
+        return;
+      }
+
+      hostEl.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">Loading...</div>';
+
+      function extractSlug(url) {
+        try {
+          var urlObj = new URL(url);
+          var path = urlObj.pathname;
+          var match = path.match(/\/([^\/]+?)(?:-assembly)?-election-\d{4}/i);
+          if (match && match[1]) return match[1];
+          var parts = path.split('/').filter(function(p){ return p.length > 0; });
+          if (parts.length > 1) {
+            var lastPart = parts[parts.length - 1];
+            var cleaned = lastPart.replace(/-\d{4}-\d+$/, '').replace(/-assembly-election.*$/, '').replace(/-election.*$/, '');
+            if (cleaned) return cleaned;
+          }
+          return null;
+        } catch(e) {
+          return null;
+        }
+      }
+
+      var slug = extractSlug(parentUrl);
+      if (!slug) {
+        hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Could not extract constituency from URL</div>';
+        return;
+      }
+
+      var PARTIES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTkIPquNELhk-ox7P7qIrBu4WhxOAGb94ILzfSwEAJ-OMAXV9Dpz4k0RlZH5Hc8F0DJPUHP2ALDNfIb/pub?gid=2137025522&single=true&output=csv';
+      var RESULTS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Owt5cYAhwo6k6ggprd7Pp2kT3RiV5-5XsSUFVSXG4oOu3Cc64emjWWMjSruwXfi_33Z24S4muAOY/pub?gid=1572654813&single=true&output=csv';
+      var ALLIANCES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRiy0B0zY2ej1u0orjS8L1_TWWKC5ld5Ccaq4yALRV0IqtB8RdGdP8fI6mdYQCQgNftRR8slvwKmjJp/pub?gid=0&single=true&output=csv';
+
+      function parseCsv(text){
+        var lines = text.replace(/\r\n?/g,'\n').split('\n');
+        if (!lines.length) return [];
+        var header = lines.shift().split(',').map(function(s){return s.trim();});
+        var rows = [];
+        var Q = String.fromCharCode(34);
+        var C = ',';
+        lines.forEach(function(line){
+          if (!line) return;
+          var cells = [];
+          var cell = '';
+          var inQuotes = false;
+          for (var i = 0; i < line.length; i++) {
+            var ch = line.charAt(i);
+            if (ch === Q) {
+              inQuotes = !inQuotes;
+            } else if (ch === C && !inQuotes) {
+              cells.push(cell.trim());
+              cell = '';
+            } else {
+              cell += ch;
+            }
+          }
+          cells.push(cell.trim());
+          if (!cells.length) return;
+          var obj = {};
+          for (var i=0;i<header.length;i++){ obj[header[i]] = cells[i]===undefined? '' : cells[i]; }
+          rows.push(obj);
+        });
+        return rows;
+      }
+      function loadCsvJson(url){ return fetch(url).then(function(r){ return r.text(); }).then(parseCsv); }
+
+      Promise.all([
+        loadCsvJson(PARTIES_CSV),
+        loadCsvJson(RESULTS_CSV),
+        loadCsvJson(ALLIANCES_CSV).catch(function(){ return []; })
+      ]).then(function(results) {
+        var alliancesData = results[2]||[];
+        var allianceColors = {};
+        for (var i = 0; i < alliancesData.length; i++) {
+          var a = alliancesData[i];
+          var key = (a.alliance || '').trim().toUpperCase();
+          var color = (a.alliance_colour_code || '').trim();
+          if (key && color) {
+            allianceColors[key] = color;
+          }
+        }
+        var parties = (results[0]||[]).map(function(p){
+          var alliances = { '2010': p.alliance_2010||p.alliance||'', '2015': p.alliance_2015||p.alliance||'', '2020': p.alliance_2020||p.alliance||'', '2025': p.alliance_2025||p.alliance||'' };
+          var allianceColor = allianceColors[(p.alliance||'').trim().toUpperCase()] || p.color;
+          return { code: p.code, name: p.name, color: p.color, allianceColor: allianceColor, alliances: alliances, alliance: p.alliance||'' };
+        });
+        var consolidated = results[1]||[];
+        var constituency = null;
+        var urlLower = parentUrl.toLowerCase();
+
+        for (var i = 0; i < consolidated.length; i++) {
+          var constName = (consolidated[i].constituency_name || '').toLowerCase().replace(/\s+/g, '-');
+          if (constName && urlLower.includes(constName)) {
+            constituency = consolidated[i];
+            break;
+          }
+        }
+
+        if (!constituency) {
+          for (var i = 0; i < consolidated.length; i++) {
+            if (consolidated[i].slug === slug) {
+              constituency = consolidated[i];
+              break;
+            }
+          }
+        }
+
+        if (!constituency) {
+          hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Constituency not found</div>';
+          return;
+        }
+
+        // Build party index
+        var partiesIdx = {};
+        parties.forEach(function(p) { partiesIdx[p.code] = p; });
+
+        var PARTY_NORMALIZE = { 'JDU': 'JD(U)', 'CPM': 'CPI(M)', 'HAM': 'HAM(S)', 'Ind': 'IND' };
+        function normalizeParty(code) {
+          if (!code) return code;
+          var c = code.trim();
+          return PARTY_NORMALIZE[c] || c;
+        }
+
+        function fmtNumber(n) {
+          return (n == null ? 'N/A' : Number(n).toLocaleString('en-IN'));
+        }
+
+        function enrichParty(code, idx) {
+          var norm = normalizeParty(code || '');
+          var meta = idx[norm] || idx[code] || null;
+          return {
+            code: norm || null,
+            name: meta ? meta.name : null,
+            color: meta ? meta.color : '#888'
+          };
+        }
+
+        function renderYearBlock(year, rec, idx) {
+          if (!rec) return '<div class="card election-result"><h3 class="election-title">Bihar Elections ' + year + ' Results</h3><div class="muted">Not available</div></div>';
+          var w = rec['Winner'] || {};
+          var ru = rec['Runner up'] || {};
+          var wP = enrichParty(w.Party, idx);
+          var ruP = enrichParty(ru.Party, idx);
+          var wVotes = parseInt(String(w.Votes || '').replace(/,/g, ''), 10) || 0;
+          var ruVotes = parseInt(String(ru.Votes || '').replace(/,/g, ''), 10) || 0;
+          var margin = parseInt(String(rec.Margin || '').replace(/,/g, ''), 10) || Math.max(0, wVotes - ruVotes);
+          var maxV = Math.max(wVotes, ruVotes, 1);
+          var wPct = Math.round((wVotes / maxV) * 100);
+          var ruPct = Math.round((ruVotes / maxV) * 100);
+
+          return '<div class="card election-result">' +
+            '<h3 class="election-title">Bihar Elections ' + year + ' Results</h3>' +
+            '<div class="candidate-row">' +
+              '<div class="candidate-info">' +
+                '<div>' +
+                  '<div class="candidate-name">WINNER: ' + (w.Candidate || '—') + '</div>' +
+                  '<div class="candidate-party">' + (wP.name || wP.code || '—') + ' • <span class="vote-count">' + fmtNumber(wVotes) + ' votes</span></div>' +
+                '</div>' +
+              '</div>' +
+              '<div class="bar"><span style="width:' + wPct + '%; background:#16a34a"></span></div>' +
+            '</div>' +
+            '<div class="candidate-row">' +
+              '<div class="candidate-info">' +
+                '<div>' +
+                  '<div class="candidate-name">Runner-up: ' + (ru.Candidate || '—') + '</div>' +
+                  '<div class="candidate-party">' + (ruP.name || ruP.code || '—') + ' • <span class="vote-count">' + fmtNumber(ruVotes) + ' votes</span></div>' +
+                '</div>' +
+              '</div>' +
+              '<div class="bar"><span style="width:' + ruPct + '%; background:#dc2626"></span></div>' +
+            '</div>' +
+            '<div class="margin-info">' +
+              '<span class="margin-text">MARGIN: ' + fmtNumber(margin) + ' votes</span>' +
+            '</div>' +
+          '</div>';
+        }
+
+        function recFromConsolidated(row, year) {
+          if (!row) return null;
+          var y = String(year);
+          var wName = row['y' + y + '_winner_name'];
+          var wParty = row['y' + y + '_winner_party'];
+          var wVotes = row['y' + y + '_winner_votes'];
+          var ruName = row['y' + y + '_runner_name'];
+          var ruParty = row['y' + y + '_runner_party'];
+          var ruVotes = row['y' + y + '_runner_votes'];
+          var margin = row['y' + y + '_margin'];
+          // Only return a record if there's a winner name
+          if (!wName || (typeof wName === 'string' && wName.trim() === '')) return null;
+          return {
+            'Winner': { Candidate: wName || '-', Party: wParty || '-', Votes: wVotes || '0' },
+            'Runner up': { Candidate: ruName || '-', Party: ruParty || '-', Votes: ruVotes || '0' },
+            'Margin': margin || '0'
+          };
+        }
+
+        var r2010 = recFromConsolidated(constituency, 2010);
+        var r2015 = recFromConsolidated(constituency, 2015);
+        var r2020 = recFromConsolidated(constituency, 2020);
+
+        var html = '<div class="results-container">' +
+          renderYearBlock(2020, r2020, partiesIdx) +
+          renderYearBlock(2015, r2015, partiesIdx) +
+          renderYearBlock(2010, r2010, partiesIdx) +
+        '</div>';
+
+        hostEl.innerHTML = html;
+        hasRendered = true;
+      }).catch(function(err) {
+        hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Error loading data</div>';
+      });
+
+    } catch(e) {
+      if (renderAttempts < maxAttempts) {
+        setTimeout(initEmbed, 500);
+      }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEmbed);
+  } else {
+    initEmbed();
+  }
+  setTimeout(initEmbed, 100);
+  setTimeout(initEmbed, 500);
+  window.addEventListener('load', initEmbed);
+})();</script>

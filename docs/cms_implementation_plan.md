@@ -72,8 +72,10 @@ Phased Plan (execution order)
   - Every action opens a sheet selector (results/parties as appropriate) before running.
   - New menu items under “2025 Placeholders”: “Seed 2025 Leading (from 2020 winners)” and “Clear 2025 Leading (name/party)”.
   - Columns `y2025_leading_name` and `y2025_leading_party` are ensured if missing; seeding populates blanks from 2020 winners.
-- Phase B: 2025 Results widget (CSV)
-  - Implement parsing and stage rendering with “Leading: Name (Party)” (no votes/margins) and pre-results/after states.
+- Phase B: 2025 Results widget (CSV) — Completed
+  - Implemented parsing and stage rendering with “Leading: Name (Party)” (no votes/margins) and pre-results/after states.
+  - Final state does not show any “Earlier leading” note.
+  - File: `widget-embeds- csv hosted leading/2025 results.html`
 - Phase C: Map (CSV)
   - Implement 2025 coloring/legend using Winner else Leading; bottom-sheet label “Leading …”; optional “2025 Live” chip.
 
