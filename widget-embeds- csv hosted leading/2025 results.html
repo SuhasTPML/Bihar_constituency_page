@@ -28,6 +28,8 @@
         return;
       }
 
+      hostEl.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">Loading...</div>';
+
       function extractSlug(url) {
         try {
           var urlObj = new URL(url);
@@ -47,11 +49,8 @@
       }
 
       var slug = extractSlug(parentUrl);
-      console.log('[Bihar Widget] Parent URL:', parentUrl);
-      console.log('[Bihar Widget] Extracted slug:', slug);
       if (!slug) {
-        console.log('[Bihar Widget] No slug found, hiding widget');
-        hostEl.innerHTML = '';
+        hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Could not extract constituency from URL</div>';
         return;
       }
 
@@ -60,8 +59,6 @@
       var PARTIES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTkIPquNELhk-ox7P7qIrBu4WhxOAGb94ILzfSwEAJ-OMAXV9Dpz4k0RlZH5Hc8F0DJPUHP2ALDNfIb/pub?gid=2137025522&single=true&output=csv';
       var RESULTS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Owt5cYAhwo6k6ggprd7Pp2kT3RiV5-5XsSUFVSXG4oOu3Cc64emjWWMjSruwXfi_33Z24S4muAOY/pub?gid=1572654813&single=true&output=csv';
       var ALLIANCES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRiy0B0zY2ej1u0orjS8L1_TWWKC5ld5Ccaq4yALRV0IqtB8RdGdP8fI6mdYQCQgNftRR8slvwKmjJp/pub?gid=0&single=true&output=csv';
-
-      console.log('[Bihar Widget] Fetching CSV data...');
 
       function parseCsv(text){
     var lines = text.replace(/\r\n?/g,'\n').split('\n');
@@ -102,11 +99,6 @@
         loadCsvJson(RESULTS_CSV),
         loadCsvJson(ALLIANCES_CSV).catch(function(){ return []; })
       ]).then(function(results) {
-        console.log('[Bihar Widget] CSV data loaded successfully');
-        console.log('[Bihar Widget] Parties count:', (results[0]||[]).length);
-        console.log('[Bihar Widget] Results count:', (results[1]||[]).length);
-        console.log('[Bihar Widget] Alliances count:', (results[2]||[]).length);
-
         var alliancesData = results[2]||[];
         var allianceColors = {};
         for (var i = 0; i < alliancesData.length; i++) {
@@ -127,13 +119,10 @@
         var constituency = null;
         var urlLower = parentUrl.toLowerCase();
 
-        console.log('[Bihar Widget] Searching for constituency in URL:', urlLower);
-
         // Match by checking if constituency name is in the URL
         for (var i = 0; i < consolidated.length; i++) {
           var constName = (consolidated[i].constituency_name || '').toLowerCase().replace(/\s+/g, '-');
           if (constName && urlLower.includes(constName)) {
-            console.log('[Bihar Widget] Found match! Constituency:', consolidated[i].constituency_name, '| Slug:', consolidated[i].slug);
             constituency = consolidated[i];
             break;
           }
@@ -141,10 +130,8 @@
 
         // Fallback: exact slug match
         if (!constituency) {
-          console.log('[Bihar Widget] No name match, trying exact slug match...');
           for (var i = 0; i < consolidated.length; i++) {
             if (consolidated[i].slug === slug) {
-              console.log('[Bihar Widget] Found slug match:', consolidated[i].constituency_name);
               constituency = consolidated[i];
               break;
             }
@@ -152,8 +139,7 @@
         }
 
         if (!constituency) {
-          console.log('[Bihar Widget] No constituency match found, hiding widget');
-          hostEl.innerHTML = '';
+          hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Constituency not found</div>';
           return;
         }
 
@@ -237,7 +223,7 @@ var liveHtml = '<div class="card election-result">' +
             '<div class="candidate-row">' +
               '<div class="candidate-info"><div>' +
                 '<div class="candidate-name">LEADING: ' + (leadName || '—') + ' ' +
-                  '<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;color:#fff;margin-left:8px;vertical-align:middle;box-shadow:none;text-shadow:none;border:none;background:'+(leadP.color||'#888')+'">' + (leadP.code || leadP.name || '-') + '</span>' +
+                  '<span style="display:inline-block;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;color:#fff;margin-left:8px;vertical-align:middle;box-shadow:rgba(0, 0, 0, 0.15) 0px 2px 4px;text-shadow:none;border:none;background:'+(leadP.color||'#888')+'">' + (leadP.code || leadP.name || '-') + '</span>' +
                   ' <span class="muted" style="margin-left:6px">(awaiting final result)</span>' +
                 '</div>' +
               '</div></div>' +
@@ -275,9 +261,9 @@ var liveHtml = '<div class="card election-result">' +
             '<div class="candidate-info">' +
               '<div>' +
                 '<div class="candidate-name">WINNER: ' + (wName || '—') + ' ' +
-                  '<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;color:#fff;margin-left:8px;vertical-align:middle;box-shadow:none;text-shadow:none;border:none;background:'+(wP.color||'#888')+'">' + (wP.code || wP.name || '-') + '</span>' +
+                  '<span style="display:inline-block;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;color:#fff;margin-left:8px;vertical-align:middle;box-shadow:rgba(0, 0, 0, 0.15) 0px 2px 4px;text-shadow:none;border:none;background:'+(wP.color||'#888')+'">' + (wP.code || wP.name || '-') + '</span>' +
                 '</div>' +
-                '<div class="candidate-party">' + (wP.name || wP.code || '—') + ' • <span class="vote-count">' + fmtNumber(wVotesNum) + ' votes</span></div>' +
+                '<div class="candidate-party"><span class="vote-count">' + fmtNumber(wVotesNum) + ' votes</span></div>' +
               '</div>' +
             '</div>' +
             '<div class="bar"><span style="width:' + wPct + '%; background:#16a34a"></span></div>' +
@@ -286,9 +272,9 @@ var liveHtml = '<div class="card election-result">' +
             '<div class="candidate-info">' +
               '<div>' +
                 '<div class="candidate-name">Runner-up: ' + (ruName || '—') + ' ' +
-                  '<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;color:#fff;margin-left:8px;vertical-align:middle;box-shadow:none;text-shadow:none;border:none;background:'+(ruP.color||'#888')+'">' + (ruP.code || ruP.name || '-') + '</span>' +
+                  '<span style="display:inline-block;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;color:#fff;margin-left:8px;vertical-align:middle;box-shadow:rgba(0, 0, 0, 0.15) 0px 2px 4px;text-shadow:none;border:none;background:'+(ruP.color||'#888')+'">' + (ruP.code || ruP.name || '-') + '</span>' +
                 '</div>' +
-                '<div class="candidate-party">' + (ruP.name || ruP.code || '—') + ' • <span class="vote-count">' + fmtNumber(ruVotesNum) + ' votes</span></div>' +
+                '<div class="candidate-party"><span class="vote-count">' + fmtNumber(ruVotesNum) + ' votes</span></div>' +
               '</div>' +
             '</div>' +
             '<div class="bar"><span style="width:' + ruPct + '%; background:#dc2626"></span></div>' +
@@ -298,11 +284,9 @@ var liveHtml = '<div class="card election-result">' +
           '</div>' +
         '</div>';
 
-        console.log('[Bihar Widget] Rendering widget for:', constituency.constituency_name);
         hostEl.innerHTML = html;
         hasRendered = true;
       }).catch(function(err) {
-        console.error('[Bihar Widget] Error loading data:', err);
         hostEl.innerHTML = '';
       });
 
@@ -322,5 +306,4 @@ var liveHtml = '<div class="card election-result">' +
   setTimeout(initEmbed, 500);
   window.addEventListener('load', initEmbed);
 })();</script>
-
 
