@@ -3,6 +3,7 @@
 <script>
 (function() {
   var hasRendered = false;
+  var isFetching = false;
   var renderAttempts = 0;
   var maxAttempts = 3;
 
@@ -28,6 +29,9 @@
         return;
       }
 
+      if (isFetching) return;
+      isFetching = true;
+
       hostEl.innerHTML = '<div style="min-height:280px;display:flex;align-items:center;justify-content:center;color:#666;">Loading...</div>';
 
       function extractSlug(url) {
@@ -51,6 +55,7 @@
       var slug = extractSlug(parentUrl);
       if (!slug) {
         hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Could not extract constituency from URL</div>';
+        isFetching = false;
         return;
       }
 
@@ -134,6 +139,7 @@
 
         if (!constituency) {
           hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Constituency not found</div>';
+          isFetching = false;
           return;
         }
 
@@ -201,6 +207,7 @@
 
         if (elections.length === 0) {
           hostEl.innerHTML = '<div class="card"><h3 class="past-results-title">' + constituency.constituency_name + ' Assembly Timeline Bihar Elections Results</h3><div class="trends-container"><div class="muted">No election data available</div></div></div>';
+          isFetching = false;
           hasRendered = true;
           return;
         }
@@ -242,12 +249,15 @@
         '</div>';
 
         hostEl.innerHTML = html;
+        isFetching = false;
         hasRendered = true;
       }).catch(function(err) {
         hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Error loading data</div>';
+        isFetching = false;
       });
 
     } catch(e) {
+      isFetching = false;
       if (renderAttempts < maxAttempts) {
         setTimeout(initEmbed, 500);
       }

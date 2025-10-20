@@ -3,6 +3,7 @@
   <script>
   (function() {
   var hasRendered = false;
+  var isFetching = false;
   var renderAttempts = 0;
   var maxAttempts = 3;
 
@@ -15,6 +16,9 @@
         var hostEl = document.getElementById('bihar-widget-currentmla');
         if (!hostEl) { if (renderAttempts < maxAttempts) setTimeout(initEmbed, 500); return; }
         if (hasRendered && hostEl.innerHTML.length > 50) return;
+
+        if (isFetching) return;
+        isFetching = true;
 
         hostEl.innerHTML = '<div style="min-height:120px;display:flex;align-items:center;justify-content:center;color:#666;">Loading...</div>';
 
@@ -35,7 +39,7 @@
         }
 
         var slug = extractSlug(parentUrl);
-        if (!slug) { hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Could not extract constituency from URL</div>'; return; }
+        if (!slug) { hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Could not extract constituency from URL</div>'; isFetching = false; return; }
 
         var PARTIES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTkIPquNELhk-ox7P7qIrBu4WhxOAGb94ILzfSwEAJ-OMAXV9Dpz4k0RlZH5Hc8F0DJPUHP2ALDNfIb/pub?gid=2137025522&single=true&output=csv';
         var RESULTS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Owt5cYAhwo6k6ggprd7Pp2kT3RiV5-5XsSUFVSXG4oOu3Cc64emjWWMjSruwXfi_33Z24S4muAOY/pub?gid=1572654813&single=true&output=csv';
@@ -114,11 +118,11 @@
               }
             }
           }
-          if (!constituency) { hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Constituency not found</div>'; return; }
+          if (!constituency) { hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Constituency not found</div>'; isFetching = false; return; }
 
           // Original behavior: hide if 2025 results (winner) exist
           var has2025Winner = constituency.y2025_winner_name && constituency.y2025_winner_name.trim() !== '';
-          if (has2025Winner) { hostEl.innerHTML = ''; hasRendered = true; return; }
+          if (has2025Winner) { hostEl.innerHTML = ''; isFetching = false; hasRendered = true; return; }
 
           // Party index
           var partiesIdx = {};
@@ -166,10 +170,12 @@
           '</div>';
 
           hostEl.innerHTML = html;
+          isFetching = false;
           hasRendered = true;
-        }).catch(function(){ hostEl.innerHTML = ''; });
+        }).catch(function(){ hostEl.innerHTML = ''; isFetching = false; });
 
       } catch(e) {
+        isFetching = false;
         if (renderAttempts < maxAttempts) { setTimeout(initEmbed, 500); }
       }
 
