@@ -200,7 +200,7 @@
         }
 
         if (elections.length === 0) {
-          hostEl.innerHTML = '<div class="card"><h3 class="past-results-title">Bihar Assembly Elections ' + constituency.constituency_name + ' Past Results</h3><div class="trends-container"><div class="muted">No election data available</div></div></div>';
+          hostEl.innerHTML = '<div class="card"><h3 class="past-results-title">' + constituency.constituency_name + ' Assembly Timeline Bihar Elections Results</h3><div class="trends-container"><div class="muted">No election data available</div></div></div>';
           hasRendered = true;
           return;
         }
@@ -229,7 +229,7 @@
         });
 
         var html = '<div class="card">' +
-          '<h3 class="past-results-title">Bihar Assembly Elections ' + constituency.constituency_name + ' Past Results</h3>' +
+          '<h3 class="past-results-title">' + constituency.constituency_name + ' Assembly Timeline Bihar Elections Results</h3>' +
           '<div class="trends-container">' +
             '<div class="timeline-scroll">' +
               '<div class="timeline-container">' +

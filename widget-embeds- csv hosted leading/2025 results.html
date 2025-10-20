@@ -169,7 +169,7 @@
           var skel = css +
             '<div class="card election-result">'+
               '<div class="overlay"><p class="overlay-text">Results not announced yet. Return on result day to see the outcome.</p></div>'+
-              '<h3 class="election-title">Bihar Elections 2025 Results</h3>'+
+              '<h3 class="election-title">' + constituency.constituency_name + ' Bihar Elections 2025 Results</h3>'+
               '<div class="candidate-row">'+
                 '<div class="candidate-info"><div>'+
                   '<div class="candidate-name"><span class="muted">WINNER:</span> <span class="muted">To be announced</span></div>'+
@@ -219,7 +219,7 @@
         if (!hasWinner && hasLeading) {
           var leadP = enrichParty(leadParty, partiesIdx);
 var liveHtml = '<div class="card election-result">' +
-            '<h3 class="election-title">Bihar Elections 2025 Results</h3>' +
+            '<h3 class="election-title">' + constituency.constituency_name + ' Bihar Elections 2025 Results</h3>' +
             '<div class="candidate-row">' +
               '<div class="candidate-info"><div>' +
                 '<div class="candidate-name">LEADING: ' + (leadName || '—') + ' ' +
@@ -256,7 +256,7 @@ var liveHtml = '<div class="card election-result">' +
         var ruPct = Math.round((ruVotesNum / maxV) * 100);
 
         var html = '<div class="card election-result">' +
-          '<h3 class="election-title">Bihar Elections 2025 Results</h3>' +
+          '<h3 class="election-title">' + constituency.constituency_name + ' Bihar Elections 2025 Results</h3>' +
           '<div class="candidate-row">' +
             '<div class="candidate-info">' +
               '<div>' +
