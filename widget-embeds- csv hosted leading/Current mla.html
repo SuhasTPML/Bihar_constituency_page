@@ -16,7 +16,7 @@
         if (!hostEl) { if (renderAttempts < maxAttempts) setTimeout(initEmbed, 500); return; }
         if (hasRendered && hostEl.innerHTML.length > 50) return;
 
-        hostEl.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">Loading...</div>';
+        hostEl.innerHTML = '<div style="min-height:120px;display:flex;align-items:center;justify-content:center;color:#666;">Loading...</div>';
 
         function extractSlug(url) {
           try {
