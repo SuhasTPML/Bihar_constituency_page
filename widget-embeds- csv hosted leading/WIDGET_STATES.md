@@ -7,12 +7,12 @@ This document maps out what users see for each widget based on data availability
 Headline (static)
 Subtitle (static)
 Author (static)
-2025 Results Widget
+W1: 2025 Results Widget (W1-2025 results.html)
 Body Content from CMS (static)
-Map Iframe Widget
-Current MLA Widget
-Timeline Widget
-Historical Grid Widget
+W2: Map Iframe Widget (W2-map iframe.html)
+W3: Current MLA Widget (W3-Current mla.html)
+W4: Timeline Widget (W4-timeline.html)
+W5: Historical Grid Widget (W5-historical grid.html)
 
 ---
 
@@ -26,7 +26,7 @@ Historical Grid Widget
 
 ---
 
-## 1. 2025 Results Widget (2025 results.html)
+## W1: 2025 Results Widget (W1-2025 results.html)
 
 Shows 2025 election results with different states.
 
@@ -66,7 +66,7 @@ Victory margin displayed at bottom: "MARGIN: [number] votes".
 
 ---
 
-## 2. Map Iframe Widget (map iframe.html)
+## W2: Map Iframe Widget (W2-map iframe.html)
 
 Shows interactive constituency map in iframe (600px height).
 
@@ -100,7 +100,7 @@ Map (inside iframe): May show constituency with winner party color or final resu
 
 ---
 
-## 3. Current MLA Widget (Current mla.html)
+## W3: Current MLA Widget (W3-Current mla.html)
 
 Shows current sitting MLA from 2020 election.
 
@@ -132,7 +132,7 @@ Takes up no visual space on page.
 
 ---
 
-## 4. Timeline Widget (timeline.html)
+## W4: Timeline Widget (W4-timeline.html)
 
 Shows horizontal timeline of election winners across years.
 
@@ -172,7 +172,7 @@ Connection lines show transitions between all 4 elections with "HOLD" or "GAIN" 
 
 ---
 
-## 5. Historical Grid Widget (historical grid.html)
+## W5: Historical Grid Widget (W5-historical grid.html)
 
 Shows past election results (2020, 2015, 2010) in card grid format.
 
@@ -202,39 +202,39 @@ No change from previous states.
 
 **Before Results (No Data Available)**
 
-2025 Results: Displays "Results not announced yet" overlay with placeholder skeleton.
+W1 - 2025 Results: Displays "Results not announced yet" overlay with placeholder skeleton.
 
-Map: Shows constituency map (internal map styling may show neutral/default state).
+W2 - Map: Shows constituency map (internal map styling may show neutral/default state).
 
-Current MLA: Shows 2020 MLA with party and alliance info.
+W3 - Current MLA: Shows 2020 MLA with party and alliance info.
 
-Timeline: Shows 2010 → 2015 → 2020.
+W4 - Timeline: Shows 2010 → 2015 → 2020.
 
-Historical Grid: Shows 2020, 2015, 2010 results.
+W5 - Historical Grid: Shows 2020, 2015, 2010 results.
 
 **During Counting (Leading Data Only)**
 
-2025 Results: Shows "LEADING: [Name]" with yellow "Live update" banner.
+W1 - 2025 Results: Shows "LEADING: [Name]" with yellow "Live update" banner.
 
-Map: Shows constituency map (internal map may highlight leading status).
+W2 - Map: Shows constituency map (internal map may highlight leading status).
 
-Current MLA: Shows 2020 MLA (no change).
+W3 - Current MLA: Shows 2020 MLA (no change).
 
-Timeline: Shows 2010 → 2015 → 2020 (no change, 2025 not included).
+W4 - Timeline: Shows 2010 → 2015 → 2020 (no change, 2025 not included).
 
-Historical Grid: Shows 2020, 2015, 2010 results (no change).
+W5 - Historical Grid: Shows 2020, 2015, 2010 results (no change).
 
 **After Declaration (Winner Data Available)**
 
-2025 Results: Shows full results - winner, runner-up, votes, margin, colored bars.
+W1 - 2025 Results: Shows full results - winner, runner-up, votes, margin, colored bars.
 
-Map: Shows constituency map (internal map may show winner party color).
+W2 - Map: Shows constituency map (internal map may show winner party color).
 
-Current MLA: Widget completely hidden/removed.
+W3 - Current MLA: Widget completely hidden/removed.
 
-Timeline: Shows 2025 → 2020 → 2015 → 2010 (reversed order, includes 2025).
+W4 - Timeline: Shows 2025 → 2020 → 2015 → 2010 (reversed order, includes 2025).
 
-Historical Grid: Shows 2020, 2015, 2010 results (no change).
+W5 - Historical Grid: Shows 2020, 2015, 2010 results (no change).
 
 ---
 
@@ -242,35 +242,35 @@ Historical Grid: Shows 2020, 2015, 2010 results (no change).
 
 **Static Widgets (Never Change Based on 2025 Data)**
 
-Historical Grid: Always shows 2020, 2015, 2010.
+W5 - Historical Grid: Always shows 2020, 2015, 2010.
 
-Map Iframe: Always displays iframe (internal map content may change).
+W2 - Map Iframe: Always displays iframe (internal map content may change).
 
 **Conditional Display Widgets**
 
-2025 Results: 3 states (pre-results, leading, winner).
+W1 - 2025 Results: 3 states (pre-results, leading, winner).
 
-Current MLA: Show/hide (visible until winner declared, then hidden).
+W3 - Current MLA: Show/hide (visible until winner declared, then hidden).
 
-Timeline: Order reversal (chronological vs reverse chronological, includes/excludes 2025).
+W4 - Timeline: Order reversal (chronological vs reverse chronological, includes/excludes 2025).
 
 **Leading Data Usage**
 
-Only 2025 Results widget uses y2025_leading_name and y2025_leading_party.
+Only W1 - 2025 Results widget uses y2025_leading_name and y2025_leading_party.
 
 All other widgets ignore leading data completely.
 
 **Winner Data Impact**
 
-2025 Results: Switches from skeleton/leading to full results display.
+W1 - 2025 Results: Switches from skeleton/leading to full results display.
 
-Current MLA: Hides widget completely.
+W3 - Current MLA: Hides widget completely.
 
-Timeline: Adds 2025 to timeline and reverses order (newest first).
+W4 - Timeline: Adds 2025 to timeline and reverses order (newest first).
 
-Historical Grid: No impact.
+W5 - Historical Grid: No impact.
 
-Map Iframe: Widget unchanged, internal map may update.
+W2 - Map Iframe: Widget unchanged, internal map may update.
 
 ---
 
@@ -298,11 +298,11 @@ y2025_leading_party - Leading candidate's party during counting
 
 ## Empty Data Detection Methods
 
-**2025 results.html**: Uses nonEmpty() function that checks for null, empty string, "-", "NA" (case-insensitive).
+**W1-2025 results.html**: Uses nonEmpty() function that checks for null, empty string, "-", "NA" (case-insensitive).
 
-**Current mla.html**: Simple check - y2025_winner_name && y2025_winner_name.trim() !== ''.
+**W3-Current mla.html**: Simple check - y2025_winner_name && y2025_winner_name.trim() !== ''.
 
-**Timeline.html**: Checks !wName || wName.trim() === '' to exclude year from timeline.
+**W4-timeline.html**: Checks !wName || wName.trim() === '' to exclude year from timeline.
 
 ---
 
@@ -310,20 +310,20 @@ y2025_leading_party - Leading candidate's party during counting
 
 **Total Widgets Visible**
 
-Before Results: 5 widgets (2025 Results, Map, Current MLA, Timeline, Historical Grid)
+Before Results: 5 widgets (W1-2025 Results, W2-Map, W3-Current MLA, W4-Timeline, W5-Historical Grid)
 
 During Counting: 5 widgets (same as before)
 
-After Declaration: 4 widgets (Current MLA hidden, others visible)
+After Declaration: 4 widgets (W3-Current MLA hidden, others visible)
 
 **Visual Impact**
 
 The most visible changes users will notice:
 
-1. 2025 Results widget transitions from skeleton → leading banner → full results
-2. Current MLA widget disappears after winner declared
-3. Timeline adds 2025 and reverses order after winner declared
-4. Historical Grid and Map remain visually consistent throughout
+1. W1 - 2025 Results widget transitions from skeleton → leading banner → full results
+2. W3 - Current MLA widget disappears after winner declared
+3. W4 - Timeline adds 2025 and reverses order after winner declared
+4. W5 - Historical Grid and W2 - Map remain visually consistent throughout
 
 ---
 
