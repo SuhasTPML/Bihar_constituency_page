@@ -2,6 +2,40 @@
 
 This document maps out what users see for each widget based on data availability (2025 leading/winner data). Widgets are ordered as they appear on the page.
 
+## Data Sources (CSV Files)
+
+All widgets fetch data from these Google Sheets published as CSV:
+
+### 1. Parties CSV
+**Description:** Party codes, names, colors, alliances
+
+**Editable Sheet:** [https://docs.google.com/spreadsheets/d/1inS3S_2u_wt9W9T33I5XatWbsMhcSkdMT4UOm4YtDlQ/edit?gid=2137025522#gid=2137025522](https://docs.google.com/spreadsheets/d/1inS3S_2u_wt9W9T33I5XatWbsMhcSkdMT4UOm4YtDlQ/edit?gid=2137025522#gid=2137025522)
+
+**CSV Export URL (used by widgets):** [https://docs.google.com/spreadsheets/d/e/2PACX-1vTkIPquNELhk-ox7P7qIrBu4WhxOAGb94ILzfSwEAJ-OMAXV9Dpz4k0RlZH5Hc8F0DJPUHP2ALDNfIb/pub?gid=2137025522&single=true&output=csv](https://docs.google.com/spreadsheets/d/e/2PACX-1vTkIPquNELhk-ox7P7qIrBu4WhxOAGb94ILzfSwEAJ-OMAXV9Dpz4k0RlZH5Hc8F0DJPUHP2ALDNfIb/pub?gid=2137025522&single=true&output=csv)
+
+### 2. Results CSV
+**Description:** Consolidated election results for all years and constituencies
+
+**Editable Sheet:** [https://docs.google.com/spreadsheets/d/1qoMciCP4hbEk4RSNXyYQ6xyl51TuNcRPWSpyJqcIXT8/edit?gid=1572654813#gid=1572654813](https://docs.google.com/spreadsheets/d/1qoMciCP4hbEk4RSNXyYQ6xyl51TuNcRPWSpyJqcIXT8/edit?gid=1572654813#gid=1572654813)
+
+**CSV Export URL (used by widgets):** [https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Owt5cYAhwo6k6ggprd7Pp2kT3RiV5-5XsSUFVSXG4oOu3Cc64emjWWMjSruwXfi_33Z24S4muAOY/pub?gid=1572654813&single=true&output=csv](https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Owt5cYAhwo6k6ggprd7Pp2kT3RiV5-5XsSUFVSXG4oOu3Cc64emjWWMjSruwXfi_33Z24S4muAOY/pub?gid=1572654813&single=true&output=csv)
+
+### 3. Alliances CSV
+**Description:** Alliance color overrides
+
+**Editable Sheet:** [https://docs.google.com/spreadsheets/d/1bOcrCZAemvFqETZzYNqWAFY9yd4Wg4sBVlBbd8nYZWs/edit?gid=0#gid=0](https://docs.google.com/spreadsheets/d/1bOcrCZAemvFqETZzYNqWAFY9yd4Wg4sBVlBbd8nYZWs/edit?gid=0#gid=0)
+
+**CSV Export URL (used by widgets):** [https://docs.google.com/spreadsheets/d/e/2PACX-1vRiy0B0zY2ej1u0orjS8L1_TWWKC5ld5Ccaq4yALRV0IqtB8RdGdP8fI6mdYQCQgNftRR8slvwKmjJp/pub?gid=0&single=true&output=csv](https://docs.google.com/spreadsheets/d/e/2PACX-1vRiy0B0zY2ej1u0orjS8L1_TWWKC5ld5Ccaq4yALRV0IqtB8RdGdP8fI6mdYQCQgNftRR8slvwKmjJp/pub?gid=0&single=true&output=csv)
+
+### Widget Data Usage
+- W1 (2025 Results): Uses all three CSVs
+- W2 (Map Iframe): Uses Results CSV only for constituency lookup, then iframe loads map which uses all three CSVs
+- W3 (Current MLA): Uses all three CSVs
+- W4 (Timeline): Uses all three CSVs
+- W5 (Historical Grid): Uses all three CSVs
+
+---
+
 ## Page Structure
 
 Headline (static)
