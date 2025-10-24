@@ -586,14 +586,13 @@
         // If no winner AND no leading, return vertical lines pattern
         if (!party) return _makeNoDataPattern();
         if (mode === 'alliance-2025'){
+          // Approach A: use already pastelized alliance color (no extra pastelization)
           const allyKey = resolveAllianceForYear(party, 2025);
-          const orig = allyKey === 'NA' ? '#e5e7eb' : (allianceColors.get(allyKey) || '#e5e7eb');
-          const pastel = pastelizeColor(orig, hasL && !hasW ? 0.5 : 0.25);
+          const pastel = allyKey === 'NA' ? '#e5e7eb' : (allianceColors.get(allyKey) || '#e5e7eb');
           return (hasL && !hasW) ? _makeHatchPattern(pastel) : pastel;
         } else {
-          const info = partyData.get(party);
-          const orig = (info && info.color) || '#888';
-          const pastel = pastelizeColor(orig, hasL && !hasW ? 0.5 : 0.25);
+          // Approach A: use already pastelized party color (no extra pastelization)
+          const pastel = partyColors.get(party) || (partyData.get(party)?.color) || '#888';
           return (hasL && !hasW) ? _makeHatchPattern(pastel) : pastel;
         }
       }
