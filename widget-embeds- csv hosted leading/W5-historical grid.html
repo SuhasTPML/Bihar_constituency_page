@@ -216,7 +216,7 @@ if (!window.biharWidgetDataCache) {
               '<div class="candidate-info">' +
                 '<div>' +
                   '<div class="candidate-name">WINNER: ' + (w.Candidate || '—') + '</div>' +
-                  '<div class="candidate-party">' + (wP.name || wP.code || '—') + ' • <span class="vote-count">' + fmtNumber(wVotes) + ' votes</span></div>' +
+                  '<div class="candidate-party">' + (wP.name || wP.code || '—') + '<br><span class="vote-count">' + fmtNumber(wVotes) + ' votes</span></div>' +
                 '</div>' +
               '</div>' +
               '<div class="bar"><span style="width:' + wPct + '%; background:#16a34a"></span></div>' +
@@ -225,7 +225,7 @@ if (!window.biharWidgetDataCache) {
               '<div class="candidate-info">' +
                 '<div>' +
                   '<div class="candidate-name">Runner-up: ' + (ru.Candidate || '—') + '</div>' +
-                  '<div class="candidate-party">' + (ruP.name || ruP.code || '—') + ' • <span class="vote-count">' + fmtNumber(ruVotes) + ' votes</span></div>' +
+                  '<div class="candidate-party">' + (ruP.name || ruP.code || '—') + '<br><span class="vote-count">' + fmtNumber(ruVotes) + ' votes</span></div>' +
                 '</div>' +
               '</div>' +
               '<div class="bar"><span style="width:' + ruPct + '%; background:#dc2626"></span></div>' +
