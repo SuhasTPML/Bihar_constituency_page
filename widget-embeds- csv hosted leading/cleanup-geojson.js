@@ -62,6 +62,10 @@ geoJson.features.forEach((feature) => {
       cleanedProperties[prop] = feature.properties[prop];
     }
   });
+  // Normalize district name: remove trailing asterisk and trim whitespace
+  if (typeof cleanedProperties.DIST_NAME === 'string') {
+    cleanedProperties.DIST_NAME = cleanedProperties.DIST_NAME.replace(/\s*\*$/, '').trim();
+  }
   const beforeCount = feature.properties ? Object.keys(feature.properties).length : 0;
   const afterCount = Object.keys(cleanedProperties).length;
   removedCount += Math.max(0, beforeCount - afterCount);
