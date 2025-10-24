@@ -70,9 +70,9 @@ if (!window.biharWidgetDataCache) {
         var slug = extractSlug(parentUrl);
         if (!slug) { hostEl.innerHTML = '<div style="padding:20px;color:#b91c1c;">Could not extract constituency from URL</div>'; isFetching = false; return; }
 
-        var PARTIES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTkIPquNELhk-ox7P7qIrBu4WhxOAGb94ILzfSwEAJ-OMAXV9Dpz4k0RlZH5Hc8F0DJPUHP2ALDNfIb/pub?gid=2137025522&single=true&output=csv';
-        var RESULTS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Owt5cYAhwo6k6ggprd7Pp2kT3RiV5-5XsSUFVSXG4oOu3Cc64emjWWMjSruwXfi_33Z24S4muAOY/pub?gid=1572654813&single=true&output=csv';
-        var ALLIANCES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRiy0B0zY2ej1u0orjS8L1_TWWKC5ld5Ccaq4yALRV0IqtB8RdGdP8fI6mdYQCQgNftRR8slvwKmjJp/pub?gid=0&single=true&output=csv';
+        var PARTIES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTmp43B9VA2aGsvRkGlCDBgo_734_MUjFbUYVTJvEzNBhriY7aPZXGSHysjPP4d_e8zd7m4slGYrlsZ/pub?gid=0&single=true&output=csv';
+        var RESULTS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRZ1iw6Hek4foysmpJbB25SnpOk7DqGHCOXvh6_7TFMcDhwM5JhNPSgP93o7HV8vEiuHwo_HQjSrKwz/pub?gid=0&single=true&output=csv';
+        var ALLIANCES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQAULUspAv9-cN9Pdk-cs2Us4jAE7u85rUKOD7t9PkzI0bht35XxrOj2JqKd9GMBv8_p1qJMc8ZLGxS/pub?gid=0&single=true&output=csv';
         function parseCsv(text){
     var lines = text.replace(/\r\n?/g,'\n').split('\n');
     if (!lines.length) return [];
