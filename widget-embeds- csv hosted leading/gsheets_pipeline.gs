@@ -98,36 +98,42 @@ function seed2025From2020(resultsSheetName) {
   const rows = values.slice(1);
   const c = (n) => header.indexOf(n);
 
-  const i20n = c('y2020_winner_name');
-  const i20p = c('y2020_winner_party');
-  const i25n = c('y2025_winner_name');
-  const i25p = c('y2025_winner_party');
+  // 2020 columns
+  const i20wn = c('y2020_winner_name');
+  const i20wp = c('y2020_winner_party');
+  const i20wv = c('y2020_winner_votes');
+  const i20rn = c('y2020_runner_name');
+  const i20rp = c('y2020_runner_party');
+  const i20rv = c('y2020_runner_votes');
+
+  // 2025 columns
+  const i25wn = c('y2025_winner_name');
+  const i25wp = c('y2025_winner_party');
   const i25wv = c('y2025_winner_votes');
   const i25rn = c('y2025_runner_name');
   const i25rp = c('y2025_runner_party');
   const i25rv = c('y2025_runner_votes');
-  const required = [i20n,i20p,i25n,i25p,i25wv,i25rn,i25rp,i25rv].every(i => i >= 0);
+
+  const required = [i20wn,i20wp,i20wv,i20rn,i20rp,i20rv,i25wn,i25wp,i25wv,i25rn,i25rp,i25rv].every(i => i >= 0);
   if (!required) throw new Error('Required 2020/2025 columns not found.');
 
   let changed = 0;
   for (let r = 0; r < rows.length; r++) {
     const row = rows[r];
-    const name2020 = row[i20n];
-    const party2020 = row[i20p];
-    // Only seed if empty
-    if (String(row[i25n]||'').trim() === '' && String(row[i25p]||'').trim() === '') {
-      row[i25n] = name2020 || '';
-      row[i25p] = party2020 || '';
+    // Only seed if winner name/party are empty
+    if (String(row[i25wn]||'').trim() === '' && String(row[i25wp]||'').trim() === '') {
+      // Seed ALL 2025 result fields from 2020 (except leading fields which aren't referenced here)
+      row[i25wn] = row[i20wn] || '';
+      row[i25wp] = row[i20wp] || '';
+      row[i25wv] = row[i20wv] || '';
+      row[i25rn] = row[i20rn] || '';
+      row[i25rp] = row[i20rp] || '';
+      row[i25rv] = row[i20rv] || '';
       changed++;
     }
-    // Always clear numeric placeholders for 2025
-    row[i25wv] = '';
-    row[i25rn] = '';
-    row[i25rp] = '';
-    row[i25rv] = '';
   }
   sh.getRange(2, 1, rows.length, header.length).setValues(rows);
-  SpreadsheetApp.getUi().alert(`Seeded ${changed} rows with 2025 placeholders from 2020 winners.`);
+  SpreadsheetApp.getUi().alert(`Seeded ${changed} rows with 2025 data from 2020 (winner/runner fields). Leading fields not touched.`);
 }
 
 function clear2025Placeholders(resultsSheetName) {
