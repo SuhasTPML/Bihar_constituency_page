@@ -1431,6 +1431,7 @@
 
     // Global variable to store data received from parent via postMessage
     let receivedElectionData = null;
+    let initCalled = false;
 
     // Listen for data from parent window (for embedded iframe usage)
     window.addEventListener('message', function(event) {
@@ -1441,6 +1442,11 @@
           results: event.data.results,
           alliances: event.data.alliances || ''
         };
+        // Trigger init() now that we have data
+        if (!initCalled) {
+          initCalled = true;
+          init();
+        }
       }
     });
 
@@ -1673,7 +1679,14 @@
       }
     }
 
-    init();
+    // Wait for postMessage data (embedded mode) or timeout (standalone mode)
+    setTimeout(function() {
+      if (!initCalled) {
+        console.log('⏱️ No postMessage received, running in standalone mode');
+        initCalled = true;
+        init();
+      }
+    }, 2000); // 2 second timeout
   </script>
 
   <div id="bottomSheet" style="display: none;">
