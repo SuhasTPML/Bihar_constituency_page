@@ -586,14 +586,13 @@
         // If no winner AND no leading, return vertical lines pattern
         if (!party) return _makeNoDataPattern();
         if (mode === 'alliance-2025'){
+          // Approach A: use already pastelized alliance color (no extra pastelization)
           const allyKey = resolveAllianceForYear(party, 2025);
-          const orig = allyKey === 'NA' ? '#e5e7eb' : (allianceColors.get(allyKey) || '#e5e7eb');
-          const pastel = pastelizeColor(orig, hasL && !hasW ? 0.5 : 0.25);
+          const pastel = allyKey === 'NA' ? '#e5e7eb' : (allianceColors.get(allyKey) || '#e5e7eb');
           return (hasL && !hasW) ? _makeHatchPattern(pastel) : pastel;
         } else {
-          const info = partyData.get(party);
-          const orig = (info && info.color) || '#888';
-          const pastel = pastelizeColor(orig, hasL && !hasW ? 0.5 : 0.25);
+          // Approach A: use already pastelized party color (no extra pastelization)
+          const pastel = partyColors.get(party) || (partyData.get(party)?.color) || '#888';
           return (hasL && !hasW) ? _makeHatchPattern(pastel) : pastel;
         }
       }
@@ -1429,6 +1428,27 @@
 
 
 
+    // Global variable to store data received from parent via postMessage
+    let receivedElectionData = null;
+    let initCalled = false;
+
+    // Listen for data from parent window (for embedded iframe usage)
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'biharElectionData') {
+        console.log('📬 Received election data from parent window');
+        receivedElectionData = {
+          parties: event.data.parties,
+          results: event.data.results,
+          alliances: event.data.alliances || ''
+        };
+        // Trigger init() now that we have data
+        if (!initCalled) {
+          initCalled = true;
+          init();
+        }
+      }
+    });
+
     // Robust data loading with GitHub Pages CDN + local fallback
     async function loadWithFallback(githubUrl, localPath, description = 'data') {
       try {
@@ -1496,11 +1516,24 @@
     });
     return rows;
   }
-        const [partiesText, resultsText, alliancesText] = await Promise.all([
-          fetch(PARTIES_CSV).then(r=>r.text()),
-          fetch(RESULTS_CSV).then(r=>r.text()),
-          fetch(ALLIANCES_CSV).then(r=>r.text()).catch(()=>''),
-        ]);
+        // Check if data was received from parent via postMessage
+        let partiesText, resultsText, alliancesText;
+        if (receivedElectionData) {
+          console.log('✅ Using cached data from parent window (postMessage)');
+          partiesText = receivedElectionData.parties;
+          resultsText = receivedElectionData.results;
+          alliancesText = receivedElectionData.alliances;
+        } else {
+          console.log('📡 Fetching data from Google Sheets (standalone mode)');
+          const fetchResults = await Promise.all([
+            fetch(PARTIES_CSV).then(r=>r.text()),
+            fetch(RESULTS_CSV).then(r=>r.text()),
+            fetch(ALLIANCES_CSV).then(r=>r.text()).catch(()=>''),
+          ]);
+          partiesText = fetchResults[0];
+          resultsText = fetchResults[1];
+          alliancesText = fetchResults[2];
+        }
         const partiesRows = parseCsv(partiesText);
         const resultsRows = parseCsv(resultsText);
         const alliancesRows = alliancesText ? parseCsv(alliancesText) : [];
@@ -1645,7 +1678,14 @@
       }
     }
 
-    init();
+    // Wait for postMessage data (embedded mode) or timeout (standalone mode)
+    setTimeout(function() {
+      if (!initCalled) {
+        console.log('⏱️ No postMessage received, running in standalone mode');
+        initCalled = true;
+        init();
+      }
+    }, 2000); // 2 second timeout
   </script>
 
   <div id="bottomSheet" style="display: none;">

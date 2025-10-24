@@ -1,0 +1,322 @@
+﻿<script>
+(function() {
+  var hasRendered = false;
+  var renderAttempts = 0;
+  var maxAttempts = 3;
+
+  function initEmbed() {
+    try {
+      renderAttempts++;
+      var parentUrl = '';
+      try {
+        parentUrl = window.parent.location.href;
+      } catch(e) {
+        parentUrl = document.referrer || window.location.href;
+      }
+
+      var hostEl = document.getElementById('bihar-widget-2025results');
+      if (!hostEl) {
+        if (renderAttempts < maxAttempts) {
+          setTimeout(initEmbed, 500);
+        }
+        return;
+      }
+
+      if (hasRendered && hostEl.innerHTML.length > 50) {
+        return;
+      }
+
+      function extractSlug(url) {
+        try {
+          var urlObj = new URL(url);
+          var path = urlObj.pathname;
+          var match = path.match(/\/([^\/]+?)(?:-assembly)?-election-\d{4}/i);
+          if (match && match[1]) return match[1];
+          var parts = path.split('/').filter(function(p){ return p.length > 0; });
+          if (parts.length > 1) {
+            var lastPart = parts[parts.length - 1];
+            var cleaned = lastPart.replace(/-\d{4}-\d+$/, '').replace(/-assembly-election.*$/, '').replace(/-election.*$/, '');
+            if (cleaned) return cleaned;
+          }
+          return null;
+        } catch(e) {
+          return null;
+        }
+      }
+
+      var slug = extractSlug(parentUrl);
+      console.log('[Bihar Widget] Parent URL:', parentUrl);
+      console.log('[Bihar Widget] Extracted slug:', slug);
+      if (!slug) {
+        console.log('[Bihar Widget] No slug found, hiding widget');
+        hostEl.innerHTML = '';
+        return;
+      }
+
+      // Direct CSV sources (no environment switching)
+      // Google Sheets published CSV URLs
+      var PARTIES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTkIPquNELhk-ox7P7qIrBu4WhxOAGb94ILzfSwEAJ-OMAXV9Dpz4k0RlZH5Hc8F0DJPUHP2ALDNfIb/pub?gid=2137025522&single=true&output=csv';
+      var RESULTS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Owt5cYAhwo6k6ggprd7Pp2kT3RiV5-5XsSUFVSXG4oOu3Cc64emjWWMjSruwXfi_33Z24S4muAOY/pub?gid=1572654813&single=true&output=csv';
+      var ALLIANCES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRiy0B0zY2ej1u0orjS8L1_TWWKC5ld5Ccaq4yALRV0IqtB8RdGdP8fI6mdYQCQgNftRR8slvwKmjJp/pub?gid=0&single=true&output=csv';
+
+      console.log('[Bihar Widget] Fetching CSV data...');
+
+      function parseCsv(text){
+    var lines = text.replace(/\r\n?/g,'\n').split('\n');
+    if (!lines.length) return [];
+    var header = lines.shift().split(',').map(function(s){return s.trim();});
+    var rows = [];
+    lines.forEach(function(line){
+      if (!line) return;
+      var cells = [];
+      // CMS-safe CSV parser - character by character to avoid regex quote issues
+      var QUOTE = '"';
+      var COMMA = ',';
+      var cell = '';
+      var inQuotes = false;
+      for (var i = 0; i < line.length; i++) {
+        var ch = line.charAt(i);
+        if (ch === QUOTE) {
+          inQuotes = !inQuotes;
+        } else if (ch === COMMA && !inQuotes) {
+          cells.push(cell.trim());
+          cell = '';
+        } else {
+          cell += ch;
+        }
+      }
+      cells.push(cell.trim());
+      if (!cells.length) return;
+      var obj = {};
+      for (var i=0;i<header.length;i++){ obj[header[i]] = cells[i]===undefined? '' : cells[i]; }
+      rows.push(obj);
+    });
+    return rows;
+  }
+      function loadCsvJson(url){ return fetch(url).then(function(r){return r.text();}).then(parseCsv); }
+
+      Promise.all([
+        loadCsvJson(PARTIES_CSV),
+        loadCsvJson(RESULTS_CSV),
+        loadCsvJson(ALLIANCES_CSV).catch(function(){ return []; })
+      ]).then(function(results) {
+        console.log('[Bihar Widget] CSV data loaded successfully');
+        console.log('[Bihar Widget] Parties count:', (results[0]||[]).length);
+        console.log('[Bihar Widget] Results count:', (results[1]||[]).length);
+        console.log('[Bihar Widget] Alliances count:', (results[2]||[]).length);
+
+        var alliancesData = results[2]||[];
+        var allianceColors = {};
+        for (var i = 0; i < alliancesData.length; i++) {
+          var a = alliancesData[i];
+          var key = (a.alliance || '').trim().toUpperCase();
+          var color = (a.alliance_colour_code || '').trim();
+          if (key && color) {
+            allianceColors[key] = color;
+          }
+        }
+
+        var parties = (results[0]||[]).map(function(p){
+          var alliances = { '2010': p.alliance_2010||p.alliance||'', '2015': p.alliance_2015||p.alliance||'', '2020': p.alliance_2020||p.alliance||'', '2025': p.alliance_2025||p.alliance||'' };
+          var allianceColor = allianceColors[(p.alliance||'').trim().toUpperCase()] || p.color;
+          return { code: p.code, name: p.name, color: p.color, allianceColor: allianceColor, alliances: alliances, alliance: p.alliance||'' };
+        });
+        var consolidated = results[1]||[];
+        var constituency = null;
+        var urlLower = parentUrl.toLowerCase();
+
+        console.log('[Bihar Widget] Searching for constituency in URL:', urlLower);
+
+        // Match by checking if constituency name is in the URL
+        for (var i = 0; i < consolidated.length; i++) {
+          var constName = (consolidated[i].constituency_name || '').toLowerCase().replace(/\s+/g, '-');
+          if (constName && urlLower.includes(constName)) {
+            console.log('[Bihar Widget] Found match! Constituency:', consolidated[i].constituency_name, '| Slug:', consolidated[i].slug);
+            constituency = consolidated[i];
+            break;
+          }
+        }
+
+        // Fallback: exact slug match
+        if (!constituency) {
+          console.log('[Bihar Widget] No name match, trying exact slug match...');
+          for (var i = 0; i < consolidated.length; i++) {
+            if (consolidated[i].slug === slug) {
+              console.log('[Bihar Widget] Found slug match:', consolidated[i].constituency_name);
+              constituency = consolidated[i];
+              break;
+            }
+          }
+        }
+
+        if (!constituency) {
+          console.log('[Bihar Widget] No constituency match found, hiding widget');
+          hostEl.innerHTML = '';
+          return;
+        }
+
+        // Check for 2025 data
+        var wName = constituency.y2025_winner_name;
+        var wParty = constituency.y2025_winner_party;
+        var wVotes = constituency.y2025_winner_votes;
+        var margin = constituency.y2025_margin;
+        var leadName = constituency.y2025_leading_name;
+        var leadParty = constituency.y2025_leading_party;
+
+        function nonEmpty(v){
+          if (v == null) return false;
+          var s = String(v).trim();
+          return s !== '' && !/^(-|NA)$/i.test(s);
+        }
+        var hasWinner = nonEmpty(wName) && nonEmpty(wParty);
+        var hasLeading = nonEmpty(leadName) && nonEmpty(leadParty);
+
+        // Before stage: neither winner nor leading -> show pre-results overlay
+        if (!hasWinner && !hasLeading) {
+          var css = '<style>'+
+            '#'+ 'bihar-widget-2025results' + ' .card{position:relative}'+
+            '#'+ 'bihar-widget-2025results' + ' .overlay{position:absolute;inset:0;background:rgba(255,255,255,0.85);display:flex;align-items:center;justify-content:center;text-align:center;border-radius:12px;pointer-events:none;z-index:1}'+
+            '#'+ 'bihar-widget-2025results' + ' .overlay-text{font-size:18px;font-weight:700;color:#6b7280}'+
+          '</style>';
+          var skel = css +
+            '<div class="card election-result">'+
+              '<div class="overlay"><p class="overlay-text">Results not announced yet. Return on result day to see the outcome.</p></div>'+
+              '<h3 class="election-title">Bihar Elections 2025 Results</h3>'+
+              '<div class="candidate-row">'+
+                '<div class="candidate-info"><div>'+
+                  '<div class="candidate-name"><span class="muted">WINNER:</span> <span class="muted">To be announced</span></div>'+
+                  '<div class="candidate-party"><span class="muted">&mdash;</span></div>'+
+                '</div></div>'+
+                '<div class="bar"><span style="width:40%; background:#e5e7eb"></span></div>'+
+              '</div>'+
+              '<div class="candidate-row">'+
+                '<div class="candidate-info"><div>'+
+                  '<div class="candidate-name"><span class="muted">Runner-up:</span> <span class="muted">To be announced</span></div>'+
+                  '<div class="candidate-party"><span class="muted">&mdash;</span></div>'+
+                '</div></div>'+
+                '<div class="bar"><span style="width:30%; background:#e5e7eb"></span></div>'+
+              '</div>'+
+            '</div>';
+          hostEl.innerHTML = skel;
+          hasRendered = true;
+          return;
+        }
+
+        // Build party index
+        var partiesIdx = {};
+        parties.forEach(function(p) { partiesIdx[p.code] = p; });
+
+        var PARTY_NORMALIZE = { 'JDU': 'JD(U)', 'CPM': 'CPI(M)', 'HAM': 'HAM(S)', 'Ind': 'IND' };
+        function normalizeParty(code) {
+          if (!code) return code;
+          var c = code.trim();
+          return PARTY_NORMALIZE[c] || c;
+        }
+
+        function fmtNumber(n) {
+          return (n == null ? 'N/A' : Number(n).toLocaleString('en-IN'));
+        }
+
+        function enrichParty(code, idx) {
+          var norm = normalizeParty(code || '');
+          var meta = idx[norm] || idx[code] || null;
+          return {
+            code: norm || null,
+            name: meta ? meta.name : null,
+            color: meta ? meta.color : '#888'
+          };
+        }
+
+        // Live stage: show Leading when winner absent but leading present
+        if (!hasWinner && hasLeading) {
+          var leadP = enrichParty(leadParty, partiesIdx);
+var liveHtml = '<div class="card election-result">' +
+            '<h3 class="election-title">Bihar Elections 2025 Results</h3>' +
+            '<div class="candidate-row">' +
+              '<div class="candidate-info"><div>' +
+                '<div class="candidate-name">LEADING: ' + (leadName || '—') + ' ' +
+                  '<span style="display:inline-block;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;color:#fff;margin-left:8px;vertical-align:middle;box-shadow:rgba(0, 0, 0, 0.15) 0px 2px 4px;text-shadow:none;border:none;background:'+(leadP.color||'#888')+'">' + (leadP.code || leadP.name || '-') + '</span>' +
+                  ' <span class="muted" style="margin-left:6px">(awaiting final result)</span>' +
+                '</div>' +
+              '</div></div>' +
+              '<div class="bar"><span style="width:40%; background:#e5e7eb"></span></div>' +
+            '</div>' +
+            '<div class="candidate-row">' +
+              '<div class="candidate-info"><div>' +
+                '<div class="candidate-name">Runner-up: <span class="muted">To be announced</span></div>' +
+              '</div></div>' +
+              '<div class="bar"><span style="width:30%; background:#e5e7eb"></span></div>' +
+            '</div>' +
+            '<div class="status-text" aria-live="polite" style="margin-top:12px;padding:8px 12px;border-radius:8px;background:#fef3c7;color:#92400e;font-weight:700">Live update: Check back later for winners.</div>' +
+          '</div>';
+          hostEl.innerHTML = liveHtml;
+          hasRendered = true;
+          return;
+        }
+
+        var ruName = constituency.y2025_runner_name;
+        var ruParty = constituency.y2025_runner_party;
+        var ruVotes = constituency.y2025_runner_votes;
+
+        var wP = enrichParty(wParty, partiesIdx);
+        var ruP = enrichParty(ruParty, partiesIdx);
+        var wVotesNum = parseInt(String(wVotes || '').replace(/,/g, ''), 10) || 0;
+        var ruVotesNum = parseInt(String(ruVotes || '').replace(/,/g, ''), 10) || 0;
+        var marginNum = parseInt(String(margin || '').replace(/,/g, ''), 10) || Math.max(0, wVotesNum - ruVotesNum);
+        var maxV = Math.max(wVotesNum, ruVotesNum, 1);
+        var wPct = Math.round((wVotesNum / maxV) * 100);
+        var ruPct = Math.round((ruVotesNum / maxV) * 100);
+
+        var html = '<div class="card election-result">' +
+          '<h3 class="election-title">Bihar Elections 2025 Results</h3>' +
+          '<div class="candidate-row">' +
+            '<div class="candidate-info">' +
+              '<div>' +
+                '<div class="candidate-name">WINNER: ' + (wName || '—') + ' ' +
+                  '<span style="display:inline-block;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;color:#fff;margin-left:8px;vertical-align:middle;box-shadow:rgba(0, 0, 0, 0.15) 0px 2px 4px;text-shadow:none;border:none;background:'+(wP.color||'#888')+'">' + (wP.code || wP.name || '-') + '</span>' +
+                '</div>' +
+                '<div class="candidate-party">' + (wP.name || wP.code || '—') + ' • <span class="vote-count">' + fmtNumber(wVotesNum) + ' votes</span></div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="bar"><span style="width:' + wPct + '%; background:#16a34a"></span></div>' +
+          '</div>' +
+          '<div class="candidate-row">' +
+            '<div class="candidate-info">' +
+              '<div>' +
+                '<div class="candidate-name">Runner-up: ' + (ruName || '—') + ' ' +
+                  '<span style="display:inline-block;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;color:#fff;margin-left:8px;vertical-align:middle;box-shadow:rgba(0, 0, 0, 0.15) 0px 2px 4px;text-shadow:none;border:none;background:'+(ruP.color||'#888')+'">' + (ruP.code || ruP.name || '-') + '</span>' +
+                '</div>' +
+                '<div class="candidate-party">' + (ruP.name || ruP.code || '—') + ' • <span class="vote-count">' + fmtNumber(ruVotesNum) + ' votes</span></div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="bar"><span style="width:' + ruPct + '%; background:#dc2626"></span></div>' +
+          '</div>' +
+          '<div class="margin-info">' +
+            '<span class="margin-text">MARGIN: ' + fmtNumber(marginNum) + ' votes</span>' +
+          '</div>' +
+        '</div>';
+
+        console.log('[Bihar Widget] Rendering widget for:', constituency.constituency_name);
+        hostEl.innerHTML = html;
+        hasRendered = true;
+      }).catch(function(err) {
+        console.error('[Bihar Widget] Error loading data:', err);
+        hostEl.innerHTML = '';
+      });
+
+    } catch(e) {
+      if (renderAttempts < maxAttempts) {
+        setTimeout(initEmbed, 500);
+      }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEmbed);
+  } else {
+    initEmbed();
+  }
+  setTimeout(initEmbed, 100);
+  setTimeout(initEmbed, 500);
+  window.addEventListener('load', initEmbed);
+})();</script>

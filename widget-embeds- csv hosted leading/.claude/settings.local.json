@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add \"2025 results.html\" \"Current mla.html\" \"historical grid.html\" \"map iframe.html\" timeline.html \"W1-2025 results.html\" \"W2-map iframe.html\" \"W3-Current mla.html\" W4-timeline.html \"W5-historical grid.html\" \"map csv - no ajax.html\")",
+      "Bash(git commit -m \"$(cat <<''EOF''\nrefactor(widgets): reorganize widget files with W1-W5 naming convention\n\nRestructure widget HTML files to use a clearer W1-W5 prefix naming system for better organization and identification. Add new CSV-based map widget without AJAX dependency.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push)",
+      "Bash(git add WIDGET_STATES.md)",
+      "Bash(git commit -m \"$(cat <<''EOF''\ndocs: add CSV data sources with editable and export URLs\n\nAdd comprehensive Data Sources section to WIDGET_STATES.md including:\n- Editable Google Sheets URLs for all three data sources\n- CSV export URLs used by widgets\n- Clear descriptions and widget usage mapping\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push origin feat/auto-2025-switch)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
