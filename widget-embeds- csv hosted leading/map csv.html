@@ -35,6 +35,23 @@
       font-size: 14px;
     }
 
+    /* Style the search clear button (×) */
+    .controls-search input[type="search"]::-webkit-search-cancel-button {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 16px;
+      width: 16px;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>');
+      background-size: 16px 16px;
+      background-repeat: no-repeat;
+      cursor: pointer;
+      opacity: 0.6;
+    }
+
+    .controls-search input[type="search"]::-webkit-search-cancel-button:hover {
+      opacity: 1;
+    }
+
     .controls-search .dropdown {
       position: absolute;
       top: 100%;
@@ -991,7 +1008,7 @@
         content += `<div class="card-grid">`;
         content += `<div><span class="card-label">Party:</span><span class="pill" style="background: ${partyColor};">${party}</span></div>`;
         content += `<div><span class="card-label">Alliance:</span><span class="pill" style="background: ${allianceColor};">${alliance}</span></div>`;
-        content += `<button id="moreDetailsBtn" class="action-button">More details →</button>`;
+        content += `<button id="moreDetailsBtn" class="action-button">Learn More</button>`;
         content += `</div>`;
       } else {
         content += `<div class="info-row" style="color: #9ca3af; font-style: italic;">No election data available for this constituency.</div>`;
