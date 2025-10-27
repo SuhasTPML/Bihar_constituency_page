@@ -184,24 +184,20 @@
       flex-wrap: wrap;
     }
 
-    .card {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
+    .card-label {
       font-size: 13px;
       color: #374151;
+      margin-right: 6px;
     }
 
-    .color-swatch {
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      flex-shrink: 0;
-      border: 1px solid rgba(0,0,0,0.1);
+    .pill {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
     }
 
     .action-button {
@@ -237,16 +233,14 @@
         padding-bottom: 140px;
       }
 
-      /* Keep cards on one line on mobile */
+      /* Keep pills on one line on mobile */
       .card-grid {
         gap: 8px;
       }
 
-      .card {
-        justify-content: flex-start;
-        padding: 8px 10px;
-        font-size: 12px;
-        flex: 1;
+      .pill {
+        font-size: 11px;
+        padding: 3px 10px;
       }
 
       .action-button {
@@ -295,14 +289,9 @@
         margin-bottom: 8px;
       }
 
-      .card {
-        padding: 10px 12px;
-        font-size: 12px;
-      }
-
-      .color-swatch {
-        width: 16px;
-        height: 16px;
+      .pill {
+        font-size: 11px;
+        padding: 3px 10px;
       }
 
       .action-button {
@@ -990,23 +979,18 @@
           mlaLabel = 'Current MLA';
         }
 
-        // Get colors for party and alliance
-        const partyColor = partyColors.get(party) || '#f3f4f6';
-        const allianceColor = allianceColors.get(normalizeAllianceKey(alliance)) || '#f3f4f6';
+        // Get original (non-pastelized) colors for pills with white text
+        const partyInfo = partyData.get(party);
+        const partyColor = partyInfo?.color || '#888888';
+        const allianceColor = allianceOriginalColors.get(normalizeAllianceKey(alliance)) || '#888888';
 
         // MLA information row
         content += `<div class="info-row">${mlaLabel}: <strong>${mlaName}</strong></div>`;
 
-        // Party and alliance cards with professional layout
+        // Party and alliance pills
         content += `<div class="card-grid">`;
-        content += `<div class="card">`;
-        content += `<div class="color-swatch" style="background: ${partyColor};"></div>`;
-        content += `<span><strong>Party:</strong> ${party}</span>`;
-        content += `</div>`;
-        content += `<div class="card">`;
-        content += `<div class="color-swatch" style="background: ${allianceColor};"></div>`;
-        content += `<span><strong>Alliance:</strong> ${alliance}</span>`;
-        content += `</div>`;
+        content += `<div><span class="card-label">Party:</span><span class="pill" style="background: ${partyColor};">${party}</span></div>`;
+        content += `<div><span class="card-label">Alliance:</span><span class="pill" style="background: ${allianceColor};">${alliance}</span></div>`;
         content += `<button id="moreDetailsBtn" class="action-button">More details →</button>`;
         content += `</div>`;
       } else {
