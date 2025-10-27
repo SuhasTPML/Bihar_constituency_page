@@ -137,7 +137,7 @@
       z-index: 1000;
       font-size: 14px;
       max-height: 140px;
-      overflow-y: auto;
+      overflow-y: hidden;
     }
 
     .sheet-header {
@@ -237,16 +237,16 @@
         padding-bottom: 140px;
       }
 
-      /* Stack cards vertically on mobile */
+      /* Keep cards on one line on mobile */
       .card-grid {
-        flex-direction: column;
-        align-items: stretch;
         gap: 8px;
       }
 
       .card {
         justify-content: flex-start;
-        padding: 8px 12px;
+        padding: 8px 10px;
+        font-size: 12px;
+        flex: 1;
       }
 
       .action-button {
